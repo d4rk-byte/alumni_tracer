@@ -1,0 +1,205 @@
+/* Global shell styling aligned with landing page visual language */
+
+body {
+    font-family: "Poppins", "Segoe UI", sans-serif;
+    background:
+        radial-gradient(circle at 8% 6%, rgba(219, 234, 254, 0.75), transparent 32%),
+        radial-gradient(circle at 94% 8%, rgba(186, 230, 253, 0.65), transparent 34%),
+        #f8fbff;
+}
+
+body.no-navbar {
+    background: #f9fafb;
+}
+
+#mainNavbar.norsu-topbar {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 58%, #0ea5e9 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 10px 24px rgba(30, 64, 175, 0.26);
+    backdrop-filter: saturate(1.08);
+}
+
+.norsu-brand-logo-wrap {
+    width: 38px;
+    height: 38px;
+}
+
+.norsu-brand-logo {
+    width: 38px;
+    height: 38px;
+}
+
+#guestNavDesktop.norsu-guest-desktop {
+    column-gap: 1.6rem;
+}
+
+.norsu-guest-link {
+    position: relative;
+    white-space: nowrap;
+}
+
+.norsu-guest-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.85);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.2s ease;
+}
+
+.norsu-guest-link:hover::after {
+    transform: scaleX(1);
+}
+
+.norsu-guest-cta {
+    white-space: nowrap;
+    border-radius: 999px;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.norsu-guest-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 20px rgba(15, 23, 42, 0.25);
+}
+
+#sidebar.norsu-sidebar {
+    background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+    border-right: 1px solid #dce9ff;
+    box-shadow: 10px 0 24px rgba(30, 64, 175, 0.08);
+}
+
+#sidebar.norsu-sidebar .sidebar-section-title {
+    margin: 0.45rem 0.75rem 0.2rem;
+    padding: 0.25rem 0.55rem;
+    border-left: 3px solid #bfdbfe;
+    color: #64748b;
+    letter-spacing: 0.12em;
+    font-size: 0.67rem;
+    line-height: 1.1;
+}
+
+#sidebar.norsu-sidebar .sidebar-link {
+    margin-left: 0.65rem;
+    margin-right: 0.65rem;
+    border-radius: 0.85rem;
+    color: #334155;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+}
+
+#sidebar.norsu-sidebar .sidebar-link:hover {
+    background: linear-gradient(90deg, #eff6ff 0%, #f0f9ff 100%);
+    color: #1e40af;
+    transform: translateX(2px);
+}
+
+#sidebar.norsu-sidebar .sidebar-link.active {
+    background: linear-gradient(118deg, #1d4ed8 0%, #1e40af 58%, #0284c7 100%);
+    color: #ffffff;
+    box-shadow: 0 10px 18px rgba(30, 64, 175, 0.28);
+}
+
+#sidebar.norsu-sidebar .sidebar-link.active:hover {
+    color: #ffffff;
+    transform: translateX(1px);
+}
+
+#sidebar.norsu-sidebar .sidebar-link .sidebar-icon {
+    opacity: 0.95;
+}
+
+#sidebar.norsu-sidebar .sidebar-helper-note {
+    margin: 0.2rem 0.75rem 0;
+    padding: 0 0.55rem;
+    color: #94a3b8;
+    line-height: 1.35;
+}
+
+.norsu-main-content {
+    position: relative;
+}
+
+.icon-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.85rem;
+    height: 1.85rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #334155;
+    border-radius: 0.4rem;
+    line-height: 1;
+    text-decoration: none;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.icon-action:hover {
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+.icon-action:focus-visible {
+    outline: 2px solid rgba(59, 130, 246, 0.45);
+    outline-offset: 2px;
+}
+
+.icon-action i {
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.icon-action-btn {
+    cursor: pointer;
+}
+
+.icon-action-view {
+    color: #2563eb;
+}
+
+.icon-action-view:hover {
+    color: #1e40af;
+}
+
+.icon-action-edit {
+    color: #d97706;
+}
+
+.icon-action-edit:hover {
+    color: #b45309;
+}
+
+.icon-action-delete {
+    color: #dc2626;
+}
+
+.icon-action-delete:hover {
+    color: #b91c1c;
+}
+
+.icon-action-approve {
+    color: #059669;
+}
+
+.icon-action-approve:hover {
+    color: #047857;
+}
+
+.icon-action-download {
+    color: #0f766e;
+}
+
+.icon-action-download:hover {
+    color: #115e59;
+}
+
+@media (max-width: 991.98px) {
+    #mainNavbar.norsu-topbar {
+        box-shadow: 0 8px 18px rgba(30, 64, 175, 0.22);
+    }
+}

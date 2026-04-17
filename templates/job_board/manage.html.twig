@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Manage Job Board{% endblock %}
+{% block body_class %}admin-material-page{% endblock %}
 
 {% block body %}
 <div class="flex justify-between items-center mb-3">
@@ -9,7 +10,6 @@
         <p class="text-gray-500 text-sm mb-0">Create, edit, and manage job postings</p>
     </div>
     <div class="flex gap-2">
-        <a href="{{ path('job_board_index') }}" class="btn-outline-norsu btn-sm"><i class="bi bi-eye mr-1"></i>Public View</a>
         <a href="{{ path('job_board_create') }}" class="btn-norsu"><i class="bi bi-plus-lg mr-1"></i>New Job</a>
     </div>
 </div>
@@ -55,12 +55,12 @@
                         <td class="py-2.5 text-sm">{{ job.datePosted|date('M d, Y') }}</td>
                         <td class="text-right pr-4 py-2.5">
                             <div class="flex gap-1 justify-end">
-                                <a href="{{ path('job_board_show', {id: job.id}) }}" class="btn-outline-norsu btn-sm"><i class="bi bi-eye"></i></a>
-                                <a href="{{ path('job_board_edit', {id: job.id}) }}" class="btn-warning btn-sm"><i class="bi bi-pencil"></i></a>
+                                <a href="{{ path('job_board_manage_show', {id: job.id}) }}" class="icon-action icon-action-view" title="View" aria-label="View job"><i class="bi bi-eye"></i></a>
+                                <a href="{{ path('job_board_edit', {id: job.id}) }}" class="icon-action icon-action-edit" title="Edit" aria-label="Edit job"><i class="bi bi-pencil"></i></a>
                                 <form method="post" action="{{ path('job_board_delete', {id: job.id}) }}" class="inline"
                                       onsubmit="return confirm('Delete this job posting?')">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ job.id) }}">
-                                    <button class="btn-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                    <button type="submit" class="icon-action icon-action-delete icon-action-btn" title="Delete" aria-label="Delete job"><i class="bi bi-trash"></i></button>
                                 </form>
                             </div>
                         </td>

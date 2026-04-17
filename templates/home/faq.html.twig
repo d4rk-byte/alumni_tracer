@@ -1,51 +1,41 @@
-{% extends 'base.html.twig' %}
+{% extends 'home/landing_layout.html.twig' %}
 
 {% block title %}FAQ — NORSU Alumni Tracker{% endblock %}
 
-{% block body %}
-<div class="hero-section relative overflow-hidden text-white py-16 mb-8" style="background-color:#1E3A8A;background-image:linear-gradient(118deg,rgba(6,24,63,0.84) 0%,rgba(13,65,120,0.66) 48%,rgba(5,150,105,0.54) 100%),url('{{ asset('images/home-hero-graduation.png') }}');background-size:cover;background-position:center;background-repeat:no-repeat;">
-    <div class="max-w-5xl mx-auto px-4 relative z-10 text-center" style="padding-top:2rem;">
-        <h1 class="font-extrabold text-4xl md:text-5xl mb-3">Frequently Asked Questions</h1>
-        <p class="text-lg text-white/90 max-w-3xl mx-auto">Answers to common questions about registration, profile management, tracer surveys, and account access.</p>
-    </div>
-</div>
-
-<div class="max-w-4xl mx-auto px-4 pb-8 space-y-3">
-    <div class="card">
-        <div class="card-body">
-            <h6 class="font-bold text-blue-800 mb-1">How do I create an alumni account?</h6>
-            <p class="text-sm text-gray-600 mb-0">Go to Register, complete your details, and wait for account verification by the assigned staff.</p>
+{% block page_content %}
+<div class="bg-blue-50 pb-10">
+    <div class="max-w-screen-xl px-8 mx-auto pt-14">
+        <div data-aos="fade-up" class="max-w-3xl mx-auto text-center mb-10">
+            <h1 class="font-bold text-darken my-3 text-3xl">Frequently Asked <span class="text-blue-600">Questions</span></h1>
+            <p class="leading-relaxed text-gray-500">Answers to common questions about registration, profile management, tracer surveys, and account access.</p>
         </div>
-    </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h6 class="font-bold text-blue-800 mb-1">Why is my account still pending?</h6>
-            <p class="text-sm text-gray-600 mb-0">Pending status means your details are still under review. Staff verifies submissions before activation.</p>
-        </div>
-    </div>
+        <div x-data="{ active: 1 }" class="max-w-4xl mx-auto space-y-4">
+            <div data-aos="fade-up" class="bg-white shadow-xl rounded-xl overflow-hidden">
+                <button type="button" @click="active = active === 1 ? 0 : 1" class="w-full text-left px-6 py-5 font-semibold text-darken">How do I create an alumni account?</button>
+                <div x-show="active === 1" class="px-6 pb-6 text-gray-500">Go to Register, complete your details, and wait for account verification by the assigned staff.</div>
+            </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h6 class="font-bold text-blue-800 mb-1">Can I edit my personal information later?</h6>
-            <p class="text-sm text-gray-600 mb-0">Yes. Open My Profile and select Edit Profile to update your information and profile picture.</p>
-        </div>
-    </div>
+            <div data-aos="fade-up" data-aos-delay="100" class="bg-white shadow-xl rounded-xl overflow-hidden">
+                <button type="button" @click="active = active === 2 ? 0 : 2" class="w-full text-left px-6 py-5 font-semibold text-darken">Why is my account still pending?</button>
+                <div x-show="active === 2" class="px-6 pb-6 text-gray-500">Pending status means your details are still under review. Staff verifies submissions before activation.</div>
+            </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h6 class="font-bold text-blue-800 mb-1">What is the Graduate Tracer Survey for?</h6>
-            <p class="text-sm text-gray-600 mb-0">It helps the university assess employment outcomes, skills relevance, and program impact after graduation.</p>
-        </div>
-    </div>
+            <div data-aos="fade-up" data-aos-delay="150" class="bg-white shadow-xl rounded-xl overflow-hidden">
+                <button type="button" @click="active = active === 3 ? 0 : 3" class="w-full text-left px-6 py-5 font-semibold text-darken">Can I edit my personal information later?</button>
+                <div x-show="active === 3" class="px-6 pb-6 text-gray-500">Yes. Open My Profile and select Edit Profile to update your information and profile picture.</div>
+            </div>
 
-    <div class="card">
-        <div class="card-body">
-            <h6 class="font-bold text-blue-800 mb-1">How can I recover my password?</h6>
-            <p class="text-sm text-gray-600 mb-0">Use the Forgot Password link on the login page and follow the reset instructions sent to your email.</p>
+            <div data-aos="fade-up" data-aos-delay="200" class="bg-white shadow-xl rounded-xl overflow-hidden">
+                <button type="button" @click="active = active === 4 ? 0 : 4" class="w-full text-left px-6 py-5 font-semibold text-darken">What is the Graduate Tracer Survey for?</button>
+                <div x-show="active === 4" class="px-6 pb-6 text-gray-500">It helps the university assess employment outcomes, skills relevance, and program impact after graduation.</div>
+            </div>
+
+            <div data-aos="fade-up" data-aos-delay="250" class="bg-white shadow-xl rounded-xl overflow-hidden">
+                <button type="button" @click="active = active === 5 ? 0 : 5" class="w-full text-left px-6 py-5 font-semibold text-darken">How can I recover my password?</button>
+                <div x-show="active === 5" class="px-6 pb-6 text-gray-500">Use the Forgot Password link on the login page and follow the reset instructions sent to your email.</div>
+            </div>
         </div>
     </div>
 </div>
-
-{% include 'home/_public_footer.html.twig' %}
 {% endblock %}

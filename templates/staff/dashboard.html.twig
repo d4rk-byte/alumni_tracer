@@ -2,7 +2,232 @@
 
 {% block title %}Staff Dashboard — NORSU Alumni Tracker{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('skilline/vendor/poppins.css') }}">
+{% endblock %}
+
 {% block body %}
+<style>
+    .staff-dashboard {
+        --staff-primary: #1d4ed8;
+        --staff-primary-strong: #1e40af;
+        --staff-accent: #0284c7;
+        --staff-bg: #edf5ff;
+        --staff-border: #d9e6fb;
+        --staff-text: #0f172a;
+        --staff-muted: #64748b;
+        font-family: "Poppins", "Segoe UI", sans-serif;
+        color: var(--staff-text);
+    }
+
+    .staff-dashboard .staff-shell {
+        position: relative;
+        padding: 1rem;
+        border-radius: 1.55rem;
+        border: 1px solid #deebff;
+        background:
+            radial-gradient(circle at 90% 8%, rgba(59, 130, 246, 0.18), transparent 42%),
+            radial-gradient(circle at 12% 92%, rgba(14, 165, 233, 0.15), transparent 44%),
+            linear-gradient(180deg, #f8fbff 0%, var(--staff-bg) 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+        overflow: hidden;
+    }
+
+    .staff-dashboard .staff-shell::before {
+        content: "";
+        position: absolute;
+        left: -12%;
+        top: -14%;
+        width: 34%;
+        height: 34%;
+        border-radius: 999px;
+        background: rgba(37, 99, 235, 0.08);
+        pointer-events: none;
+    }
+
+    .staff-dashboard .welcome-banner,
+    .staff-dashboard .card,
+    .staff-dashboard .stat-card,
+    .staff-dashboard .dashboard-footer {
+        position: relative;
+        z-index: 1;
+    }
+
+    .staff-dashboard .welcome-banner {
+        border-radius: 1.4rem;
+        box-shadow: 0 20px 38px rgba(30, 64, 175, 0.32);
+    }
+
+    .staff-dashboard .banner-main {
+        padding: 1.35rem 1.5rem;
+    }
+
+    .staff-dashboard .banner-bottom {
+        background: rgba(15, 23, 42, 0.16);
+        border-top: 1px solid rgba(255, 255, 255, 0.16);
+        padding: 0.72rem 1.5rem;
+    }
+
+    .staff-dashboard .hero-link {
+        border-radius: 999px;
+        padding: 0.58rem 1.02rem;
+        font-size: 0.78rem;
+        letter-spacing: 0.01em;
+        font-weight: 700;
+        text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+
+    .staff-dashboard .hero-link:hover {
+        transform: translateY(-1px) scale(1.03);
+    }
+
+    .staff-dashboard .hero-link-soft {
+        background: #fff;
+        color: #1e3a8a;
+        box-shadow: 0 8px 18px rgba(30, 64, 175, 0.18);
+    }
+
+    .staff-dashboard .hero-link-soft:hover {
+        background: #eff6ff;
+    }
+
+    .staff-dashboard .hero-link-ghost {
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .staff-dashboard .hero-link-ghost:hover {
+        background: rgba(255, 255, 255, 0.22);
+    }
+
+    .staff-dashboard .card,
+    .staff-dashboard .stat-card {
+        border: 1px solid var(--staff-border);
+        border-radius: 1.06rem;
+        box-shadow: 0 12px 26px rgba(30, 64, 175, 0.08);
+        transition: transform 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .staff-dashboard .card:hover,
+    .staff-dashboard .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 30px rgba(30, 64, 175, 0.12);
+    }
+
+    .staff-dashboard .card-header-norsu {
+        background: linear-gradient(118deg, #1d4ed8 0%, #1e40af 52%, #0284c7 100%);
+        color: #fff;
+    }
+
+    .staff-dashboard .stat-icon {
+        border-radius: 0.92rem;
+    }
+
+    .staff-dashboard .stat-label {
+        color: #64748b;
+        letter-spacing: 0.01em;
+    }
+
+    .staff-dashboard .quick-action-card {
+        border: 1px solid var(--staff-border);
+        border-radius: 1rem;
+        background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+        transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .staff-dashboard .quick-action-card:hover {
+        border-color: #94baff;
+        transform: translateY(-1px);
+        box-shadow: 0 14px 24px rgba(30, 64, 175, 0.14);
+    }
+
+    .staff-dashboard .action-icon {
+        border-radius: 0.85rem;
+    }
+
+    .staff-dashboard .progress-wrap {
+        background: #dbe7ff;
+        height: 6px;
+        border-radius: 999px;
+    }
+
+    .staff-dashboard .progress-fill {
+        border-radius: 999px;
+    }
+
+    .staff-dashboard .btn-norsu,
+    .staff-dashboard .btn-outline-norsu,
+    .staff-dashboard .btn-warning {
+        border-radius: 999px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        padding-left: 0.9rem;
+        padding-right: 0.9rem;
+    }
+
+    .staff-dashboard .btn-outline-norsu:hover,
+    .staff-dashboard .btn-warning:hover,
+    .staff-dashboard .btn-norsu:hover {
+        transform: translateY(-1px);
+    }
+
+    .staff-dashboard .btn-outline-norsu.btn-xs,
+    .staff-dashboard .btn-warning.btn-xs {
+        border-radius: 0.72rem;
+        padding-left: 0.55rem;
+        padding-right: 0.55rem;
+    }
+
+    .staff-dashboard .card table thead {
+        background: #f3f8ff;
+    }
+
+    .staff-dashboard .card table thead th {
+        color: #64748b;
+        border-bottom: 1px solid #dbe7fb;
+    }
+
+    .staff-dashboard .card table tbody tr:hover {
+        background: #f1f7ff;
+    }
+
+    .staff-dashboard .card .divide-y > * {
+        border-color: #e6eefc;
+    }
+
+    .staff-dashboard .dashboard-footer {
+        border: 1px solid #1e3a8a;
+        border-radius: 1.12rem;
+        background: linear-gradient(135deg, #0f2f88 0%, #1d4ed8 52%, #0f766e 100%);
+    }
+
+    @media (max-width: 767.98px) {
+        .staff-dashboard .staff-shell {
+            padding: 0.72rem;
+            border-radius: 1.2rem;
+        }
+
+        .staff-dashboard .banner-main {
+            padding: 1rem 0.95rem;
+        }
+
+        .staff-dashboard .banner-bottom {
+            padding: 0.62rem 0.95rem;
+            gap: 0.45rem 0.9rem;
+        }
+
+        .staff-dashboard .hero-link {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<section class="staff-dashboard">
+<div class="staff-shell">
 {# ══════════════════════════════════════════════
    WELCOME BANNER
    ══════════════════════════════════════════════ #}
@@ -17,8 +242,8 @@
                 </div>
             </div>
             <div class="flex gap-2 mt-3 md:mt-0">
-                <a href="{{ path('alumni_index') }}#addAlumniSection" class="bg-white text-gray-700 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-semibold no-underline transition-colors inline-flex items-center gap-1" onclick="setTimeout(function(){var s=document.getElementById('addAlumniSection');if(s)s.classList.remove('hidden')},100)"><i class="bi bi-person-plus-fill"></i>Add Alumni</a>
-                <a href="{{ path('report_index') }}" class="border border-white text-white hover:bg-white/10 px-3 py-1.5 rounded-lg text-xs font-semibold no-underline transition-colors inline-flex items-center gap-1"><i class="bi bi-bar-chart-line"></i>Reports</a>
+                <a href="{{ path('alumni_index') }}#addAlumniSection" class="hero-link hero-link-soft inline-flex items-center gap-1" onclick="setTimeout(function(){var s=document.getElementById('addAlumniSection');if(s)s.classList.remove('hidden')},100)"><i class="bi bi-person-plus-fill"></i>Add Alumni</a>
+                <a href="{{ path('report_index') }}" class="hero-link hero-link-ghost inline-flex items-center gap-1"><i class="bi bi-bar-chart-line"></i>Reports</a>
             </div>
         </div>
     </div>
@@ -257,7 +482,7 @@
                             <td class="py-2.5 text-sm text-gray-500">{{ recentSurveySubmissions }}</td>
                             <td class="py-2.5 text-sm text-gray-500">Last 30 days</td>
                             <td class="text-right pr-4 py-2.5">
-                                <a href="{{ path('gts_index') }}" class="bg-cyan-600 hover:bg-cyan-700 text-white px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1 no-underline"><i class="bi bi-eye"></i>View</a>
+                                <a href="{{ path('gts_index') }}" class="icon-action icon-action-view" title="View responses" aria-label="View survey responses"><i class="bi bi-eye"></i></a>
                             </td>
                         </tr>
                     </tbody>
@@ -374,8 +599,8 @@
                             </td>
                             <td class="text-right pr-4 py-2.5">
                                 <div class="flex justify-end gap-1">
-                                    <a href="{{ path('alumni_show', {id: alumni.id}) }}" class="btn-outline-norsu btn-xs" title="View"><i class="bi bi-eye"></i></a>
-                                    <a href="{{ path('alumni_edit', {id: alumni.id}) }}" class="btn-warning btn-xs" title="Edit"><i class="bi bi-pencil"></i></a>
+                                    <a href="{{ path('alumni_show', {id: alumni.id}) }}" class="icon-action icon-action-view" title="View" aria-label="View alumni"><i class="bi bi-eye"></i></a>
+                                    <a href="{{ path('alumni_edit', {id: alumni.id}) }}" class="icon-action icon-action-edit" title="Edit" aria-label="Edit alumni"><i class="bi bi-pencil"></i></a>
                                 </div>
                             </td>
                         </tr>
@@ -560,4 +785,6 @@
         <span>Negros Oriental State University, Dumaguete City</span>
     </div>
 </footer>
+</div>
+</section>
 {% endblock %}

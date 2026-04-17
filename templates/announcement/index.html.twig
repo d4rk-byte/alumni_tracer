@@ -39,13 +39,15 @@
                     {% if a.postedBy %}By {{ a.postedBy.fullName }}{% endif %}
                 </span>
                 <div class="flex gap-1">
-                    <a href="{{ path('announcement_show', {id: a.id}) }}" class="btn-outline-norsu btn-sm">View</a>
+                    <a href="{{ path('announcement_show', {id: a.id}) }}" class="icon-action icon-action-view" title="View" aria-label="View announcement">
+                        <i class="bi bi-eye"></i>
+                    </a>
                     {% if is_granted('ROLE_ADMIN') %}
-                        <a href="{{ path('announcement_edit', {id: a.id}) }}" class="btn-warning btn-sm"><i class="bi bi-pencil"></i></a>
+                        <a href="{{ path('announcement_edit', {id: a.id}) }}" class="icon-action icon-action-edit" title="Edit" aria-label="Edit announcement"><i class="bi bi-pencil"></i></a>
                         <form method="post" action="{{ path('announcement_delete', {id: a.id}) }}" class="inline"
                               onsubmit="return confirm('Delete this announcement?')">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ a.id) }}">
-                            <button class="btn-danger btn-sm"><i class="bi bi-trash"></i></button>
+                            <button type="submit" class="icon-action icon-action-delete icon-action-btn" title="Delete" aria-label="Delete announcement"><i class="bi bi-trash"></i></button>
                         </form>
                     {% endif %}
                 </div>

@@ -2,63 +2,340 @@
 
 {% block title %}Admin Dashboard - NORSU Alumni Tracker{% endblock %}
 
+{% block body_class %}admin-material-page{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+{% endblock %}
+
 {% block body %}
 <style>
-    .admin-dashboard {
-        --dash-primary: #1e3a8a;
-        --dash-primary-strong: #1d4ed8;
-        --dash-accent: #059669;
-        --dash-bg: #f4f7fb;
+    .admin-material-page {
+        --dash-bg: hsl(60 9% 98%);
         --dash-card: #ffffff;
-        --dash-border: #e3ebf6;
-        --dash-text: #0f172a;
-        --dash-muted: #64748b;
-        font-family: "Sora", "Manrope", sans-serif;
+        --dash-border: hsl(20 6% 90%);
+        --dash-text: hsl(24 10% 10%);
+        --dash-muted: hsl(24 5% 45%);
+        --dash-primary: hsl(142 76% 36%);
+        --dash-primary-soft: hsl(142 60% 94%);
+        --dash-primary-foreground: #ffffff;
+        background: var(--dash-bg);
+    }
+
+    .admin-material-page #mainNavbar.norsu-topbar {
+        background: #ffffff;
+        border-bottom: 1px solid var(--dash-border);
+        box-shadow: none;
+    }
+
+    .admin-material-page #mainNavbar .norsu-brand,
+    .admin-material-page #mainNavbar .norsu-brand:hover,
+    .admin-material-page #mainNavbar #sidebarToggle,
+    .admin-material-page #mainNavbar #guestNavToggle,
+    .admin-material-page #mainNavbar #guestNavDesktop a {
+        color: var(--dash-text);
+    }
+
+    .admin-material-page #mainNavbar #userDropdownBtn {
+        background: var(--dash-primary);
+        color: var(--dash-primary-foreground);
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    .admin-material-page #sidebar.norsu-sidebar {
+        background: #ffffff;
+        border-right: 1px solid var(--dash-border);
+        box-shadow: none;
+    }
+
+    .admin-material-page #sidebar .sidebar-section-title {
+        border-left: 0;
+        margin-left: 0.55rem;
+        margin-right: 0.55rem;
+        padding-left: 0.45rem;
+        letter-spacing: 0.09em;
+        font-size: 0.64rem;
+        color: var(--dash-muted);
+    }
+
+    .admin-material-page #sidebar .sidebar-link {
+        margin-left: 0.55rem;
+        margin-right: 0.55rem;
+        border-radius: 0.5rem;
+        color: var(--dash-text);
+        font-weight: 500;
+    }
+
+    .admin-material-page #sidebar .sidebar-link:hover {
+        background: hsl(60 5% 96%);
+        color: var(--dash-text);
+        transform: none;
+    }
+
+    .admin-material-page #sidebar .sidebar-link.active {
+        background: var(--dash-primary);
+        color: var(--dash-primary-foreground);
+        box-shadow: none;
+    }
+
+    .admin-material-page #sidebar .sidebar-helper-note {
+        color: var(--dash-muted);
+        margin-left: 0.55rem;
+        margin-right: 0.55rem;
+    }
+
+    .admin-material-page .norsu-main-content {
+        background: var(--dash-bg);
+    }
+
+    @media (min-width: 1024px) {
+        .admin-material-page.sidebar-compact #sidebar.norsu-sidebar {
+            width: 4.5rem !important;
+            overflow-x: visible;
+        }
+
+        .admin-material-page.sidebar-compact #sidebar .sidebar-section-title,
+        .admin-material-page.sidebar-compact #sidebar .sidebar-helper-note {
+            display: none;
+        }
+
+        .admin-material-page.sidebar-compact #sidebar .sidebar-link {
+            position: relative;
+            overflow: visible;
+            justify-content: center;
+            font-size: 0;
+            gap: 0;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            min-height: 2.35rem;
+        }
+
+        .admin-material-page.sidebar-compact #sidebar .sidebar-link::before {
+            content: "";
+            position: absolute;
+            left: calc(100% + 0.28rem);
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: transparent hsl(24 10% 10%) transparent transparent;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.12s ease;
+            z-index: 1085;
+        }
+
+        .admin-material-page.sidebar-compact #sidebar .sidebar-link::after {
+            content: attr(data-sidebar-label);
+            position: absolute;
+            left: calc(100% + 0.62rem);
+            top: 50%;
+            transform: translateY(-50%) scale(0.98);
+            background: hsl(24 10% 10%);
+            color: #ffffff;
+            border-radius: 0.35rem;
+            padding: 0.28rem 0.45rem;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0;
+            white-space: nowrap;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.25);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.12s ease, transform 0.12s ease;
+            z-index: 1090;
+        }
+
+        .admin-material-page.sidebar-compact #sidebar .sidebar-link:hover::before,
+        .admin-material-page.sidebar-compact #sidebar .sidebar-link:focus-visible::before,
+        .admin-material-page.sidebar-compact #sidebar .sidebar-link:hover::after,
+        .admin-material-page.sidebar-compact #sidebar .sidebar-link:focus-visible::after {
+            opacity: 1;
+        }
+
+        .admin-material-page.sidebar-compact #sidebar .sidebar-link:hover::after,
+        .admin-material-page.sidebar-compact #sidebar .sidebar-link:focus-visible::after {
+            transform: translateY(-50%) scale(1);
+        }
+
+        .admin-material-page.sidebar-compact #sidebar .sidebar-link .sidebar-icon {
+            font-size: 1rem;
+            width: auto;
+            height: auto;
+            margin: 0;
+        }
+
+        .admin-material-page.sidebar-compact .norsu-main-content {
+            margin-left: 4.5rem !important;
+        }
+    }
+
+    .admin-dashboard {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         font-size: 0.95rem;
         line-height: 1.45;
         color: var(--dash-text);
     }
-
+ 
     .admin-dashboard .dashboard-shell {
         display: flex;
         flex-direction: column;
         gap: 1rem;
+        background: transparent;
     }
 
+    .admin-dashboard .dashboard-order-hero { order: 1; }
+    .admin-dashboard .dashboard-order-stats { order: 2; }
+    .admin-dashboard .dashboard-order-trend { order: 3; }
+    .admin-dashboard .dashboard-order-operational { order: 4; }
+    .admin-dashboard .dashboard-order-snapshot { order: 5; }
+    .admin-dashboard .dashboard-order-segments { order: 6; }
+    .admin-dashboard .dashboard-order-kpi { order: 7; }
+    .admin-dashboard .dashboard-order-engagement { order: 8; }
+    .admin-dashboard .dashboard-order-directory { order: 9; }
+
     .admin-dashboard .card-enter {
-        animation: dashboard-enter 0.35s ease-out both;
+        animation: dashboard-enter 0.28s ease-out both;
     }
 
     .admin-dashboard .hero-panel {
-        position: relative;
-        overflow: hidden;
-        border-radius: 1rem;
-        background:
-            radial-gradient(circle at 86% 14%, rgba(255, 255, 255, 0.18), transparent 36%),
-            linear-gradient(118deg, #102a69 0%, #1e40af 52%, #0f766e 100%);
-        color: #fff;
-        box-shadow: 0 16px 36px rgba(16, 42, 105, 0.28);
+        border: 1px solid var(--dash-border);
+        border-radius: 0.65rem;
+        background: var(--dash-card);
+        color: var(--dash-text);
+        box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
     }
 
     .admin-dashboard .hero-panel::before {
-        content: "";
-        position: absolute;
-        right: -42px;
-        bottom: -70px;
-        width: 180px;
-        height: 180px;
+        content: none;
+    }
+
+    .admin-dashboard .workspace-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.85rem;
+        padding: 0.72rem 1rem;
+        border-bottom: 1px solid var(--dash-border);
+    }
+
+    .admin-dashboard .workspace-toolbar-top {
+        border: 1px solid var(--dash-border);
+        border-radius: 0.65rem;
+        border-bottom: 0;
+        background: var(--dash-card);
+        box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+    }
+
+    .admin-dashboard .workspace-search {
+        width: min(32rem, 100%);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 1px solid var(--dash-border);
+        border-radius: 0.45rem;
+        padding: 0.42rem 0.62rem;
+        background: #fff;
+        color: var(--dash-muted);
+    }
+
+    .admin-dashboard .workspace-search i {
+        font-size: 0.82rem;
+    }
+
+    .admin-dashboard .workspace-search input {
+        width: 100%;
+        border: 0;
+        outline: none;
+        background: transparent;
+        font-size: 0.8rem;
+        color: var(--dash-text);
+    }
+
+    .admin-dashboard .workspace-search input::placeholder {
+        color: var(--dash-muted);
+    }
+
+    .admin-dashboard .workspace-account {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 0;
+    }
+
+    .admin-dashboard .workspace-account-avatar {
+        width: 2rem;
+        height: 2rem;
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.08);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+        background: var(--dash-primary-soft);
+        color: var(--dash-primary);
+        flex-shrink: 0;
+    }
+
+    .admin-dashboard .workspace-account-meta {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .admin-dashboard .workspace-account-name {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--dash-text);
+        line-height: 1.1;
+    }
+
+    .admin-dashboard .workspace-account-email {
+        font-size: 0.68rem;
+        color: var(--dash-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 11rem;
+        line-height: 1.2;
+    }
+
+    .admin-dashboard .workspace-account-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--dash-border);
+        border-radius: 0.4rem;
+        padding: 0.34rem 0.56rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-decoration: none;
+        color: var(--dash-text);
+        background: #fff;
+    }
+
+    .admin-dashboard .workspace-account-link:hover {
+        background: hsl(60 5% 96%);
+        color: var(--dash-text);
+    }
+
+    .admin-dashboard .workspace-compact-toggle {
+        min-width: 2rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .admin-dashboard .workspace-compact-toggle i {
+        font-size: 0.82rem;
     }
 
     .admin-dashboard .hero-main {
-        position: relative;
-        z-index: 1;
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: 1rem;
-        padding: 1.15rem 1.2rem 0.95rem;
+        padding: 0.95rem 1rem 0.85rem;
     }
 
     .admin-dashboard .hero-user {
@@ -69,37 +346,36 @@
     }
 
     .admin-dashboard .hero-avatar {
-        width: 52px;
-        height: 52px;
+        width: 40px;
+        height: 40px;
         border-radius: 999px;
-        border: 2px solid rgba(255, 255, 255, 0.36);
-        background: rgba(255, 255, 255, 0.17);
+        border: 0;
+        background: var(--dash-primary-soft);
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.15rem;
+        font-size: 0.9rem;
         font-weight: 700;
-        letter-spacing: 0.04em;
         flex-shrink: 0;
-        backdrop-filter: blur(4px);
+        color: var(--dash-primary);
     }
 
     .admin-dashboard .hero-title {
         margin: 0;
-        font-size: 1.72rem;
-        font-weight: 800;
-        line-height: 1.1;
+        font-size: 1.3rem;
+        font-weight: 700;
+        line-height: 1.2;
     }
 
     .admin-dashboard .hero-subtitle {
-        margin: 0.28rem 0 0;
-        font-size: 0.9rem;
-        color: rgba(255, 255, 255, 0.86);
+        margin: 0.2rem 0 0;
+        font-size: 0.82rem;
+        color: var(--dash-muted);
     }
 
     .admin-dashboard .hero-actions {
         display: flex;
-        gap: 0.5rem;
+        gap: 0.58rem;
         flex-wrap: wrap;
         justify-content: flex-end;
     }
@@ -107,51 +383,49 @@
     .admin-dashboard .hero-btn {
         display: inline-flex;
         align-items: center;
-        gap: 0.35rem;
-        border-radius: 0.55rem;
-        padding: 0.5rem 0.78rem;
-        font-size: 0.8rem;
-        font-weight: 700;
+        gap: 0.34rem;
+        border-radius: 0.45rem;
+        padding: 0.45rem 0.78rem;
+        font-size: 0.76rem;
+        font-weight: 600;
         text-decoration: none;
-        transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+        border: 1px solid transparent;
+        transition: background-color 0.16s ease, border-color 0.16s ease;
     }
 
     .admin-dashboard .hero-btn:hover {
-        transform: translateY(-1px);
+        transform: none;
     }
 
     .admin-dashboard .hero-btn-soft {
-        color: #1f2937;
+        color: var(--dash-text);
         background: #ffffff;
-        box-shadow: 0 2px 12px rgba(15, 23, 42, 0.12);
+        border-color: var(--dash-border);
     }
 
     .admin-dashboard .hero-btn-soft:hover {
-        background: #f8fafc;
+        background: hsl(60 5% 96%);
     }
 
     .admin-dashboard .hero-btn-solid {
-        color: #fff;
-        background: #059669;
-        box-shadow: 0 2px 12px rgba(5, 150, 105, 0.38);
+        color: var(--dash-primary-foreground);
+        background: var(--dash-primary);
     }
 
     .admin-dashboard .hero-btn-solid:hover {
-        background: #047857;
+        background: hsl(142 76% 32%);
     }
 
     .admin-dashboard .hero-meta {
-        position: relative;
-        z-index: 1;
         display: flex;
         align-items: center;
         flex-wrap: wrap;
-        gap: 0.75rem 1.25rem;
-        padding: 0.62rem 1.2rem 0.74rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.16);
-        background: rgba(0, 0, 0, 0.13);
-        font-size: 0.8rem;
-        color: rgba(255, 255, 255, 0.86);
+        gap: 0.55rem 1rem;
+        padding: 0.55rem 1rem 0.65rem;
+        border-top: 1px solid var(--dash-border);
+        background: hsl(60 5% 97%);
+        font-size: 0.75rem;
+        color: var(--dash-muted);
     }
 
     .admin-dashboard .hero-meta i {
@@ -162,13 +436,13 @@
         display: inline-flex;
         align-items: center;
         gap: 0.25rem;
-        padding: 0.16rem 0.54rem;
+        padding: 0.16rem 0.46rem;
         border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        background: rgba(255, 255, 255, 0.18);
-        font-size: 0.74rem;
-        font-weight: 700;
-        color: #fff;
+        border: 1px solid hsl(142 50% 84%);
+        background: var(--dash-primary-soft);
+        font-size: 0.69rem;
+        font-weight: 600;
+        color: hsl(142 76% 24%);
     }
 
     .admin-dashboard .metric-grid {
@@ -179,79 +453,77 @@
 
     .admin-dashboard .metric-card {
         border: 1px solid var(--dash-border);
-        border-radius: 0.95rem;
+        border-radius: 0.65rem;
         background: var(--dash-card);
-        padding: 0.88rem 0.95rem;
-        box-shadow: 0 7px 18px rgba(15, 23, 42, 0.04);
-        transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+        padding: 0.8rem 0.9rem;
+        box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+        transition: border-color 0.16s ease, box-shadow 0.16s ease;
     }
 
     .admin-dashboard .metric-card:hover {
-        transform: translateY(-2px);
-        border-color: #d2ddf1;
-        box-shadow: 0 12px 26px rgba(30, 64, 175, 0.1);
+        transform: none;
+        border-color: hsl(20 6% 85%);
+        box-shadow: 0 2px 6px rgba(17, 24, 39, 0.07);
     }
 
     .admin-dashboard .metric-top {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 0.56rem;
-        margin-bottom: 0.54rem;
+        margin-bottom: 0.42rem;
     }
 
     .admin-dashboard .metric-icon {
-        width: 38px;
-        height: 38px;
-        border-radius: 0.72rem;
+        width: 34px;
+        height: 34px;
+        border-radius: 0.5rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.98rem;
+        font-size: 0.9rem;
     }
 
     .admin-dashboard .metric-icon.primary {
-        background: #e0ecff;
-        color: #1d4ed8;
+        background: hsl(142 58% 94%);
+        color: hsl(142 76% 30%);
     }
 
     .admin-dashboard .metric-icon.accent {
-        background: #d7f4ea;
-        color: #047857;
+        background: hsl(160 52% 93%);
+        color: hsl(160 74% 28%);
     }
 
     .admin-dashboard .metric-icon.warning {
-        background: #fef3c7;
-        color: #b45309;
+        background: hsl(45 100% 94%);
+        color: hsl(32 95% 34%);
     }
 
     .admin-dashboard .metric-icon.neutral {
-        background: #e2e8f0;
-        color: #334155;
+        background: hsl(60 5% 95%);
+        color: hsl(24 10% 30%);
     }
 
     .admin-dashboard .metric-label {
-        font-size: 0.81rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: #475569;
+        font-size: 0.73rem;
+        font-weight: 600;
+        color: var(--dash-muted);
     }
 
     .admin-dashboard .metric-value {
-        font-size: 1.55rem;
-        font-weight: 800;
+        font-size: 1.42rem;
+        font-weight: 700;
         line-height: 1;
-        letter-spacing: -0.01em;
-        color: #0f172a;
+        color: var(--dash-text);
         margin-bottom: 0.18rem;
     }
 
     .admin-dashboard .metric-value.metric-warning {
-        color: #b45309;
+        color: hsl(32 95% 34%);
     }
 
     .admin-dashboard .metric-value.metric-success {
-        color: #047857;
+        color: hsl(142 76% 30%);
     }
 
     .admin-dashboard .metric-note {
@@ -262,16 +534,17 @@
 
     .admin-dashboard .kpi-band {
         border: 1px solid var(--dash-border);
-        border-radius: 0.95rem;
-        background: linear-gradient(120deg, #f8fbff 0%, #ffffff 56%, #f3fbf8 100%);
+        border-radius: 0.65rem;
+        background: var(--dash-card);
         display: grid;
         grid-template-columns: repeat(1, minmax(0, 1fr));
         overflow: hidden;
+        box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
     }
 
     .admin-dashboard .kpi-item {
         padding: 0.8rem 0.95rem;
-        border-bottom: 1px dashed #d5e1f4;
+        border-bottom: 1px solid var(--dash-border);
     }
 
     .admin-dashboard .kpi-item:last-child {
@@ -281,10 +554,8 @@
     .admin-dashboard .kpi-label {
         margin: 0;
         font-size: 0.74rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #475569;
+        font-weight: 500;
+        color: var(--dash-muted);
     }
 
     .admin-dashboard .kpi-main {
@@ -302,19 +573,19 @@
     }
 
     .admin-dashboard .kpi-value.primary {
-        color: #1d4ed8;
+        color: hsl(142 76% 30%);
     }
 
     .admin-dashboard .kpi-value.success {
-        color: #047857;
+        color: hsl(142 76% 30%);
     }
 
     .admin-dashboard .kpi-value.warning {
-        color: #b45309;
+        color: hsl(32 95% 34%);
     }
 
     .admin-dashboard .kpi-value.neutral {
-        color: #0f766e;
+        color: var(--dash-text);
     }
 
     .admin-dashboard .kpi-badge {
@@ -327,26 +598,33 @@
     }
 
     .admin-dashboard .kpi-badge.primary {
-        background: #dbeafe;
-        color: #1e40af;
+        background: var(--dash-primary-soft);
+        color: hsl(142 76% 24%);
     }
 
     .admin-dashboard .kpi-badge.success {
-        background: #dcfce7;
-        color: #166534;
+        background: hsl(142 58% 94%);
+        color: hsl(142 76% 24%);
     }
 
     .admin-dashboard .kpi-badge.warning {
-        background: #fef3c7;
-        color: #92400e;
+        background: hsl(45 100% 94%);
+        color: hsl(32 95% 34%);
     }
 
     .admin-dashboard .panel-card {
         border: 1px solid var(--dash-border);
-        border-radius: 0.95rem;
+        border-radius: 0.65rem;
         background: var(--dash-card);
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+        box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
         overflow: hidden;
+        transition: border-color 0.16s ease;
+    }
+
+    .admin-dashboard .panel-card:hover {
+        transform: none;
+        box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+        border-color: hsl(20 6% 85%);
     }
 
     .admin-dashboard .panel-head {
@@ -354,8 +632,9 @@
         align-items: center;
         justify-content: space-between;
         gap: 0.75rem;
-        padding: 1rem 1.1rem 0.82rem;
-        border-bottom: 1px solid #edf2fa;
+        padding: 0.85rem 0.95rem;
+        border-bottom: 1px solid var(--dash-border);
+        background: #ffffff;
     }
 
     .admin-dashboard .panel-title {
@@ -363,19 +642,19 @@
         display: inline-flex;
         align-items: center;
         gap: 0.42rem;
-        font-size: 1rem;
-        font-weight: 700;
-        color: #1e3a8a;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--dash-text);
     }
 
     .admin-dashboard .panel-subtitle {
         font-size: 0.78rem;
-        color: #64748b;
+        color: var(--dash-muted);
         white-space: nowrap;
     }
 
     .admin-dashboard .panel-body {
-        padding: 1.05rem 1.1rem;
+        padding: 0.9rem;
     }
 
     .admin-dashboard .panel-body-tight {
@@ -397,14 +676,14 @@
         justify-content: center;
         font-size: 1.5rem;
         font-weight: 800;
-        color: #1d4ed8;
+        color: var(--dash-primary);
     }
 
     .admin-dashboard .employment-caption {
         margin: 0.75rem 0 0.92rem;
         text-align: center;
         font-size: 0.85rem;
-        color: #64748b;
+        color: var(--dash-muted);
     }
 
     .admin-dashboard .employment-breakdown {
@@ -435,7 +714,7 @@
     .admin-dashboard .employment-label {
         margin-top: 0.2rem;
         font-size: 0.74rem;
-        color: #64748b;
+        color: var(--dash-muted);
     }
 
     .admin-dashboard .role-row + .role-row {
@@ -452,8 +731,8 @@
 
     .admin-dashboard .role-name {
         font-size: 0.86rem;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: var(--dash-text);
         display: inline-flex;
         align-items: center;
         gap: 0.36rem;
@@ -467,25 +746,25 @@
     }
 
     .admin-dashboard .role-count.admin {
-        background: #fee2e2;
-        color: #991b1b;
+        background: hsl(0 85% 95%);
+        color: hsl(0 72% 36%);
     }
 
     .admin-dashboard .role-count.staff {
-        background: #e0f2fe;
-        color: #0c4a6e;
+        background: hsl(199 89% 94%);
+        color: hsl(198 74% 28%);
     }
 
     .admin-dashboard .role-count.alumni {
-        background: #dcfce7;
-        color: #166534;
+        background: hsl(142 60% 94%);
+        color: hsl(142 76% 24%);
     }
 
     .admin-dashboard .progress-track {
         width: 100%;
         height: 6px;
         border-radius: 999px;
-        background: #e2e8f0;
+        background: hsl(20 6% 93%);
         overflow: hidden;
     }
 
@@ -495,21 +774,21 @@
     }
 
     .admin-dashboard .progress-fill.admin {
-        background: #dc2626;
+        background: hsl(0 72% 46%);
     }
 
     .admin-dashboard .progress-fill.staff {
-        background: #0891b2;
+        background: hsl(198 74% 44%);
     }
 
     .admin-dashboard .progress-fill.alumni {
-        background: #16a34a;
+        background: var(--dash-primary);
     }
 
     .admin-dashboard .user-summary {
         margin-top: 0.85rem;
         padding-top: 0.72rem;
-        border-top: 1px solid #edf2fa;
+        border-top: 1px solid var(--dash-border);
         display: grid;
         gap: 0.42rem;
     }
@@ -529,31 +808,33 @@
 
     .admin-dashboard .quick-action-link {
         border: 1px solid var(--dash-border);
-        border-radius: 0.78rem;
-        padding: 0.62rem 0.72rem;
+        border-radius: 0.6rem;
+        padding: 0.62rem 0.7rem;
         display: flex;
         align-items: center;
         gap: 0.58rem;
         color: inherit;
         text-decoration: none;
-        transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+        background: #ffffff;
+        transition: border-color 0.16s ease, background-color 0.16s ease;
     }
 
     .admin-dashboard .quick-action-link:hover {
-        border-color: #bfd2f1;
-        transform: translateX(2px);
-        box-shadow: 0 8px 18px rgba(30, 64, 175, 0.08);
+        border-color: hsl(20 6% 85%);
+        transform: none;
+        box-shadow: none;
+        background: hsl(60 5% 96%);
     }
 
     .admin-dashboard .quick-action-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 0.72rem;
+        width: 34px;
+        height: 34px;
+        border-radius: 0.45rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        color: #1d4ed8;
-        background: #e0ecff;
+        color: var(--dash-primary);
+        background: var(--dash-primary-soft);
         flex-shrink: 0;
     }
 
@@ -566,20 +847,20 @@
     .admin-dashboard .quick-action-title {
         display: block;
         font-size: 0.86rem;
-        font-weight: 700;
-        color: #0f172a;
+        font-weight: 600;
+        color: var(--dash-text);
     }
 
     .admin-dashboard .quick-action-meta {
         display: block;
         margin-top: 0.08rem;
         font-size: 0.76rem;
-        color: #64748b;
+        color: var(--dash-muted);
     }
 
     .admin-dashboard .quick-action-arrow {
-        color: #94a3b8;
-        font-size: 0.95rem;
+        color: var(--dash-muted);
+        font-size: 0.82rem;
         flex-shrink: 0;
     }
 
@@ -598,7 +879,7 @@
     }
 
     .admin-dashboard .viewport-list::-webkit-scrollbar-thumb {
-        background: #c8d5ea;
+        background: hsl(20 6% 85%);
         border-radius: 999px;
     }
 
@@ -610,13 +891,13 @@
 
     .admin-dashboard .table-minimal thead th {
         position: static;
-        background: #f8fafd;
-        border-bottom: 1px solid #e4ebf6;
-        color: #64748b;
-        font-size: 0.76rem;
+        background: hsl(60 5% 96%);
+        border-bottom: 1px solid var(--dash-border);
+        color: var(--dash-muted);
+        font-size: 0.72rem;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-weight: 700;
+        letter-spacing: 0.04em;
+        font-weight: 600;
         text-align: left;
         padding: 0.72rem 0.88rem;
         white-space: nowrap;
@@ -625,12 +906,12 @@
     .admin-dashboard .table-minimal tbody td {
         padding: 0.76rem 0.88rem;
         font-size: 0.86rem;
-        border-bottom: 1px solid #edf2fa;
+        border-bottom: 1px solid var(--dash-border);
         vertical-align: middle;
     }
 
     .admin-dashboard .table-minimal tbody tr:hover {
-        background: #f8fbff;
+        background: hsl(60 5% 97%);
     }
 
     .admin-dashboard .table-minimal .cell-tight {
@@ -642,21 +923,28 @@
         display: inline-flex;
         align-items: center;
         gap: 0.2rem;
-        border-radius: 0.48rem;
-        border: 1px solid #16a34a;
-        background: #16a34a;
-        color: #fff;
-        font-size: 0.76rem;
-        font-weight: 700;
+        border-radius: 0.45rem;
+        border: 1px solid var(--dash-primary);
+        background: var(--dash-primary);
+        color: var(--dash-primary-foreground);
+        font-size: 0.73rem;
+        font-weight: 600;
         padding: 0.34rem 0.6rem;
         line-height: 1;
         text-decoration: none;
     }
 
     .admin-dashboard .inline-action-btn:hover {
-        background: #15803d;
-        border-color: #15803d;
+        background: hsl(142 76% 32%);
+        border-color: hsl(142 76% 32%);
         color: #fff;
+    }
+
+    .admin-dashboard .inline-action-btn.icon-only {
+        gap: 0;
+        min-width: 1.9rem;
+        justify-content: center;
+        padding: 0.38rem;
     }
 
     .admin-dashboard .list-block {
@@ -665,8 +953,13 @@
     }
 
     .admin-dashboard .list-row {
-        padding: 0.9rem 1.1rem;
-        border-bottom: 1px solid #edf2fa;
+        padding: 0.82rem 0.92rem;
+        border-bottom: 1px solid var(--dash-border);
+        transition: background-color 0.16s ease;
+    }
+
+    .admin-dashboard .list-row:hover {
+        background: hsl(60 5% 97%);
     }
 
     .admin-dashboard .list-row:last-child {
@@ -685,36 +978,36 @@
         align-items: center;
         border-radius: 999px;
         padding: 0.14rem 0.48rem;
-        font-size: 0.72rem;
-        font-weight: 700;
-        background: #eef2f9;
-        color: #334155;
+        font-size: 0.68rem;
+        font-weight: 600;
+        background: hsl(60 5% 95%);
+        color: var(--dash-text);
     }
 
     .admin-dashboard .list-time {
         font-size: 0.73rem;
-        color: #94a3b8;
+        color: var(--dash-muted);
         white-space: nowrap;
     }
 
     .admin-dashboard .list-text {
         margin-top: 0.26rem;
         font-size: 0.82rem;
-        color: #64748b;
+        color: var(--dash-muted);
         line-height: 1.4;
     }
 
     .admin-dashboard .announcement-title {
         margin: 0;
         font-size: 0.88rem;
-        font-weight: 700;
-        color: #0f172a;
+        font-weight: 600;
+        color: var(--dash-text);
     }
 
     .admin-dashboard .announcement-text {
         margin: 0.24rem 0 0;
         font-size: 0.82rem;
-        color: #64748b;
+        color: var(--dash-muted);
         line-height: 1.45;
     }
 
@@ -732,27 +1025,53 @@
 
     .admin-dashboard .course-name {
         font-size: 0.86rem;
-        font-weight: 700;
-        color: #1f2937;
+        font-weight: 600;
+        color: var(--dash-text);
     }
 
     .admin-dashboard .course-count {
         font-size: 0.8rem;
-        color: #64748b;
+        color: var(--dash-muted);
     }
 
     .admin-dashboard .empty-block {
         text-align: center;
         padding: 2rem 1rem;
-        color: #64748b;
+        color: var(--dash-muted);
     }
 
     .admin-dashboard .dashboard-footnote {
+        order: 99;
         text-align: center;
         font-size: 0.75rem;
-        color: #94a3b8;
+        color: var(--dash-muted);
         margin-top: 0.3rem;
         margin-bottom: 0.18rem;
+    }
+
+    .admin-dashboard .btn-outline-norsu,
+    .admin-dashboard .btn-warning {
+        border-radius: 0.45rem;
+        font-weight: 600;
+        letter-spacing: 0;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .admin-dashboard .btn-outline-norsu:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .admin-dashboard .btn-warning:hover {
+        transform: none;
+    }
+
+    .admin-dashboard .btn-outline-norsu.btn-xs,
+    .admin-dashboard .btn-warning.btn-xs {
+        border-radius: 0.35rem;
+        padding-left: 0.55rem;
+        padding-right: 0.55rem;
     }
 
     @keyframes dashboard-enter {
@@ -777,7 +1096,7 @@
 
         .admin-dashboard .kpi-item {
             border-bottom: 0;
-            border-right: 1px dashed #d5e1f4;
+            border-right: 1px solid var(--dash-border);
         }
 
         .admin-dashboard .kpi-item:last-child {
@@ -791,7 +1110,7 @@
 
     @media (min-width: 1280px) {
         .admin-dashboard .metric-grid {
-            grid-template-columns: repeat(5, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
         }
     }
 
@@ -811,6 +1130,33 @@
     }
 
     @media (max-width: 767.98px) {
+        .admin-dashboard .dashboard-shell {
+            gap: 0.8rem;
+        }
+
+        .admin-dashboard .workspace-compact-toggle {
+            display: none;
+        }
+
+        .admin-dashboard .workspace-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 0.62rem 0.72rem;
+        }
+
+        .admin-dashboard .workspace-search {
+            width: 100%;
+        }
+
+        .admin-dashboard .workspace-account {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .admin-dashboard .workspace-account-meta {
+            flex: 1;
+        }
+
         .admin-dashboard .hero-main {
             padding: 0.95rem 0.9rem 0.75rem;
         }
@@ -841,7 +1187,25 @@
 <section class="admin-dashboard">
     <div class="dashboard-shell">
 
-        <div class="hero-panel card-enter">
+        <div class="workspace-toolbar workspace-toolbar-top card-enter">
+            <label class="workspace-search" for="adminDashboardSearch">
+                <i class="bi bi-search"></i>
+                <input id="adminDashboardSearch" type="search" placeholder="Search dashboard..." aria-label="Search dashboard">
+            </label>
+            <div class="workspace-account">
+                <span class="workspace-account-avatar">{{ app.user.firstName|first }}{{ app.user.lastName|first }}</span>
+                <div class="workspace-account-meta">
+                    <span class="workspace-account-name">Account</span>
+                    <span class="workspace-account-email">{{ app.user.email }}</span>
+                </div>
+                <button type="button" id="adminSidebarCompactToggle" class="workspace-account-link workspace-compact-toggle" aria-label="Toggle sidebar compact mode" aria-pressed="false" title="Collapse sidebar">
+                    <i class="bi bi-layout-sidebar"></i>
+                </button>
+                <a href="{{ path('app_profile') }}" class="workspace-account-link">Profile</a>
+            </div>
+        </div>
+
+        <div class="hero-panel card-enter dashboard-order-hero">
             <div class="hero-main">
                 <div class="hero-user">
                     <div class="hero-avatar">{{ app.user.firstName|first }}{{ app.user.lastName|first }}</div>
@@ -851,26 +1215,26 @@
                     </div>
                 </div>
                 <div class="hero-actions">
-                    <a href="{{ path('admin_users') }}" class="hero-btn hero-btn-soft"><i class="bi bi-people-fill"></i>Users</a>
-                    <a href="{{ path('alumni_index') }}" class="hero-btn hero-btn-solid"><i class="bi bi-mortarboard-fill"></i>Alumni</a>
+                    <a href="{{ path('announcement_create') }}" class="hero-btn hero-btn-solid"><i class="bi bi-megaphone-fill"></i>New Announcement</a>
+                    <a href="{{ path('admin_gts_questions_new') }}" class="hero-btn hero-btn-soft"><i class="bi bi-ui-checks-grid"></i>New Survey Question</a>
+                    <a href="{{ path('admin_users') }}" class="hero-btn hero-btn-soft"><i class="bi bi-patch-check-fill"></i>Verify Profiles</a>
                 </div>
             </div>
             <div class="hero-meta">
                 <span><i class="bi bi-calendar3"></i>{{ 'now'|date('F d, Y') }}</span>
                 <span><i class="bi bi-clock"></i>{{ 'now'|date('h:i A') }}</span>
                 <span class="hero-pill"><i class="bi bi-shield-check"></i>Administrator</span>
-                <span class="ml-auto"><i class="bi bi-people"></i>{{ totalAlumni }} alumni - {{ totalUsers }} users</span>
+                <span class="ml-auto"><i class="bi bi-people"></i>{{ totalAlumni }} alumni | {{ totalUsers }} users | {{ totalSurveyResponses }} GTS responses</span>
             </div>
         </div>
 
         {% set headlineMetrics = [
             {label: 'Total Alumni', value: totalAlumni, icon: 'bi-people-fill', tone: 'primary', note: 'Profiles tracked'},
-            {label: 'Registered Users', value: totalUsers, icon: 'bi-person-check-fill', tone: 'accent', note: 'Accounts in the platform'},
-            {label: 'Pending Approval', value: pendingUsers, icon: 'bi-hourglass-split', tone: pendingUsers > 0 ? 'warning' : 'accent', valueClass: pendingUsers > 0 ? 'metric-warning' : 'metric-success', note: pendingUsers > 0 ? 'Requires review' : 'Queue is clear'},
-            {label: 'Active Jobs', value: activeJobs, icon: 'bi-briefcase-fill', tone: 'primary', note: 'Open opportunities'},
-            {label: 'Survey Responses', value: totalSurveyResponses, icon: 'bi-clipboard-data-fill', tone: 'neutral', note: 'Latest collected data'}
+            {label: 'Registered Users', value: totalUsers, icon: 'bi-person-check-fill', tone: 'accent', note: 'Accounts in platform'},
+            {label: 'Pending Approval', value: pendingUsers, icon: 'bi-hourglass-split', tone: pendingUsers > 0 ? 'warning' : 'accent', valueClass: pendingUsers > 0 ? 'metric-warning' : 'metric-success', note: pendingUsers > 0 ? 'Needs review' : 'All clear'},
+            {label: 'Survey Responses', value: totalSurveyResponses, icon: 'bi-clipboard-data-fill', tone: 'neutral', note: 'Tracer data collected'}
         ] %}
-        <div class="metric-grid">
+        <div class="metric-grid dashboard-order-stats">
             {% for metric in headlineMetrics %}
             <article class="metric-card card-enter">
                 <div class="metric-top">
@@ -883,7 +1247,7 @@
             {% endfor %}
         </div>
 
-        <div class="kpi-band card-enter">
+        <div class="kpi-band card-enter dashboard-order-kpi">
             <div class="kpi-item">
                 <p class="kpi-label">Alignment Rate</p>
                 <div class="kpi-main">
@@ -907,7 +1271,93 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 dashboard-order-segments">
+            <div class="panel-card card-enter">
+                <div class="panel-head">
+                    <h6 class="panel-title"><i class="bi bi-building"></i>Alumni by College</h6>
+                    <span class="panel-subtitle">Top segments</span>
+                </div>
+                <div class="panel-body">
+                    {% if collegeStats|length > 0 %}
+                        {% set maxCollege = collegeStats[0].total %}
+                        {% for stat in collegeStats %}
+                        <div class="course-row">
+                            <div class="course-head">
+                                <span class="course-name">{{ stat.label }}</span>
+                                <span class="course-count">{{ stat.total }}</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill" style="width:{{ maxCollege > 0 ? (stat.total / maxCollege * 100)|round : 0 }}%; background:var(--dash-primary);"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-block">
+                            <i class="bi bi-building text-gray-400 text-3xl block mb-2"></i>
+                            <p class="mb-0 text-sm">No college data yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="panel-card card-enter">
+                <div class="panel-head">
+                    <h6 class="panel-title"><i class="bi bi-diagram-3"></i>Alumni by Department</h6>
+                    <span class="panel-subtitle">Major or degree program</span>
+                </div>
+                <div class="panel-body">
+                    {% if departmentStats|length > 0 %}
+                        {% set maxDepartment = departmentStats[0].total %}
+                        {% for stat in departmentStats %}
+                        <div class="course-row">
+                            <div class="course-head">
+                                <span class="course-name">{{ stat.label }}</span>
+                                <span class="course-count">{{ stat.total }}</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill" style="width:{{ maxDepartment > 0 ? (stat.total / maxDepartment * 100)|round : 0 }}%; background:hsl(165 75% 32%);"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-block">
+                            <i class="bi bi-diagram-3 text-gray-400 text-3xl block mb-2"></i>
+                            <p class="mb-0 text-sm">No department data yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="panel-card card-enter">
+                <div class="panel-head">
+                    <h6 class="panel-title"><i class="bi bi-calendar-range"></i>Alumni by Batch Year</h6>
+                    <span class="panel-subtitle">Recent graduation cohorts</span>
+                </div>
+                <div class="panel-body">
+                    {% if batchYearStats|length > 0 %}
+                        {% set maxBatchYear = batchYearStats[0].total %}
+                        {% for stat in batchYearStats %}
+                        <div class="course-row">
+                            <div class="course-head">
+                                <span class="course-name">{{ stat.label }}</span>
+                                <span class="course-count">{{ stat.total }}</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill" style="width:{{ maxBatchYear > 0 ? (stat.total / maxBatchYear * 100)|round : 0 }}%; background:hsl(35 88% 38%);"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-block">
+                            <i class="bi bi-calendar-range text-gray-400 text-3xl block mb-2"></i>
+                            <p class="mb-0 text-sm">No batch year data yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 dashboard-order-snapshot">
             <div class="lg:col-span-4">
                 <div class="panel-card card-enter h-full">
                     <div class="panel-head">
@@ -917,8 +1367,8 @@
                     <div class="panel-body">
                         <div class="employment-ring">
                             <svg viewBox="0 0 36 36" class="w-full h-full">
-                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#E2E8F0" stroke-width="2.8"></path>
-                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1D4ED8" stroke-width="2.8" stroke-dasharray="{{ employmentRate }}, 100" stroke-linecap="round"></path>
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="hsl(20 6% 90%)" stroke-width="2.8"></path>
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="hsl(142 76% 36%)" stroke-width="2.8" stroke-dasharray="{{ employmentRate }}, 100" stroke-linecap="round"></path>
                             </svg>
                             <div class="employment-score">{{ employmentRate }}%</div>
                         </div>
@@ -993,12 +1443,12 @@
                     </div>
                     <div class="panel-body">
                         {% set actions = [
-                            {path: 'alumni_index', icon: 'bi-person-plus-fill', label: 'Add Alumni', note: 'Create a new alumni profile'},
-                            {path: 'alumni_index', icon: 'bi-search', label: 'Manage Alumni', note: 'Review and update records'},
-                            {path: 'admin_users', icon: 'bi-people-fill', label: 'Manage Users', note: 'Access user permissions'},
-                            {path: 'report_index', icon: 'bi-bar-chart-line', label: 'Reports', note: 'View analytics and exports'},
-                            {path: 'admin_audit_log', icon: 'bi-journal-text', label: 'Audit Log', note: 'Check system activities'},
-                            {path: 'announcement_index', icon: 'bi-megaphone-fill', label: 'Announcements', note: 'Publish platform updates'}
+                            {path: 'announcement_create', icon: 'bi-megaphone-fill', label: 'New Announcement', note: 'Post updates for all alumni'},
+                            {path: 'admin_gts_questions_new', icon: 'bi-ui-checks-grid', label: 'New Survey Question', note: 'Update tracer study questionnaire'},
+                            {path: 'admin_users', icon: 'bi-patch-check-fill', label: 'Profile Verification', note: 'Review and approve registrants'},
+                            {path: 'alumni_index', icon: 'bi-people-fill', label: 'Alumni Directory', note: 'Search and maintain alumni records'},
+                            {path: 'gts_index', icon: 'bi-clipboard2-data-fill', label: 'GTS Responses', note: 'Inspect submitted tracer forms'},
+                            {path: 'admin_analytics_hub', icon: 'bi-grid-1x2-fill', label: 'Reports and Analytics', note: 'Open Analytics Hub for all reporting modules'}
                         ] %}
                         <div class="quick-action-grid">
                             {% for action in actions %}
@@ -1017,7 +1467,7 @@
             </div>
         </div>
 
-        <div class="panel-card card-enter">
+        <div class="panel-card card-enter dashboard-order-trend">
             <div class="panel-head">
                 <h6 class="panel-title"><i class="bi bi-pie-chart-fill"></i>Employment Status Distribution</h6>
                 <span class="panel-subtitle">Grouped by alumni employmentStatus</span>
@@ -1029,7 +1479,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 dashboard-order-operational">
             <div class="panel-card card-enter">
                 <div class="panel-head">
                     <h6 class="panel-title"><i class="bi bi-hourglass-split"></i>Pending Approvals</h6>
@@ -1060,7 +1510,7 @@
                                     <td class="cell-tight text-right">
                                         <form method="post" action="{{ path('admin_user_approve', {id: pUser.id}) }}" class="inline">
                                             <input type="hidden" name="_token" value="{{ csrf_token('approve' ~ pUser.id) }}">
-                                            <button class="inline-action-btn" type="submit"><i class="bi bi-check-lg"></i>Approve</button>
+                                            <button class="icon-action icon-action-approve icon-action-btn" type="submit" title="Approve" aria-label="Approve user"><i class="bi bi-check-lg"></i></button>
                                         </form>
                                     </td>
                                 </tr>
@@ -1110,29 +1560,61 @@
             </div>
         </div>
 
-        {% if recentAnnouncements|length > 0 %}
-        <div class="panel-card card-enter">
-            <div class="panel-head">
-                <h6 class="panel-title"><i class="bi bi-megaphone-fill"></i>Latest Announcements</h6>
-                <a href="{{ path('announcement_index') }}" class="btn-outline-norsu btn-sm">View All</a>
-            </div>
-            <div class="panel-body panel-body-tight">
-                <div class="list-block viewport-list">
-                    {% for ann in recentAnnouncements %}
-                    <div class="list-row">
-                        <div class="list-row-top">
-                            <h6 class="announcement-title">{{ ann.title }}</h6>
-                            <span class="list-tag">{{ ann.datePosted|date('M d') }}</span>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 dashboard-order-engagement">
+            <div class="panel-card card-enter">
+                <div class="panel-head">
+                    <h6 class="panel-title"><i class="bi bi-clipboard2-data-fill"></i>Recent GTS Responses</h6>
+                    <a href="{{ path('gts_index') }}" class="btn-outline-norsu btn-sm">View All</a>
+                </div>
+                <div class="panel-body panel-body-tight">
+                    {% if recentGtsResponses|length > 0 %}
+                    <div class="list-block viewport-list">
+                        {% for survey in recentGtsResponses %}
+                        <div class="list-row">
+                            <div class="list-row-top">
+                                <h6 class="announcement-title">{{ survey.name ?: (survey.user ? survey.user.fullName : 'Unknown respondent') }}</h6>
+                                <span class="list-tag">{{ survey.createdAt|date('M d') }}</span>
+                            </div>
+                            <p class="announcement-text">{{ survey.emailAddress ?: (survey.user ? survey.user.email : 'No email address') }}</p>
+                            <div class="mt-2">
+                                <a href="{{ path('gts_show', {id: survey.id}) }}" class="text-sm text-blue-700 font-semibold">Open response <i class="bi bi-arrow-right"></i></a>
+                            </div>
                         </div>
-                        <p class="announcement-text">{{ ann.description|length > 150 ? ann.description|slice(0, 150) ~ '...' : ann.description }}</p>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
+                    {% else %}
+                    <div class="empty-block">
+                        <i class="bi bi-clipboard2 text-gray-400 text-3xl block mb-2"></i>
+                        <p class="mb-0 text-sm font-medium">No tracer responses yet</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-        </div>
-        {% endif %}
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+            {% if recentAnnouncements|length > 0 %}
+            <div class="panel-card card-enter">
+                <div class="panel-head">
+                    <h6 class="panel-title"><i class="bi bi-megaphone-fill"></i>Latest Announcements</h6>
+                    <a href="{{ path('announcement_index') }}" class="btn-outline-norsu btn-sm">View All</a>
+                </div>
+                <div class="panel-body panel-body-tight">
+                    <div class="list-block viewport-list">
+                        {% for ann in recentAnnouncements %}
+                        <div class="list-row">
+                            <div class="list-row-top">
+                                <h6 class="announcement-title">{{ ann.title }}</h6>
+                                <span class="list-tag">{{ ann.datePosted|date('M d') }}</span>
+                            </div>
+                            <p class="announcement-text">{{ ann.description|length > 150 ? ann.description|slice(0, 150) ~ '...' : ann.description }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 dashboard-order-directory">
             <div class="lg:col-span-8">
                 <div class="panel-card card-enter">
                     <div class="panel-head">
@@ -1173,8 +1655,8 @@
                                         </td>
                                         <td class="cell-tight text-right">
                                             <div class="flex justify-end gap-1">
-                                                <a href="{{ path('alumni_show', {id: alumni.id}) }}" class="btn-outline-norsu btn-xs" title="View"><i class="bi bi-eye"></i></a>
-                                                <a href="{{ path('alumni_edit', {id: alumni.id}) }}" class="btn-warning btn-xs" title="Edit"><i class="bi bi-pencil"></i></a>
+                                                <a href="{{ path('alumni_show', {id: alumni.id}) }}" class="icon-action icon-action-view" title="View" aria-label="View alumni"><i class="bi bi-eye"></i></a>
+                                                <a href="{{ path('alumni_edit', {id: alumni.id}) }}" class="icon-action icon-action-edit" title="Edit" aria-label="Edit alumni"><i class="bi bi-pencil"></i></a>
                                             </div>
                                         </td>
                                     </tr>
@@ -1208,7 +1690,7 @@
                                     <span class="course-count">{{ stat.total }}</span>
                                 </div>
                                 <div class="progress-track">
-                                    <div class="progress-fill" style="width:{{ (stat.total / maxTotal * 100)|round }}%; background:#1d4ed8;"></div>
+                                    <div class="progress-fill" style="width:{{ (stat.total / maxTotal * 100)|round }}%; background:var(--dash-primary);"></div>
                                 </div>
                             </div>
                             {% endfor %}
@@ -1253,13 +1735,13 @@
                 datasets: [{
                     data: values,
                     backgroundColor: [
-                        '#1E40AF',
-                        '#2563EB',
-                        '#059669',
-                        '#0D9488',
+                        '#16A34A',
+                        '#22C55E',
+                        '#10B981',
+                        '#14B8A6',
                         '#F59E0B',
-                        '#64748B',
-                        '#DC2626'
+                        '#78716C',
+                        '#EF4444'
                     ],
                     borderColor: '#FFFFFF',
                     borderWidth: 2

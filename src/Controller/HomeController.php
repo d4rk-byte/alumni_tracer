@@ -4,12 +4,10 @@ namespace App\Controller;
 
 use App\Repository\AlumniRepository;
 use App\Repository\AnnouncementRepository;
-use App\Repository\AuditLogRepository;
 use App\Repository\GtsSurveyRepository;
 use App\Repository\JobPostingRepository;
 use App\Repository\UserRepository;
 use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -42,11 +40,60 @@ final class HomeController extends AbstractController
         return $this->render('home/faq.html.twig');
     }
 
+    #[Route('/privacy', name: 'app_privacy', methods: ['GET'])]
+    public function privacy(): Response
+    {
+        return $this->render('home/privacy.html.twig');
+    }
+
+    #[Route('/terms-and-conditions', name: 'app_terms', methods: ['GET'])]
+    public function terms(): Response
+    {
+        return $this->render('home/terms.html.twig');
+    }
+
+    #[Route('/logos', name: 'app_logos', methods: ['GET'])]
+    public function logos(): Response
+    {
+        return $this->render('home/logos.html.twig', [
+            'logos' => $this->collectLogos(),
+        ]);
+    }
+
+    #[Route('/features/announcements', name: 'app_feature_announcements', methods: ['GET'])]
+    public function featureAnnouncements(): Response
+    {
+        return $this->render('home/feature_announcements.html.twig');
+    }
+
+    #[Route('/features/tracer-survey', name: 'app_feature_tracer_survey', methods: ['GET'])]
+    public function featureTracerSurvey(): Response
+    {
+        return $this->render('home/feature_tracer_survey.html.twig');
+    }
+
+    #[Route('/features/career-opportunities', name: 'app_feature_career_opportunities', methods: ['GET'])]
+    public function featureCareerOpportunities(): Response
+    {
+        return $this->render('home/feature_career_opportunities.html.twig');
+    }
+
     #[Route('/home', name: 'app_home')]
-    public function index(AlumniRepository $alumniRepo, UserRepository $userRepo, JobPostingRepository $jobRepo, AnnouncementRepository $announcementRepo, GtsSurveyRepository $gtsRepo, AuditLogRepository $auditLogRepo, EntityManagerInterface $em, CacheInterface $cache): Response
+    public function index(AlumniRepository $alumniRepo, UserRepository $userRepo, JobPostingRepository $jobRepo, AnnouncementRepository $announcementRepo, GtsSurveyRepository $gtsRepo, CacheInterface $cache): Response
     {
         if (!$this->getUser()) {
-            return $this->render('home/landing.html.twig');
+            return $this->render('home/landing.html.twig', [
+                'logos' => $this->collectLogos(),
+            ]);
+        }
+
+        // Dedicated dashboards keep module logic isolated per role.
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return $this->redirectToRoute('admin_dashboard');
+        }
+
+        if ($this->isGranted('ROLE_STAFF')) {
+            return $this->redirectToRoute('staff_dashboard');
         }
 
         // Common stats (cached for 5 minutes)
@@ -70,70 +117,6 @@ final class HomeController extends AbstractController
             ->setMaxResults(5)
             ->getQuery()
             ->getResult();
-
-        $employmentStatusRows = $alumniRepo->countGroupedByEmploymentStatus();
-        $employmentStatusChart = [
-            'labels' => array_column($employmentStatusRows, 'employmentStatus'),
-            'values' => array_column($employmentStatusRows, 'total'),
-        ];
-
-        // Admin dashboard (rendered inline) / Staff dashboard (redirect to /staff)
-        if ($this->isGranted('ROLE_ADMIN')) {
-            $pendingUsers = $userRepo->count(['accountStatus' => 'pending']);
-            $pendingList = $userRepo->findBy(['accountStatus' => 'pending'], ['dateRegistered' => 'DESC'], 5);
-            $activeJobs = $jobRepo->count(['isActive' => true]);
-            $totalJobs = $jobRepo->count([]);
-            $totalSurveyResponses = $gtsRepo->count([]);
-
-            // Job-course alignment rate
-            $jobRelated = $alumniRepo->count(['jobRelatedToCourse' => true]);
-            $employedTotal = $employed + $selfEmployed;
-            $alignmentRate = $employedTotal > 0 ? round($jobRelated / $employedTotal * 100, 1) : 0;
-
-            $recentAlumni = $alumniRepo->findBy([], ['id' => 'DESC'], 5);
-            $recentAnnouncements = $announcementRepo->findBy([], ['datePosted' => 'DESC'], 5);
-
-            // Role counts using efficient aggregate queries
-            $conn = $em->getConnection();
-            $adminCount = (int) $conn->fetchOne("SELECT COUNT(*) FROM `user` WHERE JSON_CONTAINS(roles, '\"ROLE_ADMIN\"')");
-            $staffCount = (int) $conn->fetchOne("SELECT COUNT(*) FROM `user` WHERE JSON_CONTAINS(roles, '\"ROLE_STAFF\"')");
-            $studentCount = $totalUsers - $adminCount - $staffCount;
-
-            // Online users: those with lastActivity within the last 5 minutes
-            $threshold = (new \DateTime())->modify('-5 minutes');
-            $activeUsers = (int) $em->createQuery(
-                'SELECT COUNT(u.id) FROM App\Entity\User u WHERE u.lastActivity IS NOT NULL AND u.lastActivity > :threshold'
-            )->setParameter('threshold', $threshold)->getSingleScalarResult();
-
-            return $this->render('admin/dashboard.html.twig', [
-                'totalAlumni' => $totalAlumni,
-                'employed' => $employed,
-                'unemployed' => $unemployed,
-                'selfEmployed' => $selfEmployed,
-                'totalUsers' => $totalUsers,
-                'employmentRate' => $employmentRate,
-                'recentAlumni' => $recentAlumni,
-                'courseStats' => $courseStats,
-                'pendingUsers' => $pendingUsers,
-                'pendingList' => $pendingList,
-                'activeJobs' => $activeJobs,
-                'totalJobs' => $totalJobs,
-                'totalSurveyResponses' => $totalSurveyResponses,
-                'alignmentRate' => $alignmentRate,
-                'recentAnnouncements' => $recentAnnouncements,
-                'recentAuditLogs' => $auditLogRepo->findRecent(10),
-                'adminCount' => $adminCount,
-                'staffCount' => $staffCount,
-                'studentCount' => $studentCount,
-                'activeUsers' => $activeUsers,
-                'employmentStatusChart' => $employmentStatusChart,
-            ]);
-        }
-
-        // Staff dashboard (dedicated /staff area)
-        if ($this->isGranted('ROLE_STAFF')) {
-            return $this->redirectToRoute('staff_dashboard');
-        }
 
         // Alumni dashboard (ROLE_ALUMNI)
         if ($this->isGranted('ROLE_ALUMNI')) {
@@ -173,5 +156,28 @@ final class HomeController extends AbstractController
             'employmentRate' => $employmentRate,
             'courseStats' => $courseStats,
         ]);
+    }
+
+    /**
+     * @return array<int, array{name: string, assetPath: string}>
+     */
+    private function collectLogos(): array
+    {
+        $logosDir = (string) $this->getParameter('kernel.project_dir') . '/public/skilline/img/logos';
+        $files = glob($logosDir . '/*.{png,jpg,jpeg,svg,webp,gif}', GLOB_BRACE) ?: [];
+
+        $logos = array_map(static function (string $file): array {
+            $filename = basename($file);
+            $name = pathinfo($filename, PATHINFO_FILENAME);
+
+            return [
+                'name' => str_replace(['-', '_'], ' ', $name),
+                'assetPath' => 'skilline/img/logos/' . $filename,
+            ];
+        }, $files);
+
+        usort($logos, static fn (array $a, array $b): int => strcmp($a['name'], $b['name']));
+
+        return $logos;
     }
 }

@@ -236,12 +236,12 @@
                             <td class="py-2 text-xs">{{ doc.uploadedAt|date('M d, Y') }}</td>
                             <td class="text-right pr-4 py-2">
                                 <div class="flex gap-1 justify-end">
-                                    <a href="{{ path('document_download', {id: doc.id}) }}" class="btn-outline-norsu btn-xs"><i class="bi bi-download"></i></a>
+                                    <a href="{{ path('document_download', {id: doc.id}) }}" class="icon-action icon-action-download" title="Download" aria-label="Download document"><i class="bi bi-download"></i></a>
                                     {% if is_granted('ROLE_STAFF') %}
                                     <form method="post" action="{{ path('document_delete', {id: doc.id}) }}" class="inline"
                                           onsubmit="return confirm('Delete this document?')">
                                         <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ doc.id) }}">
-                                        <button class="btn-danger btn-xs"><i class="bi bi-trash"></i></button>
+                                        <button type="submit" class="icon-action icon-action-delete icon-action-btn" title="Delete" aria-label="Delete document"><i class="bi bi-trash"></i></button>
                                     </form>
                                     {% endif %}
                                 </div>

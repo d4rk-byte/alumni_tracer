@@ -133,15 +133,15 @@
                         <div class="flex justify-end gap-1">
                             <form method="post" action="{{ path('admin_verification_approve', {id: user.id}) }}" class="inline">
                                 <input type="hidden" name="_token" value="{{ csrf_token('verify' ~ user.id) }}">
-                                <button class="bg-green-600 hover:bg-green-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1" title="Approve">
-                                    <i class="bi bi-check-lg"></i>Approve
+                                <button class="icon-action icon-action-approve icon-action-btn" title="Approve" aria-label="Approve registration">
+                                    <i class="bi bi-check-lg"></i>
                                 </button>
                             </form>
                             <form method="post" action="{{ path('admin_verification_deny', {id: user.id}) }}" class="inline"
                                   onsubmit="return confirm('Deny registration for {{ user.fullName }}?')">
                                 <input type="hidden" name="_token" value="{{ csrf_token('verify' ~ user.id) }}">
-                                <button class="btn-danger btn-sm" title="Deny">
-                                    <i class="bi bi-x-lg mr-1"></i>Deny
+                                <button class="icon-action icon-action-delete icon-action-btn" title="Deny" aria-label="Deny registration">
+                                    <i class="bi bi-x-lg"></i>
                                 </button>
                             </form>
                         </div>

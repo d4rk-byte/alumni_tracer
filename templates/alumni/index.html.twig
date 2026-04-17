@@ -304,13 +304,13 @@
                     </td>
                     <td class="text-right pr-4 no-print">
                         <div class="flex justify-end gap-1">
-                            <a href="{{ path('alumni_show', {id: alumni.id}) }}" class="btn-outline-norsu btn-xs" title="View"><i class="bi bi-eye"></i></a>
-                            <a href="{{ path('alumni_edit', {id: alumni.id}) }}" class="btn-warning btn-xs" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <a href="{{ path('alumni_show', {id: alumni.id}) }}" class="icon-action icon-action-view" title="View" aria-label="View alumni"><i class="bi bi-eye"></i></a>
+                            <a href="{{ path('alumni_edit', {id: alumni.id}) }}" class="icon-action icon-action-edit" title="Edit" aria-label="Edit alumni"><i class="bi bi-pencil"></i></a>
                             {% if is_granted('ROLE_ADMIN') %}
                             <form method="post" action="{{ path('alumni_delete', {id: alumni.id}) }}" class="inline"
                                   onsubmit="return confirm('Delete this alumni record?')">
                                 <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ alumni.id) }}">
-                                <button class="btn-danger btn-xs" title="Delete"><i class="bi bi-trash"></i></button>
+                                <button type="submit" class="icon-action icon-action-delete icon-action-btn" title="Delete" aria-label="Delete alumni"><i class="bi bi-trash"></i></button>
                             </form>
                             {% endif %}
                         </div>

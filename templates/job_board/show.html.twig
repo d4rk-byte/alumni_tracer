@@ -1,98 +1,104 @@
-{% extends 'base.html.twig' %}
+{% extends 'home/landing_layout.html.twig' %}
 
-{% block title %}{{ job.title }} — Job Board{% endblock %}
+{% block title %}{{ job.title }} — Job Opportunities{% endblock %}
 
-{% block body %}
-<div class="flex justify-between items-center mb-3">
-    <a href="{{ path('job_board_index') }}" class="btn-outline-norsu btn-sm"><i class="bi bi-arrow-left mr-1"></i>Back to Jobs</a>
-    {% if is_granted('ROLE_STAFF') %}
-        <div class="flex gap-1">
-            <a href="{{ path('job_board_edit', {id: job.id}) }}" class="btn-warning btn-sm"><i class="bi bi-pencil mr-1"></i>Edit</a>
-            <form method="post" action="{{ path('job_board_delete', {id: job.id}) }}" class="inline"
-                  onsubmit="return confirm('Delete this job posting?')">
-                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ job.id) }}">
-                <button class="btn-danger btn-sm"><i class="bi bi-trash mr-1"></i>Delete</button>
-            </form>
+{% block page_content %}
+<div class="bg-cream pb-14">
+    <div class="max-w-screen-xl px-8 mx-auto pt-14">
+        <div data-aos="fade-up" class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <a href="{{ path('job_board_index') }}" class="inline-flex items-center px-5 py-2.5 text-sm text-center bg-white text-gray-800 border border-gray-300 rounded-full no-underline hover:border-gray-400 transition-colors">Back to Job Opportunities</a>
+
+            {% if is_granted('ROLE_STAFF') %}
+                <div class="flex items-center gap-3">
+                    <a href="{{ path('job_board_edit', {id: job.id}) }}" class="px-5 py-2.5 text-sm text-center bg-white text-gray-800 border border-gray-300 rounded-full no-underline hover:border-gray-400 transition-colors">Edit Job</a>
+                    <form method="post" action="{{ path('job_board_delete', {id: job.id}) }}" class="inline" onsubmit="return confirm('Delete this job posting?')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ job.id) }}">
+                        <button class="px-5 py-2.5 text-sm text-center bg-red-500 text-white rounded-full hover:bg-red-400 transition-colors">Delete</button>
+                    </form>
+                </div>
+            {% endif %}
         </div>
-    {% endif %}
-</div>
 
-<div class="card">
-    <div class="card-body">
-        <div class="flex flex-col md:flex-row justify-between items-start gap-3 mb-4">
-            <div>
-                <h3 class="font-bold mb-1">{{ job.title }}</h3>
-                <div class="text-lg text-gray-600 mb-2">{{ job.companyName }}</div>
-                <div class="flex flex-wrap gap-2 text-sm text-gray-500">
-                    {% if job.location %}<span><i class="bi bi-geo-alt mr-1"></i>{{ job.location }}</span>{% endif %}
-                    <span class="badge badge-info">{{ job.employmentType }}</span>
-                    {% if job.isActive %}
-                        <span class="badge badge-employed">Active</span>
-                    {% else %}
-                        <span class="badge badge-secondary">Closed</span>
-                    {% endif %}
+        <div data-aos="fade-up" data-aos-delay="80" class="mt-8 bg-white shadow-xl rounded-2xl p-8">
+            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                <div>
+                    <h1 class="font-bold text-darken text-3xl">{{ job.title }}</h1>
+                    <p class="mt-2 text-lg text-gray-600">{{ job.companyName }}</p>
+
+                    <div class="mt-4 flex flex-wrap gap-2 text-sm">
+                        {% if job.employmentType %}
+                            <span class="px-3 py-1 rounded-full bg-sky-100 text-sky-700">{{ job.employmentType }}</span>
+                        {% endif %}
+                        {% if job.isActive %}
+                            <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">Active</span>
+                        {% else %}
+                            <span class="px-3 py-1 rounded-full bg-gray-200 text-gray-700">Closed</span>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-        </div>
 
-        {# Info boxes #}
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-            {% if job.salaryRange %}
-            <div class="border rounded-lg p-3 text-center">
-                <div class="text-gray-500 text-xs uppercase mb-1">Salary</div>
-                <div class="font-bold text-sm">{{ job.salaryRange }}</div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+                {% if job.location %}
+                    <div class="border border-gray-200 rounded-xl p-4 text-center">
+                        <p class="text-xs uppercase tracking-wide text-gray-500">Location</p>
+                        <p class="mt-1 text-sm font-semibold text-darken">{{ job.location }}</p>
+                    </div>
+                {% endif %}
+                {% if job.salaryRange %}
+                    <div class="border border-gray-200 rounded-xl p-4 text-center">
+                        <p class="text-xs uppercase tracking-wide text-gray-500">Salary</p>
+                        <p class="mt-1 text-sm font-semibold text-darken">{{ job.salaryRange }}</p>
+                    </div>
+                {% endif %}
+                {% if job.industry %}
+                    <div class="border border-gray-200 rounded-xl p-4 text-center">
+                        <p class="text-xs uppercase tracking-wide text-gray-500">Industry</p>
+                        <p class="mt-1 text-sm font-semibold text-darken">{{ job.industry }}</p>
+                    </div>
+                {% endif %}
+                {% if job.relatedCourse %}
+                    <div class="border border-gray-200 rounded-xl p-4 text-center">
+                        <p class="text-xs uppercase tracking-wide text-gray-500">Target Course</p>
+                        <p class="mt-1 text-sm font-semibold text-darken">{{ job.relatedCourse }}</p>
+                    </div>
+                {% endif %}
             </div>
-            {% endif %}
-            {% if job.industry %}
-            <div class="border rounded-lg p-3 text-center">
-                <div class="text-gray-500 text-xs uppercase mb-1">Industry</div>
-                <div class="font-bold text-sm">{{ job.industry }}</div>
-            </div>
-            {% endif %}
-            {% if job.relatedCourse %}
-            <div class="border rounded-lg p-3 text-center">
-                <div class="text-gray-500 text-xs uppercase mb-1">Target Course</div>
-                <div class="font-bold text-sm">{{ job.relatedCourse }}</div>
-            </div>
-            {% endif %}
+
             {% if job.deadline %}
-            <div class="border rounded-lg p-3 text-center {{ job.deadline < date() ? 'border-red-300 bg-red-50' : '' }}">
-                <div class="text-gray-500 text-xs uppercase mb-1">Deadline</div>
-                <div class="font-bold text-sm {{ job.deadline < date() ? 'text-red-500' : '' }}">{{ job.deadline|date('M d, Y') }}</div>
+                <div class="mt-4 rounded-xl border {{ job.deadline < date() ? 'border-red-200 bg-red-50' : 'border-amber-200 bg-amber-50' }} px-4 py-3 text-sm {{ job.deadline < date() ? 'text-red-700' : 'text-amber-700' }}">
+                    Application deadline: {{ job.deadline|date('F d, Y') }}
+                </div>
+            {% endif %}
+
+            {% if job.description %}
+                <div class="mt-8">
+                    <h2 class="font-semibold text-darken text-xl">Description</h2>
+                    <p class="mt-3 text-gray-600 leading-relaxed whitespace-pre-line">{{ job.description }}</p>
+                </div>
+            {% endif %}
+
+            {% if job.requirements %}
+                <div class="mt-8">
+                    <h2 class="font-semibold text-darken text-xl">Requirements</h2>
+                    <p class="mt-3 text-gray-600 leading-relaxed whitespace-pre-line">{{ job.requirements }}</p>
+                </div>
+            {% endif %}
+
+            <div class="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="flex flex-wrap gap-3">
+                    {% if job.applicationLink %}
+                        <a href="{{ job.applicationLink }}" target="_blank" rel="noopener noreferrer" class="px-6 py-3 text-sm text-center bg-yellow-500 text-white rounded-full no-underline hover:bg-yellow-400 transition-colors">Apply Now</a>
+                    {% endif %}
+                    {% if job.contactEmail %}
+                        <a href="mailto:{{ job.contactEmail }}" class="px-6 py-3 text-sm text-center bg-white text-gray-800 border border-gray-300 rounded-full no-underline hover:border-gray-400 transition-colors">Contact Employer</a>
+                    {% endif %}
+                </div>
+
+                <p class="text-xs text-gray-500">
+                    Posted on {{ job.datePosted|date('F d, Y') }}{% if job.postedBy %} by {{ job.postedBy.fullName }}{% endif %}
+                </p>
             </div>
-            {% endif %}
-        </div>
-
-        {# Description #}
-        {% if job.description %}
-        <div class="mb-4">
-            <h6 class="font-bold mb-2"><i class="bi bi-text-paragraph mr-1"></i>Description</h6>
-            <div style="white-space: pre-line;">{{ job.description }}</div>
-        </div>
-        {% endif %}
-
-        {# Requirements #}
-        {% if job.requirements %}
-        <div class="mb-4">
-            <h6 class="font-bold mb-2"><i class="bi bi-list-check mr-1"></i>Requirements</h6>
-            <div style="white-space: pre-line;">{{ job.requirements }}</div>
-        </div>
-        {% endif %}
-
-        {# Action buttons #}
-        <hr class="my-4 border-gray-200">
-        <div class="flex flex-wrap gap-2">
-            {% if job.applicationLink %}
-                <a href="{{ job.applicationLink }}" target="_blank" class="btn-norsu"><i class="bi bi-box-arrow-up-right mr-1"></i>Apply Now</a>
-            {% endif %}
-            {% if job.contactEmail %}
-                <a href="mailto:{{ job.contactEmail }}" class="btn-outline-norsu"><i class="bi bi-envelope mr-1"></i>{{ job.contactEmail }}</a>
-            {% endif %}
-        </div>
-
-        <div class="text-gray-500 text-xs mt-3">
-            Posted on {{ job.datePosted|date('F d, Y') }}
-            {% if job.postedBy %} by {{ job.postedBy.fullName }}{% endif %}
         </div>
     </div>
 </div>

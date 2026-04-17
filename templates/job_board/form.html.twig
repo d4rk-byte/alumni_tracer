@@ -1,37 +1,259 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ title }}{% endblock %}
+{% block body_class %}admin-material-page{% endblock %}
 
 {% block body %}
-<div class="flex justify-between items-center mb-3">
-    <h4 class="font-bold mb-0">{{ title }}</h4>
-    <a href="{{ path('job_board_manage') }}" class="btn-outline-norsu"><i class="bi bi-arrow-left mr-1"></i>Back</a>
-</div>
+<style>
+    .job-board-editor {
+        --editor-bg: hsl(60 9% 98%);
+        --editor-card: #ffffff;
+        --editor-border: hsl(20 6% 90%);
+        --editor-text: hsl(24 10% 10%);
+        --editor-muted: hsl(24 5% 45%);
+        --editor-primary: hsl(142 76% 36%);
+        color: var(--editor-text);
+    }
 
-<div class="card">
-    <div class="card-header-norsu"><i class="bi bi-briefcase-fill mr-2"></i>Job Posting Details</div>
-    <div class="card-body">
-        {{ form_start(form) }}
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-                <div class="md:col-span-6">{{ form_row(form.title) }}</div>
-                <div class="md:col-span-6">{{ form_row(form.companyName) }}</div>
-                <div class="md:col-span-4">{{ form_row(form.location) }}</div>
-                <div class="md:col-span-4">{{ form_row(form.employmentType) }}</div>
-                <div class="md:col-span-4">{{ form_row(form.salaryRange) }}</div>
-                <div class="md:col-span-4">{{ form_row(form.industry) }}</div>
-                <div class="md:col-span-4">{{ form_row(form.relatedCourse) }}</div>
-                <div class="md:col-span-12">{{ form_row(form.description) }}</div>
-                <div class="md:col-span-12">{{ form_row(form.requirements) }}</div>
-                <div class="md:col-span-6">{{ form_row(form.contactEmail) }}</div>
-                <div class="md:col-span-6">{{ form_row(form.applicationLink) }}</div>
-                <div class="md:col-span-4">{{ form_row(form.deadline) }}</div>
-                <div class="md:col-span-4">{{ form_row(form.isActive) }}</div>
+    .job-board-editor .editor-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.95rem;
+    }
+
+    .job-board-editor .editor-head {
+        border: 1px solid var(--editor-border);
+        border-radius: 0.65rem;
+        background: var(--editor-card);
+        padding: 0.85rem 1rem;
+        box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+
+    .job-board-editor .editor-kicker {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--editor-muted);
+        margin: 0;
+    }
+
+    .job-board-editor .editor-title {
+        margin: 0.1rem 0 0;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--editor-text);
+    }
+
+    .job-board-editor .editor-actions {
+        display: flex;
+        gap: 0.45rem;
+        flex-wrap: wrap;
+    }
+
+    .job-board-editor .editor-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 0.45rem;
+        border: 1px solid var(--editor-border);
+        padding: 0.42rem 0.68rem;
+        font-size: 0.76rem;
+        font-weight: 600;
+        text-decoration: none;
+        background: #fff;
+        color: var(--editor-text);
+    }
+
+    .job-board-editor .editor-btn:hover {
+        background: hsl(60 5% 96%);
+        color: var(--editor-text);
+    }
+
+    .job-board-editor .editor-panel {
+        border: 1px solid var(--editor-border);
+        border-radius: 0.65rem;
+        background: var(--editor-card);
+        box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+        overflow: hidden;
+    }
+
+    .job-board-editor .editor-panel-head {
+        border-bottom: 1px solid var(--editor-border);
+        padding: 0.8rem 0.95rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.7rem;
+    }
+
+    .job-board-editor .editor-panel-title {
+        margin: 0;
+        font-size: 0.92rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .job-board-editor .editor-panel-subtitle {
+        margin: 0;
+        font-size: 0.74rem;
+        color: var(--editor-muted);
+    }
+
+    .job-board-editor .editor-form {
+        padding: 0.95rem;
+    }
+
+    .job-board-editor .editor-grid {
+        display: grid;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .job-board-editor .editor-form :is(label) {
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: var(--editor-text);
+        margin-bottom: 0.3rem;
+    }
+
+    .job-board-editor .editor-form :is(input.form-input, select.form-select, textarea.form-input) {
+        border-radius: 0.45rem;
+        border: 1px solid var(--editor-border);
+        background: #fff;
+        font-size: 0.83rem;
+        color: var(--editor-text);
+    }
+
+    .job-board-editor .editor-form :is(input.form-input, select.form-select, textarea.form-input):focus {
+        border-color: hsl(142 76% 36%);
+        box-shadow: 0 0 0 3px hsla(142, 76%, 36%, 0.12);
+    }
+
+    .job-board-editor .editor-form .form-help-text,
+    .job-board-editor .editor-form small,
+    .job-board-editor .editor-form .help-text {
+        color: var(--editor-muted);
+        font-size: 0.72rem;
+    }
+
+    .job-board-editor .editor-form .form-error-message,
+    .job-board-editor .editor-form .invalid-feedback {
+        font-size: 0.72rem;
+    }
+
+    .job-board-editor .editor-submit-row {
+        margin-top: 0.9rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--editor-border);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .job-board-editor .editor-save-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 0.45rem;
+        border: 1px solid var(--editor-primary);
+        background: var(--editor-primary);
+        color: #fff;
+        padding: 0.44rem 0.72rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .job-board-editor .editor-save-btn:hover {
+        background: hsl(142 76% 32%);
+        border-color: hsl(142 76% 32%);
+    }
+
+    @media (min-width: 768px) {
+        .job-board-editor .editor-grid {
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+        }
+
+        .job-board-editor .field-title,
+        .job-board-editor .field-company { grid-column: span 6 / span 6; }
+        .job-board-editor .field-location,
+        .job-board-editor .field-type,
+        .job-board-editor .field-salary { grid-column: span 4 / span 4; }
+        .job-board-editor .field-industry,
+        .job-board-editor .field-course,
+        .job-board-editor .field-image,
+        .job-board-editor .field-deadline,
+        .job-board-editor .field-active { grid-column: span 4 / span 4; }
+        .job-board-editor .field-description,
+        .job-board-editor .field-requirements { grid-column: span 12 / span 12; }
+        .job-board-editor .field-email,
+        .job-board-editor .field-link { grid-column: span 6 / span 6; }
+    }
+</style>
+
+<section class="job-board-editor">
+    <div class="editor-shell">
+        <header class="editor-head">
+            <div>
+                <p class="editor-kicker">Job Board Management</p>
+                <h1 class="editor-title">{{ title }}</h1>
             </div>
-            <div class="mt-4 flex gap-2">
-                <button type="submit" class="btn-norsu"><i class="bi bi-check-lg mr-1"></i>Save Job Posting</button>
-                <a href="{{ path('job_board_manage') }}" class="btn-secondary">Cancel</a>
+            <div class="editor-actions">
+                <a href="{{ path('job_board_manage') }}" class="editor-btn"><i class="bi bi-arrow-left"></i>Back to Manage</a>
+                {% if job.id %}
+                    <a href="{{ path('job_board_manage_show', {id: job.id}) }}" class="editor-btn"><i class="bi bi-eye"></i>View</a>
+                {% endif %}
             </div>
-        {{ form_end(form) }}
+        </header>
+
+        <div class="editor-panel">
+            <div class="editor-panel-head">
+                <h2 class="editor-panel-title"><i class="bi bi-briefcase-fill"></i>Job Posting Details</h2>
+                <p class="editor-panel-subtitle">Complete the required fields and publish when ready.</p>
+            </div>
+
+            {{ form_start(form, {'attr': {'class': 'editor-form'}}) }}
+                <div class="editor-grid">
+                    <div class="field-title">{{ form_row(form.title) }}</div>
+                    <div class="field-company">{{ form_row(form.companyName) }}</div>
+                    <div class="field-location">{{ form_row(form.location) }}</div>
+                    <div class="field-type">{{ form_row(form.employmentType) }}</div>
+                    <div class="field-salary">{{ form_row(form.salaryRange) }}</div>
+                    <div class="field-industry">{{ form_row(form.industry) }}</div>
+                    <div class="field-course">{{ form_row(form.relatedCourse) }}</div>
+                    <div class="field-description">{{ form_row(form.description) }}</div>
+                    <div class="field-requirements">{{ form_row(form.requirements) }}</div>
+                    <div class="field-email">{{ form_row(form.contactEmail) }}</div>
+                    <div class="field-link">{{ form_row(form.applicationLink) }}</div>
+                    <div class="field-image">{{ form_row(form.imageFile) }}</div>
+                    <div class="field-deadline">{{ form_row(form.deadline) }}</div>
+                    <div class="field-active">{{ form_row(form.isActive) }}</div>
+                </div>
+
+                {% if job.imageFilename %}
+                    <div class="mt-2 text-xs text-gray-500">
+                        Current image
+                        <img
+                            src="{{ asset('uploads/job_postings/' ~ job.imageFilename) }}"
+                            alt="Current job image"
+                            class="mt-2 rounded-lg border border-gray-200"
+                            style="width: 240px; max-width: 100%; height: 130px; object-fit: cover;"
+                        >
+                    </div>
+                {% endif %}
+
+                <div class="editor-submit-row">
+                    <button type="submit" class="editor-save-btn"><i class="bi bi-check-lg"></i>Save Job Posting</button>
+                    <a href="{{ path('job_board_manage') }}" class="editor-btn">Cancel</a>
+                </div>
+            {{ form_end(form) }}
+        </div>
     </div>
-</div>
+</section>
 {% endblock %}

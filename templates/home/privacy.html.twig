@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Privacy Policy — NORSU Alumni Tracker{% endblock %}
+
+{% block body %}
+<div class="hero-section relative overflow-hidden text-white py-16 mb-8" style="background-color:#1E3A8A;background-image:linear-gradient(118deg,rgba(6,24,63,0.84) 0%,rgba(13,65,120,0.66) 48%,rgba(5,150,105,0.54) 100%),url('{{ asset('images/home-hero-graduation.png') }}');background-size:cover;background-position:center;background-repeat:no-repeat;">
+    <div class="max-w-5xl mx-auto px-4 relative z-10 text-center" style="padding-top:2rem;">
+        <h1 class="font-extrabold text-4xl md:text-5xl mb-3">Privacy Policy</h1>
+        <p class="text-lg text-white/90 max-w-3xl mx-auto">How NORSU Alumni Tracker collects, uses, and protects personal data.</p>
+    </div>
+</div>
+
+<div class="max-w-5xl mx-auto px-4 pb-8 space-y-4">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="font-bold text-lg mb-2 text-blue-800">1. Data We Collect</h5>
+            <p class="text-sm text-gray-600 mb-0">We may collect profile details, contact information, academic background, employment details, and tracer survey responses needed for alumni services and institutional reporting.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="font-bold text-lg mb-2 text-blue-800">2. Purpose of Processing</h5>
+            <p class="text-sm text-gray-600 mb-0">Data is processed to manage alumni accounts, support communication, generate aggregate insights, and improve university programs and alumni engagement initiatives.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="font-bold text-lg mb-2 text-blue-800">3. Data Protection</h5>
+            <p class="text-sm text-gray-600 mb-0">NORSU applies reasonable administrative, technical, and organizational safeguards to protect personal data from unauthorized access, disclosure, or misuse.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="font-bold text-lg mb-2 text-blue-800">4. Sharing and Disclosure</h5>
+            <p class="text-sm text-gray-600 mb-0">Personal data is only shared with authorized university offices and personnel when necessary for legitimate alumni and institutional functions, in accordance with applicable policies and laws.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="font-bold text-lg mb-2 text-blue-800">5. Your Rights</h5>
+            <p class="text-sm text-gray-600 mb-0">You may request access, correction, or updates to your information through the Alumni Affairs Office or designated support channels.</p>
+        </div>
+    </div>
+</div>
+
+{% include 'home/_public_footer.html.twig' %}
+{% endblock %}

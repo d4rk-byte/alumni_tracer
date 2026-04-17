@@ -1,50 +1,44 @@
-{% extends 'base.html.twig' %}
+{% extends 'home/landing_layout.html.twig' %}
 
 {% block title %}About — NORSU Alumni Tracker{% endblock %}
 
-{% block body %}
-<div class="hero-section relative overflow-hidden text-white py-16 mb-8" style="background-color:#1E3A8A;background-image:linear-gradient(118deg,rgba(6,24,63,0.84) 0%,rgba(13,65,120,0.66) 48%,rgba(5,150,105,0.54) 100%),url('{{ asset('images/home-hero-graduation.png') }}');background-size:cover;background-position:center;background-repeat:no-repeat;">
-    <div class="max-w-5xl mx-auto px-4 relative z-10 text-center" style="padding-top:2rem;">
-        <h1 class="font-extrabold text-4xl md:text-5xl mb-3">About NORSU Alumni Tracker</h1>
-        <p class="text-lg text-white/90 max-w-3xl mx-auto">A university platform built to connect graduates, monitor career outcomes, and strengthen alumni engagement across Negros Oriental State University.</p>
-    </div>
-</div>
+{% block page_content %}
+<div class="bg-blue-50 pb-10">
+    <div class="max-w-screen-xl px-8 mx-auto pt-14">
+        <div data-aos="fade-up" class="max-w-3xl mx-auto text-center mb-10">
+            <h1 class="font-bold text-darken my-3 text-3xl">About <span class="text-blue-600">NORSU Alumni Tracker</span></h1>
+            <p class="leading-relaxed text-gray-500">A university platform built to connect graduates, monitor career outcomes, and strengthen alumni engagement across Negros Oriental State University.</p>
+        </div>
 
-<div class="max-w-6xl mx-auto px-4 pb-8">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="font-bold text-lg mb-2 text-blue-800"><i class="bi bi-bullseye mr-1"></i>Our Mission</h5>
-                <p class="text-gray-600 text-sm mb-0">Support the university through reliable alumni data, long-term engagement, and evidence-based institutional planning.</p>
+        <div class="grid md:grid-cols-3 gap-14 md:gap-5 mt-10">
+            <div data-aos="fade-up" class="bg-white shadow-xl p-6 text-center rounded-xl">
+                <h2 class="font-medium text-xl mb-3 text-darken">Our Mission</h2>
+                <p class="px-4 text-gray-500">Support the university through reliable alumni data, long-term engagement, and evidence-based institutional planning.</p>
+            </div>
+            <div data-aos="fade-up" data-aos-delay="150" class="bg-white shadow-xl p-6 text-center rounded-xl">
+                <h2 class="font-medium text-xl mb-3 text-darken">Community Focus</h2>
+                <p class="px-4 text-gray-500">Create meaningful connections between alumni, students, faculty, and offices through one centralized digital portal.</p>
+            </div>
+            <div data-aos="fade-up" data-aos-delay="300" class="bg-white shadow-xl p-6 text-center rounded-xl">
+                <h2 class="font-medium text-xl mb-3 text-darken">Data for Impact</h2>
+                <p class="px-4 text-gray-500">Use tracer results and employment insights to improve programs, align curriculum, and guide strategic decisions.</p>
             </div>
         </div>
-        <div class="card">
-            <div class="card-body">
-                <h5 class="font-bold text-lg mb-2 text-emerald-700"><i class="bi bi-people-fill mr-1"></i>Community Focus</h5>
-                <p class="text-gray-600 text-sm mb-0">Create meaningful connections between alumni, students, faculty, and offices through one centralized digital portal.</p>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-body">
-                <h5 class="font-bold text-lg mb-2 text-cyan-700"><i class="bi bi-graph-up-arrow mr-1"></i>Data for Impact</h5>
-                <p class="text-gray-600 text-sm mb-0">Use tracer results and employment insights to improve programs, align curriculum, and guide strategic decisions.</p>
-            </div>
-        </div>
-    </div>
 
-    <div class="card mt-4">
-        <div class="card-body">
-            <h4 class="font-bold mb-2">What the Platform Provides</h4>
-            <ul class="list-disc pl-5 text-sm text-gray-600 space-y-1 mb-0">
-                <li>Alumni profile and verification management</li>
-                <li>Graduate Tracer Survey collection and reporting</li>
-                <li>Job board and engagement announcements</li>
-                <li>Dashboard analytics for administrators and staff</li>
-                <li>Data privacy aligned operations and audit trails</li>
-            </ul>
+        <div data-aos="fade-up" class="mt-12 bg-white shadow-xl p-8 rounded-xl">
+            <h3 class="font-semibold text-darken text-2xl mb-4">What the Platform Provides</h3>
+            <div class="grid md:grid-cols-2 gap-4 text-gray-500">
+                <p>Alumni profile and verification management</p>
+                <p>Graduate Tracer Survey collection and reporting</p>
+                <p>Job board and engagement announcements</p>
+                <p>Dashboard analytics for administrators and staff</p>
+                <p>Data privacy aligned operations and audit trails</p>
+            </div>
+            <div class="mt-8 flex flex-col sm:flex-row gap-3">
+                <a href="{{ path('app_register') }}" class="px-6 py-3 text-sm text-center bg-blue-600 text-white rounded-full no-underline">Create an Alumni Account</a>
+                <a href="{{ path('app_contact') }}" class="px-6 py-3 text-sm text-center bg-white text-gray-800 border border-gray-300 rounded-full no-underline">Contact the Team</a>
+            </div>
         </div>
     </div>
 </div>
-
-{% include 'home/_public_footer.html.twig' %}
 {% endblock %}

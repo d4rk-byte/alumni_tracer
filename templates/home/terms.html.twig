@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Terms and Conditions — NORSU Alumni Tracker{% endblock %}
+
+{% block body %}
+<div class="hero-section relative overflow-hidden text-white py-16 mb-8" style="background-color:#1E3A8A;background-image:linear-gradient(118deg,rgba(6,24,63,0.84) 0%,rgba(13,65,120,0.66) 48%,rgba(5,150,105,0.54) 100%),url('{{ asset('images/home-hero-graduation.png') }}');background-size:cover;background-position:center;background-repeat:no-repeat;">
+    <div class="max-w-5xl mx-auto px-4 relative z-10 text-center" style="padding-top:2rem;">
+        <h1 class="font-extrabold text-4xl md:text-5xl mb-3">Terms and Conditions</h1>
+        <p class="text-lg text-white/90 max-w-3xl mx-auto">Rules for responsible use of the NORSU Alumni Tracker platform.</p>
+    </div>
+</div>
+
+<div class="max-w-5xl mx-auto px-4 pb-8 space-y-4">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="font-bold text-lg mb-2 text-blue-800">1. Account Responsibility</h5>
+            <p class="text-sm text-gray-600 mb-0">Users are responsible for maintaining accurate information and protecting account credentials. Sharing login access is discouraged.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="font-bold text-lg mb-2 text-blue-800">2. Acceptable Use</h5>
+            <p class="text-sm text-gray-600 mb-0">The platform must be used for lawful, respectful, and university-related activities. Misuse, harassment, or submission of false data may result in access restrictions.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="font-bold text-lg mb-2 text-blue-800">3. Content and Accuracy</h5>
+            <p class="text-sm text-gray-600 mb-0">Users should provide truthful profile and survey information. NORSU may review, moderate, or correct records to maintain system integrity.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="font-bold text-lg mb-2 text-blue-800">4. Service Availability</h5>
+            <p class="text-sm text-gray-600 mb-0">The university may update, maintain, or temporarily suspend services as needed to improve reliability and security.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="font-bold text-lg mb-2 text-blue-800">5. Policy Updates</h5>
+            <p class="text-sm text-gray-600 mb-0">These terms may be revised periodically. Continued use of the platform after updates indicates acceptance of the revised terms.</p>
+        </div>
+    </div>
+</div>
+
+{% include 'home/_public_footer.html.twig' %}
+{% endblock %}

@@ -44,10 +44,10 @@
                         {% endif %}
                     </td>
                     <td class="px-4 py-3 text-right">
-                        <a href="{{ path(questionEditRoute, {id: question.id}) }}" class="btn-warning btn-sm"><i class="bi bi-pencil"></i></a>
+                        <a href="{{ path(questionEditRoute, {id: question.id}) }}" class="icon-action icon-action-edit" title="Edit" aria-label="Edit question"><i class="bi bi-pencil"></i></a>
                         <form method="post" action="{{ path(questionDeleteRoute, {id: question.id}) }}" class="inline" onsubmit="return confirm('Delete this question?')">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete_gts_question_' ~ question.id) }}">
-                            <button class="btn-danger btn-sm"><i class="bi bi-trash"></i></button>
+                            <button type="submit" class="icon-action icon-action-delete icon-action-btn" title="Delete" aria-label="Delete question"><i class="bi bi-trash"></i></button>
                         </form>
                     </td>
                 </tr>

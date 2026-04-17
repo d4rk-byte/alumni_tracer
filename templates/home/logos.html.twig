@@ -1,0 +1,32 @@
+{% extends 'home/landing_layout.html.twig' %}
+
+{% block title %}Logos — NORSU Alumni Tracker{% endblock %}
+
+{% block page_content %}
+<div class="bg-blue-50 pb-10">
+    <div class="max-w-screen-xl px-8 mx-auto pt-14">
+        <div data-aos="fade-up" class="max-w-3xl mx-auto text-center mb-10">
+            <h1 class="font-bold text-darken my-3 text-3xl">Official <span class="text-blue-600">Logos</span></h1>
+            <p class="leading-relaxed text-gray-500">A gallery of logos loaded from skilline/img/logos. Add or remove files in that folder and this page updates automatically.</p>
+        </div>
+
+        {% if logos is empty %}
+            <div data-aos="fade-up" class="bg-white shadow-xl rounded-xl p-10 text-center">
+                <h2 class="font-semibold text-darken text-2xl">No logos found</h2>
+                <p class="mt-2 text-gray-500">Place image files in public/skilline/img/logos and refresh this page.</p>
+            </div>
+        {% else %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for logo in logos %}
+                    <div data-aos="fade-up" data-aos-delay="{{ (loop.index0 % 3) * 80 }}" class="bg-white shadow-xl rounded-xl p-6 flex flex-col items-center">
+                        <div class="h-28 w-full flex items-center justify-center rounded-lg bg-gray-50 border border-gray-100 p-3">
+                            <img src="{{ asset(logo.assetPath) }}" alt="{{ logo.name }} logo" class="max-h-full max-w-full object-contain" loading="lazy">
+                        </div>
+                        <p class="mt-4 text-sm font-semibold text-gray-700 text-center">{{ logo.name|title }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

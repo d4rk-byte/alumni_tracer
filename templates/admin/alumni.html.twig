@@ -84,16 +84,16 @@
                     <td class="py-3 text-sm">{{ alumni.province ?? '—' }}</td>
                     <td class="text-right pr-4 py-3">
                         <div class="flex justify-end gap-1">
-                            <a href="{{ path('alumni_show', {id: alumni.id}) }}" class="btn-outline-norsu btn-xs" title="View">
+                            <a href="{{ path('alumni_show', {id: alumni.id}) }}" class="icon-action icon-action-view" title="View" aria-label="View alumni">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="{{ path('alumni_edit', {id: alumni.id}) }}" class="btn-warning btn-xs" title="Edit">
+                            <a href="{{ path('alumni_edit', {id: alumni.id}) }}" class="icon-action icon-action-edit" title="Edit" aria-label="Edit alumni">
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <form method="post" action="{{ path('alumni_delete', {id: alumni.id}) }}" class="inline"
                                   onsubmit="return confirm('Are you sure you want to delete this alumni record?')">
                                 <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ alumni.id) }}">
-                                <button class="btn-danger btn-xs" title="Delete">
+                                <button type="submit" class="icon-action icon-action-delete icon-action-btn" title="Delete" aria-label="Delete alumni">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>

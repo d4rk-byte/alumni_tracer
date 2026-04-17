@@ -8,6 +8,7 @@ use App\Repository\JobPostingRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -66,7 +67,24 @@ class JobBoardController extends AbstractController
     #[Route('/{id}', name: 'job_board_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(JobPosting $job): Response
     {
+        if (!$this->getUser()) {
+            $this->addFlash('warning', 'Please log in to view full job details.');
+            return $this->redirectToRoute('app_login');
+        }
+
         return $this->render('job_board/show.html.twig', [
+            'job' => $job,
+        ]);
+    }
+
+    /**
+     * Staff/Admin dashboard view for a job posting.
+     */
+    #[Route('/manage/{id}', name: 'job_board_manage_show', methods: ['GET'], requirements: ['id' => '\\d+'])]
+    #[IsGranted('ROLE_STAFF')]
+    public function manageShow(JobPosting $job): Response
+    {
+        return $this->render('job_board/show_manage.html.twig', [
             'job' => $job,
         ]);
     }
@@ -83,6 +101,21 @@ class JobBoardController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $imageFile = $form->get('imageFile')->getData();
+            if ($imageFile instanceof UploadedFile) {
+                try {
+                    $job->setImageFilename($this->storeJobImage($imageFile));
+                } catch (\RuntimeException $e) {
+                    $this->addFlash('danger', $e->getMessage());
+
+                    return $this->render('job_board/form.html.twig', [
+                        'form'  => $form->createView(),
+                        'title' => 'Post a New Job Opportunity',
+                        'job'   => $job,
+                    ]);
+                }
+            }
+
             /** @var \App\Entity\User $user */
             $user = $this->getUser();
             $job->setPostedBy($user);
@@ -90,7 +123,7 @@ class JobBoardController extends AbstractController
             $em->flush();
 
             $this->addFlash('success', 'Job posting "' . $job->getTitle() . '" created successfully.');
-            return $this->redirectToRoute('job_board_show', ['id' => $job->getId()]);
+            return $this->redirectToRoute('job_board_manage_show', ['id' => $job->getId()]);
         }
 
         return $this->render('job_board/form.html.twig', [
@@ -116,11 +149,30 @@ class JobBoardController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $imageFile = $form->get('imageFile')->getData();
+            if ($imageFile instanceof UploadedFile) {
+                try {
+                    $newImageFilename = $this->storeJobImage($imageFile);
+                } catch (\RuntimeException $e) {
+                    $this->addFlash('danger', $e->getMessage());
+
+                    return $this->render('job_board/form.html.twig', [
+                        'form'  => $form->createView(),
+                        'title' => 'Edit Job — ' . $job->getTitle(),
+                        'job'   => $job,
+                    ]);
+                }
+
+                $oldImageFilename = $job->getImageFilename();
+                $job->setImageFilename($newImageFilename);
+                $this->removeJobImage($oldImageFilename);
+            }
+
             $job->setDateUpdated(new \DateTime());
             $em->flush();
 
             $this->addFlash('success', 'Job posting updated successfully.');
-            return $this->redirectToRoute('job_board_show', ['id' => $job->getId()]);
+            return $this->redirectToRoute('job_board_manage_show', ['id' => $job->getId()]);
         }
 
         return $this->render('job_board/form.html.twig', [
@@ -137,7 +189,8 @@ class JobBoardController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function delete(JobPosting $job, Request $request, EntityManagerInterface $em): Response
     {
-        if ($this->isCsrfTokenValid('delete_job' . $job->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $job->getId(), $request->request->get('_token'))) {
+            $this->removeJobImage($job->getImageFilename());
             $em->remove($job);
             $em->flush();
             $this->addFlash('success', 'Job posting deleted.');
@@ -167,5 +220,54 @@ class JobBoardController extends AbstractController
             'currentPage' => $page,
             'totalPages'  => $totalPages,
         ]);
+    }
+
+    private function storeJobImage(UploadedFile $imageFile): string
+    {
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        $mimeType = (string) $imageFile->getMimeType();
+
+        if (!in_array($mimeType, $allowedMimeTypes, true)) {
+            throw new \RuntimeException('Invalid image format. Please upload JPG, PNG, or WEBP.');
+        }
+
+        if ($imageFile->getSize() !== null && $imageFile->getSize() > 3 * 1024 * 1024) {
+            throw new \RuntimeException('Image is too large. Maximum file size is 3MB.');
+        }
+
+        $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/job_postings';
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+            throw new \RuntimeException('Could not create upload directory for job images.');
+        }
+
+        $extension = $imageFile->guessExtension();
+        if (!$extension) {
+            $extension = match ($mimeType) {
+                'image/png' => 'png',
+                'image/webp' => 'webp',
+                default => 'jpg',
+            };
+        }
+
+        try {
+            $newFilename = sprintf('job_%s_%s.%s', (new \DateTime())->format('YmdHis'), bin2hex(random_bytes(6)), $extension);
+            $imageFile->move($uploadDir, $newFilename);
+        } catch (\Throwable) {
+            throw new \RuntimeException('Image upload failed. Please try again.');
+        }
+
+        return $newFilename;
+    }
+
+    private function removeJobImage(?string $filename): void
+    {
+        if (!$filename) {
+            return;
+        }
+
+        $imagePath = $this->getParameter('kernel.project_dir') . '/public/uploads/job_postings/' . $filename;
+        if (is_file($imagePath)) {
+            @unlink($imagePath);
+        }
     }
 }

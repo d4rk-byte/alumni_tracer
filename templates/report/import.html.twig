@@ -8,7 +8,12 @@
         <h4 class="font-bold mb-0"><i class="bi bi-upload mr-2"></i>Import Alumni Data</h4>
         <p class="text-gray-500 text-sm mb-0">Upload a CSV file to bulk-import alumni records</p>
     </div>
-    <a href="{{ path('report_index') }}" class="btn-outline-norsu btn-sm"><i class="bi bi-arrow-left mr-1"></i>Back to Reports</a>
+    <div class="flex gap-2">
+        {% if is_granted('ROLE_ADMIN') %}
+            <a href="{{ path('admin_analytics_hub') }}" class="btn-outline-norsu btn-sm"><i class="bi bi-grid-1x2-fill mr-1"></i>Analytics Hub</a>
+        {% endif %}
+        <a href="{{ path('report_index') }}" class="btn-outline-norsu btn-sm"><i class="bi bi-arrow-left mr-1"></i>Back to Reports</a>
+    </div>
 </div>
 
 {% for flash in app.flashes('error') %}

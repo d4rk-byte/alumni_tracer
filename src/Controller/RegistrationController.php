@@ -31,11 +31,11 @@ class RegistrationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // This form does not collect password fields; generate a secure random password value.
+            $plainPassword = (string) $form->get('plainPassword')->getData();
             $user->setPassword(
                 $userPasswordHasher->hashPassword(
                     $user,
-                    bin2hex(random_bytes(32))
+                    $plainPassword
                 )
             );
 

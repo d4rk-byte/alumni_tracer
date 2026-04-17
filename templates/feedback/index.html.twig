@@ -58,11 +58,11 @@
                         <td class="py-2.5 text-sm">{{ f.dateSubmitted|date('M d, Y') }}</td>
                         <td class="text-right pr-4 py-2.5 no-print">
                             <div class="flex gap-1 justify-end">
-                                <a href="{{ path('feedback_show', {id: f.id}) }}" class="btn-outline-norsu btn-sm"><i class="bi bi-eye"></i></a>
+                                <a href="{{ path('feedback_show', {id: f.id}) }}" class="icon-action icon-action-view" title="View" aria-label="View feedback"><i class="bi bi-eye"></i></a>
                                 <form method="post" action="{{ path('feedback_delete', {id: f.id}) }}" class="inline"
                                       onsubmit="return confirm('Delete feedback?')">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ f.id) }}">
-                                    <button class="btn-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                    <button type="submit" class="icon-action icon-action-delete icon-action-btn" title="Delete" aria-label="Delete feedback"><i class="bi bi-trash"></i></button>
                                 </form>
                             </div>
                         </td>

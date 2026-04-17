@@ -9,9 +9,12 @@
             <h2 class="text-xl font-bold mb-1"><i class="bi bi-clipboard-data mr-1 text-blue-700"></i> Survey Analytics</h2>
             <p class="text-sm text-gray-500 mb-0">All submitted Graduate Tracer Survey responses.</p>
         </div>
-        <div class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-sm font-semibold">
-            <i class="bi bi-collection"></i>
-            <span>Total Responses: {{ totalResponses }}</span>
+        <div class="flex items-center gap-2">
+            <a href="{{ path('admin_analytics_hub') }}" class="btn-outline-norsu btn-sm"><i class="bi bi-grid-1x2-fill mr-1"></i>Analytics Hub</a>
+            <div class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-sm font-semibold">
+                <i class="bi bi-collection"></i>
+                <span>Total Responses: {{ totalResponses }}</span>
+            </div>
         </div>
     </div>
 </div>
@@ -35,9 +38,8 @@
                                 <td class="px-4 py-3 font-semibold">{{ surveyOwnerName ?: 'Unknown Alumni' }}</td>
                                 <td class="px-4 py-3 text-gray-600">{{ survey.createdAt ? survey.createdAt|date('M d, Y h:i A') : 'N/A' }}</td>
                                 <td class="px-4 py-3 text-right">
-                                    <a href="{{ path('gts_show', {id: survey.id}) }}" class="inline-flex items-center gap-1 bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition">
+                                    <a href="{{ path('gts_show', {id: survey.id}) }}" class="icon-action icon-action-view" title="View response" aria-label="View survey response">
                                         <i class="bi bi-eye"></i>
-                                        <span>View</span>
                                     </a>
                                 </td>
                             </tr>

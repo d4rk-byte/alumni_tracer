@@ -1,48 +1,97 @@
-{% extends 'base.html.twig' %}
+{% extends 'home/landing_layout.html.twig' %}
 
-{% block title %}NORSU Alumni Tracker — Welcome{% endblock %}
+{% block title %}NORSU Alumni Tracker | Home{% endblock %}
 
-{% block body %}
-<div class="hero-section relative overflow-hidden text-white py-20 mb-8" style="background-color:#1E3A8A;background-image:linear-gradient(118deg,rgba(6,24,63,0.84) 0%,rgba(13,65,120,0.66) 48%,rgba(5,150,105,0.54) 100%),url('{{ asset('images/home-hero-graduation.png') }}');background-size:cover;background-position:center;background-repeat:no-repeat;">
-    <div class="max-w-4xl mx-auto text-center px-4 relative z-10" style="padding-top:2rem;">
-        <div class="mb-4">
-            <span class="inline-flex items-center justify-center gap-2">
-                <img src="{{ asset('images/norsu-seal.webp') }}" alt="NORSU Seal" class="object-contain shadow-sm" style="width:56px;height:56px;">
-                <img src="{{ asset('images/norsu-navbar-logo.webp') }}" alt="NORSU Alumni Logo" class="object-contain shadow-md" style="width:60px;height:60px;">
-            </span>
-        </div>
-        <h1 class="font-extrabold text-4xl md:text-5xl mb-4">NORSU Alumni Tracker</h1>
-        <p class="text-lg md:text-xl mb-6 max-w-[600px] mx-auto text-white/90">Connecting Negros Oriental State University graduates — track careers, build networks, and stay in touch.</p>
-        <div class="flex gap-3 justify-center flex-wrap mt-6">
-            <a href="{{ path('app_register') }}" class="bg-white text-gray-800 hover:bg-gray-100 font-semibold px-6 py-3 rounded-lg text-base no-underline transition-colors inline-flex items-center gap-2"><i class="bi bi-mortarboard-fill"></i>Register as Alumni</a>
-            <a href="{{ path('app_login') }}" class="border-2 border-white text-white hover:bg-white/10 font-semibold px-6 py-3 rounded-lg text-base no-underline transition-colors inline-flex items-center gap-2"><i class="bi bi-box-arrow-in-right"></i>Sign In</a>
+{% block page_content %}
+<div class="bg-blue-50 pb-2 overflow-hidden" style="border-bottom-left-radius: 55% 16%; border-bottom-right-radius: 55% 16%;">
+    <div class="max-w-screen-xl px-8 mx-auto">
+        <div class="flex flex-col lg:flex-row items-start lg:items-start pt-10 lg:pt-12">
+            <div class="flex flex-col w-full lg:w-6/12 justify-center items-center lg:items-start text-center lg:text-left mb-8 lg:mb-0 lg:pr-6 lg:pt-8">
+                <h1 data-aos="fade-right" data-aos-once="true" class="my-4 text-5xl font-bold leading-tight text-darken">
+                    <span class="text-blue-600">Track</span> alumni outcomes with confidence
+                </h1>
+                <p data-aos="fade-down" data-aos-once="true" data-aos-delay="200" class="leading-normal text-2xl mb-8 text-gray-600">NORSU Alumni Tracker helps graduates, staff, and stakeholders stay connected through career insights, tracer data, and opportunities.</p>
+                <div data-aos="fade-up" data-aos-once="true" data-aos-delay="400" class="w-full flex flex-col sm:flex-row sm:items-center justify-center lg:justify-start gap-4 sm:gap-5">
+                    <a href="{{ path('app_register') }}" class="inline-block bg-blue-600 text-white text-xl font-bold rounded-full py-4 px-9 no-underline transform transition hover:scale-110 duration-300 ease-in-out">Join Now</a>
+                    <a href="{{ path('app_about') }}" class="inline-flex items-center gap-3 text-darken text-lg no-underline hover:underline">
+                        <span class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm" aria-hidden="true">
+                            <svg class="w-5 h-5 text-sky-500" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7 5.5a1 1 0 011.53-.848l6 3.75a1 1 0 010 1.696l-6 3.75A1 1 0 017 13.999V5.5z" />
+                            </svg>
+                        </span>
+                        <span>Learn how it works</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-6/12 relative mt-6 lg:-mt-24" id="hero-image">
+                <img data-aos="fade-up" data-aos-once="true" class="w-11/12 ml-auto" src="{{ asset('skilline/img/girl.png') }}" alt="NORSU alumni community" />
+                <div data-aos="fade-up" data-aos-delay="300" data-aos-once="true" class="absolute top-12 left-1 sm:left-10 floating-4">
+                    <img class="bg-white bg-opacity-80 rounded-lg h-12 sm:h-16" src="{{ asset('skilline/img/calendar.svg') }}" alt="Calendar" />
+                </div>
+                <div data-aos="fade-up" data-aos-delay="450" data-aos-once="true" class="absolute bottom-12 left-0 sm:left-4 floating">
+                    <img class="bg-white bg-opacity-80 rounded-lg h-16 sm:h-20" src="{{ asset('skilline/img/ux-class.svg') }}" alt="Insights" />
+                </div>
+                <div data-aos="fade-up" data-aos-delay="600" data-aos-once="true" class="absolute bottom-20 right-1 sm:right-8 floating-4">
+                    <img class="bg-white bg-opacity-80 rounded-lg h-10 sm:h-14" src="{{ asset('skilline/img/congrat.svg') }}" alt="Success" />
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="max-w-6xl mx-auto px-4">
-    <div class="text-center mb-6">
-        <h3 class="font-bold text-2xl">What We Offer</h3>
-        <p class="text-gray-500">Empowering NORSU through alumni engagement and data-driven insights</p>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div class="card h-full text-center p-8 border-t-[3px] border-blue-700">
-            <div class="mb-4"><i class="bi bi-people-fill text-blue-700 text-5xl"></i></div>
-            <h5 class="font-bold text-lg mb-2">Alumni Directory</h5>
-            <p class="text-gray-500 mb-0 text-sm">Browse and search through our comprehensive database of NORSU graduates across all courses and batch years.</p>
+<div class="pt-14 pb-8 bg-blue-100">
+    <div class="max-w-screen-xl px-8 mx-auto text-gray-700 overflow-x-hidden">
+            {% if logos is defined and logos|length > 0 %}
+                <div data-aos="fade-up" class="pt-2">
+                    <h2 class="text-center font-semibold text-darken text-2xl">Official Logos</h2>
+                    <p class="text-center text-gray-500 mt-2">Displayed from skilline/img/logos</p>
+                    <div class="mt-6 flex items-center gap-4 overflow-x-auto pb-3">
+                        {% for logo in logos %}
+                            <div class="shrink-0 w-44 h-24 rounded-xl bg-white border border-gray-100 shadow-sm px-4 flex items-center justify-center">
+                                <img src="{{ asset(logo.assetPath) }}" alt="{{ logo.name }} logo" class="max-w-full max-h-14 object-contain" loading="lazy">
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+        <div data-aos="flip-up" class="max-w-3xl mx-auto text-center mt-10">
+            <h2 class="font-bold text-darken my-3 text-3xl">Everything your alumni office needs in one platform</h2>
+            <p class="leading-relaxed text-gray-500">Streamline graduate engagement, institutional reporting, and alumni services with a dedicated digital experience.</p>
         </div>
-        <div class="card h-full text-center p-8 border-t-[3px] border-emerald-600">
-            <div class="mb-4"><i class="bi bi-briefcase-fill text-emerald-600 text-5xl"></i></div>
-            <h5 class="font-bold text-lg mb-2">Career Tracking</h5>
-            <p class="text-gray-500 mb-0 text-sm">Monitor employment status, work history, and career progression of alumni to gain valuable insights.</p>
+
+        <div class="grid md:grid-cols-3 gap-14 md:gap-5 mt-14">
+            <div data-aos="fade-up" class="bg-white shadow-xl p-6 text-center rounded-xl">
+                <h3 class="font-medium text-xl mb-3 text-darken">Announcements & Updates</h3>
+                <p class="px-4 text-gray-500">Share university updates, alumni events, and important reminders in one accessible feed.</p>
+                <a href="{{ path('app_feature_announcements') }}" class="inline-block mt-4 text-sm font-semibold text-blue-600 no-underline hover:underline">Learn more</a>
+            </div>
+            <div data-aos="fade-up" data-aos-delay="150" class="bg-white shadow-xl p-6 text-center rounded-xl">
+                <h3 class="font-medium text-xl mb-3 text-darken">Tracer Survey Insights</h3>
+                <p class="px-4 text-gray-500">Collect graduate outcomes and transform responses into actionable institutional insights.</p>
+                <a href="{{ path('app_feature_tracer_survey') }}" class="inline-block mt-4 text-sm font-semibold text-blue-600 no-underline hover:underline">Learn more</a>
+            </div>
+            <div data-aos="fade-up" data-aos-delay="300" class="bg-white shadow-xl p-6 text-center rounded-xl">
+                <h3 class="font-medium text-xl mb-3 text-darken">Jobs and Opportunities</h3>
+                <p class="px-4 text-gray-500">Connect alumni with internships and employment openings from trusted partners.</p>
+                <a href="{{ path('app_feature_career_opportunities') }}" class="inline-block mt-4 text-sm font-semibold text-blue-600 no-underline hover:underline">Learn more</a>
+            </div>
         </div>
-        <div class="card h-full text-center p-8 border-t-[3px] border-cyan-500">
-            <div class="mb-4"><i class="bi bi-graph-up-arrow text-cyan-500 text-5xl"></i></div>
-            <h5 class="font-bold text-lg mb-2">Data Insights</h5>
-            <p class="text-gray-500 mb-0 text-sm">Analyze trends in employment, skills, and salary ranges to help the university improve its programs.</p>
+
+        <div class="mt-16 flex flex-col md:flex-row items-center md:space-x-10">
+            <div data-aos="fade-right" class="md:w-6/12">
+                <img class="md:w-11/12" src="{{ asset('skilline/img/teacher-explaining.png') }}" alt="Platform overview" />
+            </div>
+            <div data-aos="fade-left" class="md:w-6/12 mt-8 md:mt-0">
+                <h3 class="font-semibold text-darken text-3xl">Built for <span class="text-blue-600">NORSU alumni engagement</span></h3>
+                <p class="text-gray-500 my-5">From account verification to feedback collection, the platform supports core alumni workflows with clarity and speed.</p>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <a href="{{ path('app_contact') }}" class="px-6 py-3 text-sm text-center bg-blue-600 text-white rounded-full no-underline">Contact Support</a>
+                    <a href="{{ path('app_faq') }}" class="px-6 py-3 text-sm text-center bg-white text-gray-800 border border-gray-300 rounded-full no-underline">Read FAQ</a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-
-{% include 'home/_public_footer.html.twig' %}
 {% endblock %}

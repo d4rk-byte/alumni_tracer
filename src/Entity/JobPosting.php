@@ -50,6 +50,9 @@ class JobPosting
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $deadline = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $imageFilename = null;
+
     #[ORM\Column]
     private bool $isActive = true;
 
@@ -114,6 +117,9 @@ class JobPosting
 
     public function getDeadline(): ?\DateTimeInterface { return $this->deadline; }
     public function setDeadline(?\DateTimeInterface $v): static { $this->deadline = $v; return $this; }
+
+    public function getImageFilename(): ?string { return $this->imageFilename; }
+    public function setImageFilename(?string $v): static { $this->imageFilename = $v; return $this; }
 
     public function isActive(): bool { return $this->isActive; }
     public function setIsActive(bool $v): static { $this->isActive = $v; return $this; }

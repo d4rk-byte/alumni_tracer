@@ -1,0 +1,107 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Reports and Analytics Hub{% endblock %}
+
+{% block body %}
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
+    <div>
+        <h4 class="font-bold mb-0"><i class="bi bi-grid-1x2-fill mr-2"></i>Reports and Analytics Hub</h4>
+        <p class="text-gray-500 text-sm mb-0">Unified access to employment, tracer, GTS, and CHED compliance reporting.</p>
+    </div>
+    <div class="flex gap-2">
+        <a href="{{ path('admin_dashboard') }}" class="btn-outline-norsu btn-sm"><i class="bi bi-speedometer2 mr-1"></i>Dashboard</a>
+        <a href="{{ path('report_export') }}" class="btn-norsu btn-sm"><i class="bi bi-download mr-1"></i>Export Alumni CSV</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+    <div class="stat-card">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="stat-label">Total Alumni</div>
+                <div class="stat-value">{{ totalAlumni|default(0) }}</div>
+            </div>
+            <div class="stat-icon bg-blue-100 text-norsu"><i class="bi bi-people-fill"></i></div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="stat-label">Employment Rate</div>
+                <div class="stat-value text-green-600">{{ employmentRate|default(0)|number_format(1) }}%</div>
+            </div>
+            <div class="stat-icon bg-green-100 text-green-600"><i class="bi bi-briefcase-fill"></i></div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="stat-label">Alignment Rate</div>
+                <div class="stat-value text-blue-700">{{ alignmentRate|default(0)|number_format(1) }}%</div>
+            </div>
+            <div class="stat-icon bg-blue-100 text-blue-700"><i class="bi bi-bullseye"></i></div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="stat-label">GTS Responses</div>
+                <div class="stat-value text-cyan-700">{{ totalGtsResponses|default(0) }}</div>
+            </div>
+            <div class="stat-icon bg-cyan-100 text-cyan-700"><i class="bi bi-clipboard2-data"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+    <div class="card">
+        <div class="card-header bg-white font-semibold"><i class="bi bi-bar-chart-line mr-1"></i>Employment Reports</div>
+        <div class="card-body">
+            <p class="text-sm text-gray-600 mb-3">Course-level employment rates, salary distribution, and geographic breakdowns.</p>
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ path('report_index') }}" class="btn-norsu btn-sm"><i class="bi bi-eye mr-1"></i>Open Employment Report</a>
+                <a href="{{ path('report_import') }}" class="btn-outline-norsu btn-sm"><i class="bi bi-upload mr-1"></i>Import</a>
+                <a href="{{ path('report_export') }}" class="btn-outline-norsu btn-sm"><i class="bi bi-download mr-1"></i>Export</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-white font-semibold"><i class="bi bi-clipboard-data mr-1"></i>Tracer Analytics</div>
+        <div class="card-body">
+            <p class="text-sm text-gray-600 mb-3">AACCUP-focused tracer outcomes, job-degree alignment, and year/course trends.</p>
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ path('tracer_index') }}" class="btn-norsu btn-sm"><i class="bi bi-eye mr-1"></i>Open Tracer Analytics</a>
+                <a href="{{ path('tracer_export') }}" class="btn-outline-norsu btn-sm"><i class="bi bi-file-earmark-excel mr-1"></i>Export AACCUP</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-white font-semibold"><i class="bi bi-file-earmark-text mr-1"></i>GTS and Compliance</div>
+        <div class="card-body">
+            <p class="text-sm text-gray-600 mb-2">Survey completion logs and compliance-ready submission review.</p>
+            <p class="text-xs text-gray-500 mb-3">
+                Latest submission:
+                {% if latestGtsResponse and latestGtsResponse.createdAt %}
+                    <span class="font-semibold">{{ latestGtsResponse.createdAt|date('M d, Y h:i A') }}</span>
+                {% else %}
+                    <span class="font-semibold">No submissions yet</span>
+                {% endif %}
+            </p>
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ path('gts_index') }}" class="btn-norsu btn-sm"><i class="bi bi-list-check mr-1"></i>Open GTS Responses</a>
+                <a href="{{ path('admin_survey_analytics') }}" class="btn-outline-norsu btn-sm"><i class="bi bi-graph-up-arrow mr-1"></i>Open CHED Compliance</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-l-4 border-blue-600 bg-blue-50">
+    <div class="card-body py-3">
+        <p class="text-sm text-blue-900 mb-0">
+            This hub consolidates navigation only. Existing report routes remain unchanged for backward compatibility.
+        </p>
+    </div>
+</div>
+{% endblock %}

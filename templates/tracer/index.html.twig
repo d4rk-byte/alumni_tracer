@@ -9,6 +9,9 @@
         <p class="text-gray-500 text-sm mb-0">Graduate tracer study dashboard with AACCUP-aligned reporting</p>
     </div>
     <div class="flex gap-2">
+        {% if is_granted('ROLE_ADMIN') %}
+            <a href="{{ path('admin_analytics_hub') }}" class="btn-outline-norsu btn-sm"><i class="bi bi-grid-1x2-fill mr-1"></i>Analytics Hub</a>
+        {% endif %}
         <button onclick="window.print()" class="btn-outline-norsu btn-sm"><i class="bi bi-printer mr-1"></i>Print</button>
         {% if is_granted('ROLE_STAFF') %}
             <a href="{{ path('tracer_export') }}" class="btn-norsu btn-sm"><i class="bi bi-file-earmark-excel mr-1"></i>Export AACCUP Report</a>

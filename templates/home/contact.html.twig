@@ -1,44 +1,41 @@
-{% extends 'base.html.twig' %}
+{% extends 'home/landing_layout.html.twig' %}
 
 {% block title %}Contact Us — NORSU Alumni Tracker{% endblock %}
 
-{% block body %}
-<div class="hero-section relative overflow-hidden text-white py-16 mb-8" style="background-color:#1E3A8A;background-image:linear-gradient(118deg,rgba(6,24,63,0.84) 0%,rgba(13,65,120,0.66) 48%,rgba(5,150,105,0.54) 100%),url('{{ asset('images/home-hero-graduation.png') }}');background-size:cover;background-position:center;background-repeat:no-repeat;">
-    <div class="max-w-5xl mx-auto px-4 relative z-10 text-center" style="padding-top:2rem;">
-        <h1 class="font-extrabold text-4xl md:text-5xl mb-3">Contact Us</h1>
-        <p class="text-lg text-white/90 max-w-3xl mx-auto">Reach the NORSU Alumni Tracker team for account concerns, verification, survey support, and system inquiries.</p>
-    </div>
-</div>
+{% block page_content %}
+<div class="bg-blue-50 pb-10">
+    <div class="max-w-screen-xl px-8 mx-auto pt-14">
+        <div data-aos="fade-up" class="max-w-3xl mx-auto text-center mb-10">
+            <h1 class="font-bold text-darken my-3 text-3xl">Contact <span class="text-blue-600">NORSU Alumni Tracker</span></h1>
+            <p class="leading-relaxed text-gray-500">Reach the support team for account concerns, verification, tracer survey help, and platform-related inquiries.</p>
+        </div>
 
-<div class="max-w-6xl mx-auto px-4 pb-8">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="font-bold text-lg mb-3 text-blue-800"><i class="bi bi-building mr-1"></i>Office Information</h5>
-                <div class="text-sm text-gray-600 space-y-2">
-                    <p class="mb-0"><strong>Office:</strong> Alumni Affairs and Linkages Office</p>
-                    <p class="mb-0"><strong>University:</strong> Negros Oriental State University</p>
-                    <p class="mb-0"><strong>Address:</strong> Dumaguete City, Negros Oriental, Philippines</p>
-                    <p class="mb-0"><strong>Email:</strong> alumni@norsu.edu.ph</p>
-                    <p class="mb-0"><strong>Phone:</strong> +63 (35) 000-0000</p>
+        <div class="grid md:grid-cols-2 gap-8 mt-8">
+            <div data-aos="fade-up" class="bg-white shadow-xl p-8 rounded-xl">
+                <h2 class="font-semibold text-darken text-2xl mb-4">Office Information</h2>
+                <div class="space-y-3 text-gray-500">
+                    <p><span class="font-semibold text-gray-700">Office:</span> Alumni Affairs and Linkages Office</p>
+                    <p><span class="font-semibold text-gray-700">University:</span> Negros Oriental State University</p>
+                    <p><span class="font-semibold text-gray-700">Address:</span> Dumaguete City, Negros Oriental, Philippines</p>
+                    <p><span class="font-semibold text-gray-700">Email:</span> alumni@norsu.edu.ph</p>
+                    <p><span class="font-semibold text-gray-700">Phone:</span> +63 (35) 000-0000</p>
+                </div>
+            </div>
+
+            <div data-aos="fade-up" data-aos-delay="150" class="bg-white shadow-xl p-8 rounded-xl">
+                <h2 class="font-semibold text-darken text-2xl mb-4">Support Hours</h2>
+                <div class="space-y-3 text-gray-500">
+                    <p><span class="font-semibold text-gray-700">Monday to Friday:</span> 8:00 AM - 5:00 PM</p>
+                    <p><span class="font-semibold text-gray-700">Saturday:</span> 8:00 AM - 12:00 PM</p>
+                    <p><span class="font-semibold text-gray-700">Sunday / Holidays:</span> Closed</p>
+                </div>
+                <p class="mt-6 text-gray-500">For urgent account concerns, include your full name and registered email when contacting support.</p>
+                <div class="mt-8 flex flex-col sm:flex-row gap-3">
+                    <a href="{{ path('app_register') }}" class="px-6 py-3 text-sm text-center bg-blue-600 text-white rounded-full no-underline">Create Account</a>
+                    <a href="{{ path('app_faq') }}" class="px-6 py-3 text-sm text-center bg-white text-gray-800 border border-gray-300 rounded-full no-underline">Read FAQ</a>
                 </div>
             </div>
         </div>
-
-        <div class="card">
-            <div class="card-body">
-                <h5 class="font-bold text-lg mb-3 text-emerald-700"><i class="bi bi-clock-history mr-1"></i>Support Hours</h5>
-                <div class="text-sm text-gray-600 space-y-2">
-                    <p class="mb-0"><strong>Monday to Friday:</strong> 8:00 AM – 5:00 PM</p>
-                    <p class="mb-0"><strong>Saturday:</strong> 8:00 AM – 12:00 PM</p>
-                    <p class="mb-0"><strong>Sunday / Holidays:</strong> Closed</p>
-                </div>
-                <hr class="my-3">
-                <p class="text-sm text-gray-500 mb-0">For urgent account concerns, please include your full name and registered email when contacting support.</p>
-            </div>
-        </div>
     </div>
 </div>
-
-{% include 'home/_public_footer.html.twig' %}
 {% endblock %}

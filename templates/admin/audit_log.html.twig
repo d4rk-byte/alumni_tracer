@@ -130,14 +130,14 @@
                     <td class="py-2.5 text-sm text-gray-500">{{ log.ipAddress ?? '—' }}</td>
                     <td class="py-2.5 pr-4 text-right no-print">
                         <div class="inline-flex items-center gap-1">
-                            <a href="{{ path('admin_audit_log_show', {id: log.id}) }}" class="inline-flex items-center gap-1 bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs font-semibold px-2 py-1 rounded-lg transition">
-                                <i class="bi bi-eye"></i>View
+                            <a href="{{ path('admin_audit_log_show', {id: log.id}) }}" class="icon-action icon-action-view" title="View details" aria-label="View log details">
+                                <i class="bi bi-eye"></i>
                             </a>
                             {% if is_granted('ROLE_ADMIN') %}
                             <form method="post" action="{{ path('admin_audit_log_delete', {id: log.id}) }}" onsubmit="return confirm('Delete this log entry?');">
                                 <input type="hidden" name="_token" value="{{ csrf_token('audit_delete_' ~ log.id) }}">
-                                <button type="submit" class="inline-flex items-center gap-1 bg-red-100 text-red-700 hover:bg-red-200 text-xs font-semibold px-2 py-1 rounded-lg transition">
-                                    <i class="bi bi-trash"></i>Delete
+                                <button type="submit" class="icon-action icon-action-delete icon-action-btn" title="Delete entry" aria-label="Delete log entry">
+                                    <i class="bi bi-trash"></i>
                                 </button>
                             </form>
                             {% endif %}

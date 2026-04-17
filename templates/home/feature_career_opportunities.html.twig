@@ -1,0 +1,34 @@
+{% extends 'home/landing_layout.html.twig' %}
+
+{% block title %}Career Opportunities — NORSU Alumni Tracker{% endblock %}
+
+{% block page_content %}
+<div class="bg-blue-50 pb-10">
+    <div class="max-w-screen-xl px-8 mx-auto pt-14">
+        <div data-aos="fade-up" class="max-w-3xl mx-auto text-center mb-10">
+            <h1 class="font-bold text-darken my-3 text-3xl">Career <span class="text-blue-600">Opportunities</span></h1>
+            <p class="leading-relaxed text-gray-500">Explore job openings and internships curated for NORSU alumni across different industries and degree programs.</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <div data-aos="fade-up" class="bg-white shadow-xl p-6 rounded-xl text-center">
+                <h2 class="font-semibold text-darken text-xl mb-3">Relevant Openings</h2>
+                <p class="text-gray-500">Find opportunities that match your background, skills, and career interests.</p>
+            </div>
+            <div data-aos="fade-up" data-aos-delay="120" class="bg-white shadow-xl p-6 rounded-xl text-center">
+                <h2 class="font-semibold text-darken text-xl mb-3">Trusted Employers</h2>
+                <p class="text-gray-500">Browse listings posted by vetted institutions, companies, and alumni partners.</p>
+            </div>
+            <div data-aos="fade-up" data-aos-delay="240" class="bg-white shadow-xl p-6 rounded-xl text-center">
+                <h2 class="font-semibold text-darken text-xl mb-3">Login for Full Details</h2>
+                <p class="text-gray-500">Guests can preview postings, while signed-in users can view complete application details.</p>
+            </div>
+        </div>
+
+        <div data-aos="fade-up" class="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="{{ path('job_board_index') }}" class="px-6 py-3 text-sm text-center bg-blue-600 text-white rounded-full no-underline">Open Job Opportunities</a>
+            <a href="{{ path('app_register') }}" class="px-6 py-3 text-sm text-center bg-white text-gray-800 border border-gray-300 rounded-full no-underline">Create Account</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

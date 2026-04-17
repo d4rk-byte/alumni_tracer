@@ -1,0 +1,37 @@
+{% extends 'home/landing_layout.html.twig' %}
+
+{% block title %}Announcements and Updates — NORSU Alumni Tracker{% endblock %}
+
+{% block page_content %}
+<div class="bg-blue-50 pb-10">
+    <div class="max-w-screen-xl px-8 mx-auto pt-14">
+        <div data-aos="fade-up" class="max-w-3xl mx-auto text-center mb-10">
+            <h1 class="font-bold text-darken my-3 text-3xl">Announcements and <span class="text-blue-600">Updates</span></h1>
+            <p class="leading-relaxed text-gray-500">Stay informed with official university notices, alumni office updates, and engagement opportunities in one place.</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <div data-aos="fade-up" class="bg-white shadow-xl p-6 rounded-xl text-center">
+                <h2 class="font-semibold text-darken text-xl mb-3">Official Notices</h2>
+                <p class="text-gray-500">Receive timely information from NORSU offices, alumni coordinators, and support teams.</p>
+            </div>
+            <div data-aos="fade-up" data-aos-delay="120" class="bg-white shadow-xl p-6 rounded-xl text-center">
+                <h2 class="font-semibold text-darken text-xl mb-3">Events and Programs</h2>
+                <p class="text-gray-500">Catch alumni seminars, campus events, and networking activities relevant to your batch.</p>
+            </div>
+            <div data-aos="fade-up" data-aos-delay="240" class="bg-white shadow-xl p-6 rounded-xl text-center">
+                <h2 class="font-semibold text-darken text-xl mb-3">Career Alerts</h2>
+                <p class="text-gray-500">Get linked to urgent opportunities and alumni-focused initiatives as they are posted.</p>
+            </div>
+        </div>
+
+        <div data-aos="fade-up" class="mt-10 bg-white shadow-xl p-8 rounded-xl flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <p class="text-gray-500">Create an account to receive personalized updates and access protected alumni features.</p>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <a href="{{ path('app_register') }}" class="px-6 py-3 text-sm text-center bg-blue-600 text-white rounded-full no-underline">Create Account</a>
+                <a href="{{ path('app_login') }}" class="px-6 py-3 text-sm text-center bg-white text-gray-800 border border-gray-300 rounded-full no-underline">Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

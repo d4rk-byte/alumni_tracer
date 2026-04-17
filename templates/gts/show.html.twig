@@ -6,6 +6,9 @@
 <div class="max-w-4xl mx-auto">
     <div class="flex items-center gap-3 mb-5">
         <a href="{{ path('gts_index') }}" class="btn-secondary btn-sm no-print"><i class="bi bi-arrow-left mr-1"></i>Back</a>
+        {% if is_granted('ROLE_ADMIN') %}
+            <a href="{{ path('admin_analytics_hub') }}" class="btn-outline-norsu btn-sm no-print"><i class="bi bi-grid-1x2-fill mr-1"></i>Analytics Hub</a>
+        {% endif %}
         <h4 class="font-bold mb-0"><i class="bi bi-clipboard2-check mr-2"></i>GTS Response #{{ survey.id }}</h4>
         <span class="text-sm text-gray-400 ml-auto">{{ survey.createdAt|date('F d, Y g:ia') }}</span>
         <button onclick="window.print()" class="inline-flex items-center gap-1 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold px-3 py-2 rounded-lg transition no-print">

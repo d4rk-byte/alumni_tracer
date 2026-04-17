@@ -1,0 +1,258 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Job Details{% endblock %}
+{% block body_class %}admin-material-page{% endblock %}
+
+{% block body %}
+<style>
+    .job-manage-show {
+        --show-border: hsl(20 6% 90%);
+        --show-card: #ffffff;
+        --show-text: hsl(24 10% 10%);
+        --show-muted: hsl(24 5% 45%);
+        --show-primary: hsl(142 76% 36%);
+        color: var(--show-text);
+    }
+
+    .job-manage-show .show-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.95rem;
+    }
+
+    .job-manage-show .show-head {
+        border: 1px solid var(--show-border);
+        border-radius: 0.65rem;
+        background: var(--show-card);
+        padding: 0.85rem 1rem;
+        box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .job-manage-show .show-kicker {
+        margin: 0;
+        font-size: 0.68rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--show-muted);
+    }
+
+    .job-manage-show .show-title {
+        margin: 0.1rem 0 0;
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+
+    .job-manage-show .show-company {
+        margin: 0.18rem 0 0;
+        color: var(--show-muted);
+        font-size: 0.8rem;
+    }
+
+    .job-manage-show .show-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+    }
+
+    .job-manage-show .show-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 0.45rem;
+        border: 1px solid var(--show-border);
+        background: #fff;
+        color: var(--show-text);
+        text-decoration: none;
+        font-size: 0.76rem;
+        font-weight: 600;
+        padding: 0.42rem 0.68rem;
+    }
+
+    .job-manage-show .show-btn:hover {
+        background: hsl(60 5% 96%);
+        color: var(--show-text);
+    }
+
+    .job-manage-show .show-btn-primary {
+        border-color: var(--show-primary);
+        background: var(--show-primary);
+        color: #fff;
+    }
+
+    .job-manage-show .show-btn-primary:hover {
+        background: hsl(142 76% 32%);
+        border-color: hsl(142 76% 32%);
+        color: #fff;
+    }
+
+    .job-manage-show .show-panel {
+        border: 1px solid var(--show-border);
+        border-radius: 0.65rem;
+        background: var(--show-card);
+        box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+        overflow: hidden;
+    }
+
+    .job-manage-show .show-panel + .show-panel {
+        margin-top: 0.8rem;
+    }
+
+    .job-manage-show .show-panel-head {
+        padding: 0.78rem 0.95rem;
+        border-bottom: 1px solid var(--show-border);
+    }
+
+    .job-manage-show .show-panel-title {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .job-manage-show .show-panel-body {
+        padding: 0.95rem;
+    }
+
+    .job-manage-show .show-meta {
+        display: grid;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+        gap: 0.7rem;
+    }
+
+    .job-manage-show .meta-key {
+        margin: 0;
+        font-size: 0.67rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--show-muted);
+    }
+
+    .job-manage-show .meta-value {
+        margin: 0.15rem 0 0;
+        font-size: 0.85rem;
+        color: var(--show-text);
+    }
+
+    .job-manage-show .show-copy {
+        margin: 0;
+        font-size: 0.83rem;
+        line-height: 1.65;
+        color: var(--show-text);
+        white-space: pre-line;
+    }
+
+    @media (min-width: 900px) {
+        .job-manage-show .show-meta {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+</style>
+
+<section class="job-manage-show">
+    <div class="show-shell">
+        <header class="show-head">
+            <div>
+                <p class="show-kicker">Job Board Management</p>
+                <h1 class="show-title">{{ job.title }}</h1>
+                <p class="show-company">{{ job.companyName }}{% if job.location %} • {{ job.location }}{% endif %}</p>
+            </div>
+
+            <div class="show-actions">
+                <a href="{{ path('job_board_manage') }}" class="show-btn"><i class="bi bi-arrow-left"></i>Back</a>
+                <a href="{{ path('job_board_show', {id: job.id}) }}" class="show-btn"><i class="bi bi-box-arrow-up-right"></i>Public View</a>
+                <a href="{{ path('job_board_edit', {id: job.id}) }}" class="show-btn show-btn-primary"><i class="bi bi-pencil"></i>Edit</a>
+                <form method="post" action="{{ path('job_board_delete', {id: job.id}) }}" onsubmit="return confirm('Delete this job posting?');" style="display:inline;">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ job.id) }}">
+                    <button type="submit" class="show-btn"><i class="bi bi-trash"></i>Delete</button>
+                </form>
+            </div>
+        </header>
+
+        <article class="show-panel">
+            <div class="show-panel-head">
+                <h2 class="show-panel-title">Posting Overview</h2>
+            </div>
+            <div class="show-panel-body">
+                <div class="show-meta">
+                    <div>
+                        <p class="meta-key">Status</p>
+                        <p class="meta-value">{{ job.isActive ? 'Active' : 'Draft / Inactive' }}</p>
+                    </div>
+                    <div>
+                        <p class="meta-key">Employment Type</p>
+                        <p class="meta-value">{{ job.employmentType ?: 'Not specified' }}</p>
+                    </div>
+                    <div>
+                        <p class="meta-key">Salary Range</p>
+                        <p class="meta-value">{{ job.salaryRange ?: 'Not specified' }}</p>
+                    </div>
+                    <div>
+                        <p class="meta-key">Industry</p>
+                        <p class="meta-value">{{ job.industry ?: 'Not specified' }}</p>
+                    </div>
+                    <div>
+                        <p class="meta-key">Related Course</p>
+                        <p class="meta-value">{{ job.relatedCourse ?: 'Not specified' }}</p>
+                    </div>
+                    <div>
+                        <p class="meta-key">Deadline</p>
+                        <p class="meta-value">{{ job.deadline ? job.deadline|date('M d, Y') : 'No deadline' }}</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article class="show-panel">
+            <div class="show-panel-head">
+                <h2 class="show-panel-title">Description</h2>
+            </div>
+            <div class="show-panel-body">
+                <p class="show-copy">{{ job.description }}</p>
+            </div>
+        </article>
+
+        {% if job.requirements %}
+            <article class="show-panel">
+                <div class="show-panel-head">
+                    <h2 class="show-panel-title">Requirements</h2>
+                </div>
+                <div class="show-panel-body">
+                    <p class="show-copy">{{ job.requirements }}</p>
+                </div>
+            </article>
+        {% endif %}
+
+        <article class="show-panel">
+            <div class="show-panel-head">
+                <h2 class="show-panel-title">Application Contact</h2>
+            </div>
+            <div class="show-panel-body">
+                <div class="show-meta">
+                    <div>
+                        <p class="meta-key">Contact Email</p>
+                        <p class="meta-value">{{ job.contactEmail ?: 'Not provided' }}</p>
+                    </div>
+                    <div>
+                        <p class="meta-key">Application Link</p>
+                        <p class="meta-value">
+                            {% if job.applicationLink %}
+                                <a href="{{ job.applicationLink }}" target="_blank" rel="noopener noreferrer">{{ job.applicationLink }}</a>
+                            {% else %}
+                                Not provided
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="meta-key">Last Updated</p>
+                        <p class="meta-value">{{ (job.dateUpdated ?: job.datePosted)|date('M d, Y h:i A') }}</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </div>
+</section>
+{% endblock %}

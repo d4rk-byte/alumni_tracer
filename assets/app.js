@@ -4,6 +4,54 @@ import './stimulus_bootstrap.js';
  * Loaded via importmap (ES module = executes exactly once).
  */
 import './styles/app.css';
+import './styles/landing-shell.css';
+
+const ADMIN_SIDEBAR_COMPACT_KEY = 'norsu.adminSidebarCompact';
+
+function isDesktopViewport() {
+    return window.innerWidth >= 1024;
+}
+
+function applyAdminSidebarCompactState() {
+    const body = document.body;
+    if (!body || !body.classList.contains('admin-material-page')) {
+        if (body) body.classList.remove('sidebar-compact');
+        return;
+    }
+
+    if (!isDesktopViewport()) {
+        body.classList.remove('sidebar-compact');
+        return;
+    }
+
+    const shouldCompact = localStorage.getItem(ADMIN_SIDEBAR_COMPACT_KEY) === '1';
+    body.classList.toggle('sidebar-compact', shouldCompact);
+}
+
+function syncAdminSidebarCompactToggle() {
+    const btn = document.getElementById('adminSidebarCompactToggle');
+    if (!btn) return;
+
+    const compact = document.body.classList.contains('sidebar-compact');
+    btn.setAttribute('aria-pressed', compact ? 'true' : 'false');
+    btn.setAttribute('title', compact ? 'Expand sidebar' : 'Collapse sidebar');
+
+    const icon = btn.querySelector('i');
+    if (icon) {
+        icon.classList.remove('bi-layout-sidebar', 'bi-layout-sidebar-inset');
+        icon.classList.add(compact ? 'bi-layout-sidebar-inset' : 'bi-layout-sidebar');
+    }
+}
+
+function toggleAdminSidebarCompact() {
+    const body = document.body;
+    if (!body || !body.classList.contains('admin-material-page') || !isDesktopViewport()) return;
+
+    const nextCompact = !body.classList.contains('sidebar-compact');
+    body.classList.toggle('sidebar-compact', nextCompact);
+    localStorage.setItem(ADMIN_SIDEBAR_COMPACT_KEY, nextCompact ? '1' : '0');
+    syncAdminSidebarCompactToggle();
+}
 
 /* ═══════════════════════════════════════════════════════════════
    SIDEBAR HELPERS
@@ -34,10 +82,30 @@ function updateActiveLink() {
     });
 }
 
+/* Ensure collapsed-sidebar tooltip labels are available from actual link text */
+function hydrateSidebarLinkLabels() {
+    document.querySelectorAll('#sidebar .sidebar-link').forEach(link => {
+        const existing = link.getAttribute('data-sidebar-label');
+        const label = (existing || link.textContent || '').replace(/\s+/g, ' ').trim();
+        if (!label) return;
+        link.setAttribute('data-sidebar-label', label);
+        if (!link.getAttribute('aria-label')) {
+            link.setAttribute('aria-label', label);
+        }
+    });
+}
+
 /* ═══════════════════════════════════════════════════════════════
    EVENT DELEGATION (click) — survives every Turbo body swap
    ═══════════════════════════════════════════════════════════════ */
 document.addEventListener('click', (e) => {
+    /* Admin: compact sidebar toggle */
+    if (e.target.closest('#adminSidebarCompactToggle')) {
+        e.preventDefault();
+        toggleAdminSidebarCompact();
+        return;
+    }
+
     /* Sidebar toggle button */
     if (e.target.closest('#sidebarToggle')) {
         toggleSidebar();
@@ -157,6 +225,14 @@ document.addEventListener('turbo:before-visit', () => {
 });
 
 document.addEventListener('turbo:load', () => {
+    applyAdminSidebarCompactState();
+    syncAdminSidebarCompactToggle();
+    hydrateSidebarLinkLabels();
     updateActiveLink();
     closeSidebar();
+});
+
+window.addEventListener('resize', () => {
+    applyAdminSidebarCompactState();
+    syncAdminSidebarCompactToggle();
 });

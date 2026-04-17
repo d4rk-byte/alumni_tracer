@@ -7,12 +7,14 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class JobPostingType extends AbstractType
 {
@@ -79,6 +81,23 @@ class JobPostingType extends AbstractType
                 'label' => 'Application Link',
                 'required' => false,
                 'attr' => ['placeholder' => 'https://...', 'class' => 'form-input'],
+            ])
+            ->add('imageFile', FileType::class, [
+                'label' => 'Job Image',
+                'mapped' => false,
+                'required' => false,
+                'help' => 'Optional. This image is shown in the Job Opportunities landing cards.',
+                'attr' => [
+                    'accept' => '.jpg,.jpeg,.png,.webp',
+                    'class' => 'form-input',
+                ],
+                'constraints' => [
+                    new Assert\File([
+                        'maxSize' => '3M',
+                        'mimeTypes' => ['image/jpeg', 'image/png', 'image/webp'],
+                        'mimeTypesMessage' => 'Please upload a valid image (JPG, PNG, or WEBP).',
+                    ]),
+                ],
             ])
             ->add('deadline', DateType::class, [
                 'label' => 'Application Deadline',
