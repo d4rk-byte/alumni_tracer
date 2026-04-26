@@ -5,13 +5,13 @@ namespace App\Entity;
 use App\Repository\GtsSurveyRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: GtsSurveyRepository::class)]
-#[ORM\Table(name: 'gts_survey', uniqueConstraints: [new ORM\UniqueConstraint(name: 'uniq_gts_survey_user', columns: ['user_id'])])]
-#[UniqueEntity(fields: ['user'], message: 'You have already completed this survey.')]
+#[ORM\Table(name: 'gts_survey')]
+#[ORM\UniqueConstraint(name: 'uniq_gts_survey_user_template', columns: ['user_id', 'survey_template_id'])]
+#[ORM\UniqueConstraint(name: 'uniq_gts_survey_invitation', columns: ['survey_invitation_id'])]
 #[Assert\Callback('validateSurveyOwnerRole')]
 #[ORM\HasLifecycleCallbacks]
 class GtsSurvey
@@ -21,9 +21,17 @@ class GtsSurvey
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\OneToOne(inversedBy: 'gtsSurvey', targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: true, unique: true)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'gtsSurveys')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?User $user = null;
+
+    #[ORM\ManyToOne(targetEntity: GtsSurveyTemplate::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?GtsSurveyTemplate $surveyTemplate = null;
+
+    #[ORM\OneToOne(targetEntity: SurveyInvitation::class)]
+    #[ORM\JoinColumn(nullable: true, unique: true)]
+    private ?SurveyInvitation $surveyInvitation = null;
 
     // ═══════════════════════════════════════════════════════
     //  A. GENERAL INFORMATION (Q1–Q11)
@@ -245,6 +253,20 @@ class GtsSurvey
     public function setUser(?User $user): static
     {
         $this->user = $user;
+        return $this;
+    }
+
+    public function getSurveyTemplate(): ?GtsSurveyTemplate { return $this->surveyTemplate; }
+    public function setSurveyTemplate(?GtsSurveyTemplate $surveyTemplate): static
+    {
+        $this->surveyTemplate = $surveyTemplate;
+        return $this;
+    }
+
+    public function getSurveyInvitation(): ?SurveyInvitation { return $this->surveyInvitation; }
+    public function setSurveyInvitation(?SurveyInvitation $surveyInvitation): static
+    {
+        $this->surveyInvitation = $surveyInvitation;
         return $this;
     }
 

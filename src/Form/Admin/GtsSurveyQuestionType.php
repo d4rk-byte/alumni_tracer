@@ -33,6 +33,7 @@ class GtsSurveyQuestionType extends AbstractType
                     'Checkbox' => 'checkbox',
                     'Select' => 'select',
                     'Date' => 'date',
+                    'Repeater Rows' => 'repeater',
                 ],
                 'attr' => [
                     'class' => 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200',
@@ -48,11 +49,11 @@ class GtsSurveyQuestionType extends AbstractType
             ->add('optionsCsv', TextareaType::class, [
                 'mapped' => false,
                 'required' => false,
-                'label' => 'Choices (one per line for radio/checkbox/select)',
+                'label' => 'Choices / Columns',
                 'attr' => [
-                    'rows' => 4,
+                    'rows' => 5,
                     'class' => 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200',
-                    'placeholder' => "Choice A\nChoice B\nChoice C",
+                    'placeholder' => "Choice A\nChoice B\nChoice C\n\nFor repeater rows:\nfield_key|Field Label|text\nstatus|Status|select|Passed, Failed, Pending",
                 ],
             ])
             ->add('sortOrder', IntegerType::class, [

@@ -1,0 +1,178 @@
+{% extends 'home/landing_layout.html.twig' %}
+
+{% block title %}Batch {{ batchYear }} QR Registration{% endblock %}
+
+{% block page_content %}
+<div class="bg-cream pb-12">
+    <div class="max-w-screen-xl px-8 mx-auto pt-14">
+        <div data-aos="fade-up" class="max-w-2xl mx-auto text-center mb-10">
+            <h1 class="font-bold text-darken my-3 text-3xl">Batch <span class="text-yellow-500">{{ batchYear }}</span> QR Registration</h1>
+            <p class="leading-relaxed text-gray-500">Scan-based alumni registration for batch {{ batchYear }}. Fill in your details below to create your account and access the system.</p>
+        </div>
+
+        <section data-aos="fade-up" data-aos-delay="100" class="max-w-2xl mx-auto bg-white shadow-xl rounded-xl p-8" aria-label="QR registration form">
+            <div class="grid grid-cols-2 gap-2 bg-slate-100 rounded-xl p-1 mb-6" role="tablist" aria-label="Authentication options">
+                <a href="{{ path('app_login') }}" class="text-center font-semibold text-gray-600 rounded-lg py-2 no-underline hover:text-gray-900" role="tab" aria-selected="false">Login</a>
+                <span class="text-center font-semibold text-gray-900 bg-white rounded-lg py-2" role="tab" aria-selected="true">QR Registration</span>
+            </div>
+
+            <div class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800 mb-6">
+                <strong>Batch:</strong> {{ batchYear }}<br>
+                Your email and password will be used for your account. After successful registration, you will be signed in automatically.
+            </div>
+
+            {% if not hasColleges %}
+                <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    No active colleges and departments are available right now. Please contact the alumni office before registering.
+                </div>
+            {% else %}
+                {{ form_start(registrationForm, {'attr': {'class': 'space-y-4'}}) }}
+                    {{ form_errors(registrationForm) }}
+
+                    <div>
+                        <label for="qr_registration_form_college" class="block text-sm font-semibold text-gray-700 mb-2">College</label>
+                        {{ form_widget(registrationForm.college, {'attr': {'class': 'w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300'}}) }}
+                        <div class="text-sm text-red-600 mt-1">{{ form_errors(registrationForm.college) }}</div>
+                    </div>
+
+                    <div>
+                        <label for="qr_registration_form_department" class="block text-sm font-semibold text-gray-700 mb-2">Department</label>
+                        {{ form_widget(registrationForm.department, {'attr': {'class': 'w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300'}}) }}
+                        <div class="text-xs text-slate-500 mt-2">Departments are filtered from Academic Management based on the college you select.</div>
+                        <div class="text-sm text-red-600 mt-1">{{ form_errors(registrationForm.department) }}</div>
+                    </div>
+
+                    <div>
+                        <label for="qr_registration_form_studentId" class="block text-sm font-semibold text-gray-700 mb-2">Student ID</label>
+                        {{ form_widget(registrationForm.studentId, {'attr': {'class': 'w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300', 'placeholder': 'e.g. 2022-00123'}}) }}
+                        <div class="text-sm text-red-600 mt-1">{{ form_errors(registrationForm.studentId) }}</div>
+                    </div>
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div>
+                            <label for="qr_registration_form_firstName" class="block text-sm font-semibold text-gray-700 mb-2">First Name</label>
+                            {{ form_widget(registrationForm.firstName, {'attr': {'class': 'w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300', 'placeholder': 'First name'}}) }}
+                            <div class="text-sm text-red-600 mt-1">{{ form_errors(registrationForm.firstName) }}</div>
+                        </div>
+                        <div>
+                            <label for="qr_registration_form_middleName" class="block text-sm font-semibold text-gray-700 mb-2">Middle Name (optional)</label>
+                            {{ form_widget(registrationForm.middleName, {'attr': {'class': 'w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300', 'placeholder': 'Middle name'}}) }}
+                            <div class="text-sm text-red-600 mt-1">{{ form_errors(registrationForm.middleName) }}</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="qr_registration_form_lastName" class="block text-sm font-semibold text-gray-700 mb-2">Last Name</label>
+                        {{ form_widget(registrationForm.lastName, {'attr': {'class': 'w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300', 'placeholder': 'Last name'}}) }}
+                        <div class="text-sm text-red-600 mt-1">{{ form_errors(registrationForm.lastName) }}</div>
+                    </div>
+
+                    <div>
+                        <label for="qr_registration_form_email" class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                        {{ form_widget(registrationForm.email, {'attr': {'class': 'w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300', 'placeholder': 'you@example.com'}}) }}
+                        <div class="text-sm text-red-600 mt-1">{{ form_errors(registrationForm.email) }}</div>
+                    </div>
+
+                    <div>
+                        <label for="qr_registration_form_plainPassword_first" class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                        {{ form_widget(registrationForm.plainPassword.first, {'attr': {'class': 'w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300', 'placeholder': 'Create a password'}}) }}
+                        <div class="text-sm text-red-600 mt-1">{{ form_errors(registrationForm.plainPassword.first) }}</div>
+                    </div>
+
+                    <div>
+                        <label for="qr_registration_form_plainPassword_second" class="block text-sm font-semibold text-gray-700 mb-2">Repeat Password</label>
+                        {{ form_widget(registrationForm.plainPassword.second, {'attr': {'class': 'w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300', 'placeholder': 'Repeat your password'}}) }}
+                        <div class="text-sm text-red-600 mt-1">{{ form_errors(registrationForm.plainPassword.second) }}</div>
+                    </div>
+
+                    <div class="text-sm text-slate-500">
+                        Password must be at least 8 characters and include uppercase, lowercase, number, and special character.
+                    </div>
+
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <label class="flex items-start gap-3 text-sm text-gray-700" for="qr_registration_form_dataPrivacyConsent">
+                            {{ form_widget(registrationForm.dataPrivacyConsent, {'attr': {'class': 'h-4 w-4 mt-0.5 rounded border-slate-300'}}) }}
+                            <span>
+                                I agree to the data privacy terms for account processing.
+                                <a href="{{ path('app_privacy') }}" class="text-blue-700 no-underline hover:underline" target="_blank" rel="noopener">View Privacy Notice</a>
+                            </span>
+                        </label>
+                        <div class="text-sm text-red-600 mt-1">{{ form_errors(registrationForm.dataPrivacyConsent) }}</div>
+                    </div>
+
+                    <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-indigo-700 to-indigo-900 text-white font-semibold py-3">Create Account and Continue</button>
+                {{ form_end(registrationForm) }}
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% if hasColleges %}
+<script>
+document.addEventListener('turbo:load', initQrAcademicFields);
+document.addEventListener('DOMContentLoaded', initQrAcademicFields);
+
+function initQrAcademicFields() {
+    const collegeSelect = document.getElementById('qr_registration_form_college');
+    const departmentSelect = document.getElementById('qr_registration_form_department');
+
+    if (!collegeSelect || !departmentSelect) {
+        return;
+    }
+
+    const originalOptions = departmentSelect.dataset.options
+        ? JSON.parse(departmentSelect.dataset.options)
+        : Array.from(departmentSelect.options)
+            .filter(function (option) { return option.value !== ''; })
+            .map(function (option) {
+                return {
+                    value: option.value,
+                    label: option.text,
+                    collegeId: option.dataset.collegeId || ''
+                };
+            });
+
+    departmentSelect.dataset.options = JSON.stringify(originalOptions);
+
+    function renderDepartments() {
+        const selectedCollegeId = collegeSelect.value;
+        const selectedDepartmentId = departmentSelect.dataset.selectedDepartment || departmentSelect.value;
+        const matchingOptions = originalOptions.filter(function (option) {
+            return option.collegeId === selectedCollegeId;
+        });
+
+        departmentSelect.innerHTML = '';
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = selectedCollegeId === ''
+            ? 'Select a college first'
+            : '— Select Department —';
+        departmentSelect.appendChild(placeholder);
+
+        matchingOptions.forEach(function (option) {
+            const element = document.createElement('option');
+            element.value = option.value;
+            element.textContent = option.label;
+            element.dataset.collegeId = option.collegeId;
+
+            if (option.value === selectedDepartmentId) {
+                element.selected = true;
+            }
+
+            departmentSelect.appendChild(element);
+        });
+
+        departmentSelect.disabled = matchingOptions.length === 0;
+
+        if (!matchingOptions.some(function (option) { return option.value === selectedDepartmentId; })) {
+            departmentSelect.value = '';
+        }
+    }
+
+    departmentSelect.dataset.selectedDepartment = departmentSelect.value;
+    collegeSelect.onchange = renderDepartments;
+    renderDepartments();
+}
+</script>
+{% endif %}
+{% endblock %}

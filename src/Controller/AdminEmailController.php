@@ -6,11 +6,13 @@ use App\Entity\Communication;
 use App\Form\Admin\EmailRecipientFilterType;
 use App\Repository\AlumniRepository;
 use App\Repository\CommunicationRepository;
+use App\Repository\QrRegistrationBatchRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/admin/email')]
@@ -22,6 +24,7 @@ class AdminEmailController extends AbstractController
         Request $request,
         AlumniRepository $alumniRepository,
         CommunicationRepository $communicationRepository,
+        QrRegistrationBatchRepository $batchRepository,
         EntityManagerInterface $entityManager,
     ): Response {
         $yearsFromData = $alumniRepository->createQueryBuilder('a')
@@ -75,6 +78,17 @@ class AdminEmailController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        $registrationLink = $selectedYear !== null
+            ? $this->generateUrl('app_qr_registration', ['batchYear' => $selectedYear], UrlGeneratorInterface::ABSOLUTE_URL)
+            : $this->generateUrl('app_register', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $registrationLinkReady = $selectedYear === null || $batchRepository->findOneByBatchYear((int) $selectedYear) !== null;
+        $registrationLinkLabel = $selectedYear !== null
+            ? sprintf('Batch %d QR registration link', $selectedYear)
+            : 'General registration link';
+        $registrationLinkWarning = $selectedYear !== null && !$registrationLinkReady
+            ? sprintf('Batch %d does not have an active QR registration page yet. Create the batch in QR Registration before sharing this draft.', $selectedYear)
+            : null;
+
         if ($request->isMethod('POST') && $request->request->has('subject')) {
             if (!$this->isCsrfTokenValid('email_compose', (string) $request->request->get('_token'))) {
                 $this->addFlash('error', 'Invalid request token. Please try again.');
@@ -97,13 +111,13 @@ class AdminEmailController extends AbstractController
                 ->setChannel('email')
                 ->setRecipientCount($recipientCount)
                 ->setTargetYear($selectedYear !== null ? (string) $selectedYear : 'All years')
-                ->setSentAt(new \DateTimeImmutable())
+                ->setSentAt(new \DateTime())
                 ->setSentBy(method_exists($this->getUser(), 'getEmail') ? $this->getUser()?->getEmail() : null);
 
             $entityManager->persist($communication);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Communication saved to outbox list.');
+            $this->addFlash('success', 'Draft saved to the outbox. No email was sent.');
 
             return $this->redirectToRoute('admin_email_index', [
                 'email_recipient_filter' => ['yearGraduated' => $selectedYear],
@@ -121,6 +135,10 @@ class AdminEmailController extends AbstractController
             'selectedYear' => $selectedYear,
             'recipientCount' => $recipientCount,
             'recipients' => $recipients,
+            'registrationLink' => $registrationLink,
+            'registrationLinkReady' => $registrationLinkReady,
+            'registrationLinkLabel' => $registrationLinkLabel,
+            'registrationLinkWarning' => $registrationLinkWarning,
         ]);
     }
 }

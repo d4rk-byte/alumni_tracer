@@ -40,8 +40,9 @@ final class AdminDashboardController extends AbstractController
             $selfEmployed = $alumniRepo->count(['employmentStatus' => 'Self-Employed']);
             $totalUsers = $userRepo->count([]);
             $employmentRate = $totalAlumni > 0 ? round(($employed + $selfEmployed) / $totalAlumni * 100, 1) : 0;
+            $registrationStates = $alumniRepo->countRegistrationStates();
 
-            return compact('totalAlumni', 'employed', 'unemployed', 'selfEmployed', 'totalUsers', 'employmentRate');
+            return compact('totalAlumni', 'employed', 'unemployed', 'selfEmployed', 'totalUsers', 'employmentRate', 'registrationStates');
         });
         extract($stats);
 
@@ -110,9 +111,8 @@ final class AdminDashboardController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        $conn = $em->getConnection();
-        $adminCount = (int) $conn->fetchOne("SELECT COUNT(*) FROM `user` WHERE JSON_CONTAINS(roles, '\"ROLE_ADMIN\"')");
-        $staffCount = (int) $conn->fetchOne("SELECT COUNT(*) FROM `user` WHERE JSON_CONTAINS(roles, '\"ROLE_STAFF\"')");
+        $adminCount = $userRepo->countUsersWithRole('ROLE_ADMIN');
+        $staffCount = $userRepo->countUsersWithRole('ROLE_STAFF');
         $studentCount = $totalUsers - $adminCount - $staffCount;
 
         $threshold = (new \DateTime())->modify('-5 minutes');
@@ -127,6 +127,7 @@ final class AdminDashboardController extends AbstractController
             'selfEmployed' => $selfEmployed,
             'totalUsers' => $totalUsers,
             'employmentRate' => $employmentRate,
+            'registrationStates' => $registrationStates,
             'recentAlumni' => $recentAlumni,
             'courseStats' => $courseStats,
             'collegeStats' => $collegeStats,

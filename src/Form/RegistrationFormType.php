@@ -6,6 +6,7 @@ use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -14,6 +15,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\IsTrue;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Range;
 use Symfony\Component\Validator\Constraints\Regex;
 
 class RegistrationFormType extends AbstractType
@@ -24,8 +26,22 @@ class RegistrationFormType extends AbstractType
             ->add('schoolId', TextType::class, [
                 'attr' => ['class' => 'form-input', 'placeholder' => 'e.g. 2022-00123'],
                 'label' => 'School ID',
-                'required' => false,
-                'empty_data' => null,
+                'constraints' => [
+                    new NotBlank(message: 'Please enter your student ID.'),
+                ],
+            ])
+            ->add('yearGraduated', IntegerType::class, [
+                'mapped' => false,
+                'attr' => ['class' => 'form-input', 'placeholder' => 'e.g. 2022', 'min' => 1950, 'max' => (string) ((int) date('Y') + 10)],
+                'label' => 'Batch Year',
+                'constraints' => [
+                    new NotBlank(message: 'Please enter your batch year.'),
+                    new Range(
+                        min: 1950,
+                        max: (int) date('Y') + 10,
+                        notInRangeMessage: 'Batch year must be between {{ min }} and {{ max }}.',
+                    ),
+                ],
             ])
             ->add('firstName', TextType::class, [
                 'attr' => ['class' => 'form-input', 'placeholder' => 'First Name'],
@@ -68,7 +84,7 @@ class RegistrationFormType extends AbstractType
                 'mapped' => false,
                 'label' => 'I have read and agree to the Data Privacy Act compliance statement.',
                 'constraints' => [
-                    new IsTrue(['message' => 'You must agree to the Data Privacy Act compliance statement.']),
+                    new IsTrue(message: 'You must agree to the Data Privacy Act compliance statement.'),
                 ],
             ])
         ;

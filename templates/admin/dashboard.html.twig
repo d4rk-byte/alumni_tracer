@@ -1216,8 +1216,8 @@
                 </div>
                 <div class="hero-actions">
                     <a href="{{ path('announcement_create') }}" class="hero-btn hero-btn-solid"><i class="bi bi-megaphone-fill"></i>New Announcement</a>
-                    <a href="{{ path('admin_gts_questions_new') }}" class="hero-btn hero-btn-soft"><i class="bi bi-ui-checks-grid"></i>New Survey Question</a>
-                    <a href="{{ path('admin_users') }}" class="hero-btn hero-btn-soft"><i class="bi bi-patch-check-fill"></i>Verify Profiles</a>
+                    <a href="{{ path('admin_gts_surveys_index') }}" class="hero-btn hero-btn-soft"><i class="bi bi-ui-checks-grid"></i>Survey Builder</a>
+                    <a href="{{ path('admin_verification') }}" class="hero-btn hero-btn-soft"><i class="bi bi-patch-check-fill"></i>Verify Profiles</a>
                 </div>
             </div>
             <div class="hero-meta">
@@ -1267,6 +1267,30 @@
                 <div class="kpi-main">
                     <span class="kpi-value neutral">{{ activeUsers }}</span>
                     <span class="kpi-badge primary">Online now</span>
+                </div>
+            </div>
+        </div>
+
+        {% set registrationCards = [
+            {key: 'unregistered', label: 'Unregistered Alumni', count: registrationStates.unregistered, note: 'Known alumni without an account yet', accent: 'border-slate-200 bg-slate-50 text-slate-800', link: path('alumni_index', {registration_state: 'unregistered'})},
+            {key: 'pending', label: 'Pending Approval', count: registrationStates.pending, note: 'Accounts waiting for verification', accent: 'border-amber-200 bg-amber-50 text-amber-900', link: path('alumni_index', {registration_state: 'pending'})},
+            {key: 'active', label: 'Active Accounts', count: registrationStates.active, note: 'Linked alumni already approved', accent: 'border-emerald-200 bg-emerald-50 text-emerald-900', link: path('alumni_index', {registration_state: 'active'})},
+            {key: 'inactive', label: 'Inactive Accounts', count: registrationStates.inactive, note: 'Denied or restricted alumni accounts', accent: 'border-rose-200 bg-rose-50 text-rose-900', link: path('alumni_index', {registration_state: 'inactive'})}
+        ] %}
+        <div class="panel-card card-enter dashboard-order-operational">
+            <div class="panel-head">
+                <h6 class="panel-title"><i class="bi bi-diagram-3-fill"></i>Registration Snapshot</h6>
+                <span class="panel-subtitle">Unified alumni account states</span>
+            </div>
+            <div class="panel-body">
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+                    {% for card in registrationCards %}
+                        <a href="{{ card.link }}" data-registration-state-card="{{ card.key }}" class="block rounded-xl border px-4 py-4 no-underline shadow-sm transition hover:-translate-y-0.5 hover:shadow-md {{ card.accent }}">
+                            <div class="text-xs font-semibold uppercase tracking-[0.18em] opacity-70">{{ card.label }}</div>
+                            <div class="mt-2 text-3xl font-bold">{{ card.count }}</div>
+                            <div class="mt-1 text-sm opacity-80">{{ card.note }}</div>
+                        </a>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -1444,8 +1468,8 @@
                     <div class="panel-body">
                         {% set actions = [
                             {path: 'announcement_create', icon: 'bi-megaphone-fill', label: 'New Announcement', note: 'Post updates for all alumni'},
-                            {path: 'admin_gts_questions_new', icon: 'bi-ui-checks-grid', label: 'New Survey Question', note: 'Update tracer study questionnaire'},
-                            {path: 'admin_users', icon: 'bi-patch-check-fill', label: 'Profile Verification', note: 'Review and approve registrants'},
+                            {path: 'admin_gts_surveys_index', icon: 'bi-ui-checks-grid', label: 'Survey Builder', note: 'Open and manage tracer survey forms'},
+                            {path: 'admin_verification', icon: 'bi-patch-check-fill', label: 'Profile Verification', note: 'Review and approve registrants'},
                             {path: 'alumni_index', icon: 'bi-people-fill', label: 'Alumni Directory', note: 'Search and maintain alumni records'},
                             {path: 'gts_index', icon: 'bi-clipboard2-data-fill', label: 'GTS Responses', note: 'Inspect submitted tracer forms'},
                             {path: 'admin_analytics_hub', icon: 'bi-grid-1x2-fill', label: 'Reports and Analytics', note: 'Open Analytics Hub for all reporting modules'}
@@ -1520,7 +1544,7 @@
                     </div>
                     {% if pendingUsers > 5 %}
                     <div class="text-center py-2 border-t border-gray-100">
-                        <a href="{{ path('admin_users') }}?status=pending" class="text-sm text-blue-700 font-semibold">View all {{ pendingUsers }} pending <i class="bi bi-arrow-right"></i></a>
+                        <a href="{{ path('admin_verification') }}" class="text-sm text-blue-700 font-semibold">View all {{ pendingUsers }} pending <i class="bi bi-arrow-right"></i></a>
                     </div>
                     {% endif %}
                     {% else %}

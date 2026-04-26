@@ -95,6 +95,107 @@ function hydrateSidebarLinkLabels() {
     });
 }
 
+function triggerUiOpenAnimation() {
+    const root = document.documentElement;
+    if (!root) return;
+
+    root.classList.remove('ui-ready');
+    root.classList.add('ui-preload');
+
+    // Double rAF ensures preload styles apply before entering the ready state.
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            root.classList.remove('ui-preload');
+            root.classList.add('ui-ready');
+        });
+    });
+}
+
+function initManagedAcademicFields() {
+    document.querySelectorAll('[data-academic-college="true"]').forEach((collegeSelect) => {
+        const form = collegeSelect.form;
+        if (!form || form.dataset.academicManagedInit === '1') {
+            return;
+        }
+
+        const degreeProgramSelect = form.querySelector('[data-academic-degree-program="true"]');
+        const courseInput = form.querySelector('[data-academic-course="true"]');
+
+        if (!degreeProgramSelect || !courseInput) {
+            return;
+        }
+
+        form.dataset.academicManagedInit = '1';
+
+        const originalOptions = Array.from(degreeProgramSelect.options)
+            .filter((option) => option.value !== '')
+            .map((option) => ({
+                value: option.value,
+                label: option.textContent || option.value,
+                collegeName: option.dataset.collegeName || '',
+                courseCode: option.dataset.courseCode || '',
+            }));
+
+        function syncCourseFromSelection() {
+            const selected = originalOptions.find((option) => option.value === degreeProgramSelect.value);
+            courseInput.value = selected ? selected.courseCode : '';
+
+            if (selected && collegeSelect.value === '') {
+                collegeSelect.value = selected.collegeName;
+            }
+        }
+
+        function renderDegreePrograms() {
+            const selectedCollege = collegeSelect.value;
+            const selectedDegreeProgram = degreeProgramSelect.dataset.selectedValue || degreeProgramSelect.value;
+
+            const matchingOptions = originalOptions.filter((option) => {
+                return selectedCollege === '' || option.collegeName === selectedCollege;
+            });
+
+            degreeProgramSelect.innerHTML = '';
+
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = selectedCollege === '' ? '— Select Degree Program —' : '— Select Degree Program —';
+            degreeProgramSelect.appendChild(placeholder);
+
+            matchingOptions.forEach((option) => {
+                const element = document.createElement('option');
+                element.value = option.value;
+                element.textContent = option.label;
+                element.dataset.collegeName = option.collegeName;
+                element.dataset.courseCode = option.courseCode;
+
+                if (option.value === selectedDegreeProgram) {
+                    element.selected = true;
+                }
+
+                degreeProgramSelect.appendChild(element);
+            });
+
+            if (!matchingOptions.some((option) => option.value === selectedDegreeProgram)) {
+                degreeProgramSelect.value = '';
+            }
+
+            syncCourseFromSelection();
+        }
+
+        collegeSelect.addEventListener('change', () => {
+            degreeProgramSelect.dataset.selectedValue = degreeProgramSelect.value;
+            renderDegreePrograms();
+        });
+
+        degreeProgramSelect.addEventListener('change', () => {
+            degreeProgramSelect.dataset.selectedValue = degreeProgramSelect.value;
+            syncCourseFromSelection();
+        });
+
+        degreeProgramSelect.dataset.selectedValue = degreeProgramSelect.value;
+        renderDegreePrograms();
+    });
+}
+
 /* ═══════════════════════════════════════════════════════════════
    EVENT DELEGATION (click) — survives every Turbo body swap
    ═══════════════════════════════════════════════════════════════ */
@@ -211,6 +312,11 @@ document.addEventListener('click', (e) => {
    ═══════════════════════════════════════════════════════════════ */
 document.addEventListener('turbo:before-cache', () => {
     closeSidebar();
+    const root = document.documentElement;
+    if (root) {
+        root.classList.remove('ui-preload');
+        root.classList.remove('ui-ready');
+    }
     const mobileNav = document.getElementById('guestNavMobile');
     if (mobileNav) mobileNav.classList.remove('show');
     /* Remove leftover modal containers so cached snapshot is clean */
@@ -225,9 +331,11 @@ document.addEventListener('turbo:before-visit', () => {
 });
 
 document.addEventListener('turbo:load', () => {
+    triggerUiOpenAnimation();
     applyAdminSidebarCompactState();
     syncAdminSidebarCompactToggle();
     hydrateSidebarLinkLabels();
+    initManagedAcademicFields();
     updateActiveLink();
     closeSidebar();
 });

@@ -1,0 +1,115 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}QR Registration{% endblock %}
+
+{% block body %}
+<div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">Batch QR Registration</h1>
+        <p class="text-sm text-gray-600 mt-1">Create and manage multiple batch QR codes. Each saved batch gets its own registration QR code.</p>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
+        <div class="mb-4">
+            <h2 class="text-lg font-semibold text-gray-900">Create New Batch QR</h2>
+            <p class="text-sm text-gray-600 mt-1">Enter a batch year, then click the button to create and save its QR registration code.</p>
+        </div>
+
+        <form method="post" class="flex flex-col gap-4 md:flex-row md:items-end">
+            <input type="hidden" name="_token" value="{{ csrf_token('create_qr_batch') }}">
+            <div class="md:w-72">
+                <label for="batchYear" class="block text-sm font-semibold text-gray-700 mb-2">Batch Year</label>
+                <input id="batchYear"
+                       name="batchYear"
+                       type="number"
+                       min="1950"
+                       max="{{ maxBatchYear }}"
+                       value="{{ defaultBatchYear }}"
+                       class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="btn-norsu w-full md:w-auto min-w-[180px]">
+                    <i class="bi bi-qr-code mr-1"></i>Create Batch QR
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if batches is empty %}
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 text-sm text-gray-600">
+            No QR registration batches have been created yet.
+        </div>
+    {% else %}
+        <div class="grid gap-6 lg:grid-cols-2">
+            {% for batch in batches %}
+                {% set qrUrl = url('app_qr_registration', { batchYear: batch.batchYear }) %}
+                <section class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 space-y-4">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900">Batch {{ batch.batchYear }}</h2>
+                            <p class="text-sm text-gray-600 mt-1">Created {{ batch.createdAt|date('M d, Y h:i A') }}</p>
+                        </div>
+                        <form method="post" action="{{ path('admin_qr_registration_delete', { id: batch.id }) }}" onsubmit="return confirm('Delete QR registration for batch {{ batch.batchYear }}?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete_qr_batch' ~ batch.id) }}">
+                            <button type="submit" class="inline-flex items-center rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100">Delete</button>
+                        </form>
+                    </div>
+
+                    <div class="grid gap-6 md:grid-cols-[1fr_220px] md:items-start">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Public URL</label>
+                                <input type="text"
+                                       readonly
+                                       value="{{ qrUrl }}"
+                                       class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-gray-900">
+                            </div>
+
+                            <div class="flex flex-wrap gap-3">
+                                <a href="{{ qrUrl }}" target="_blank" rel="noopener" class="inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 no-underline hover:bg-slate-50">Open registration page</a>
+                                <button type="button" data-qr-url="{{ qrUrl }}" onclick="copyBatchUrl(this)" class="inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">Copy link</button>
+                            </div>
+
+                            <div class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                                Students who scan this QR code will register under batch {{ batch.batchYear }} and choose their college and department on the form.
+                            </div>
+                        </div>
+
+                        <div class="text-center space-y-3">
+                            <div class="batch-qr-container mx-auto flex items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50"
+                                 data-batch-year="{{ batch.batchYear }}"
+                                 style="width:220px;height:220px;">
+                                  <img src="{{ qr_code_data_uri(qrUrl, 'default', { size: 200, margin: 2 }) }}"
+                                     alt="QR code for batch {{ batch.batchYear }} registration"
+                                      width="200"
+                                      height="200"
+                                      loading="lazy"
+                                     class="h-[200px] w-[200px] rounded-xl">
+                            </div>
+                            <button type="button" data-batch-year="{{ batch.batchYear }}" onclick="downloadBatchQr(this)" class="inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">Download QR</button>
+                        </div>
+                    </div>
+                </section>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+<script>
+function copyBatchUrl(button) {
+    navigator.clipboard.writeText(button.dataset.qrUrl);
+}
+
+function downloadBatchQr(button) {
+    const section = button.closest('section');
+    const qrImage = section ? section.querySelector('.batch-qr-container img') : null;
+    if (!qrImage) {
+        return;
+    }
+
+    const link = document.createElement('a');
+    link.download = 'batch-' + button.dataset.batchYear + '-qr-registration.png';
+    link.href = qrImage.src;
+    link.click();
+}
+</script>
+{% endblock %}

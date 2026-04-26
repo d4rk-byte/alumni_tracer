@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Campaigns – {{ surveyTemplate.title }}{% endblock %}
+
+{% block body %}
+{% set surveysIndexRoute = is_granted('ROLE_ADMIN') ? 'admin_gts_surveys_index' : 'staff_gts_surveys_index' %}
+{% set campaignNewRoute = is_granted('ROLE_ADMIN') ? 'admin_gts_campaign_new' : 'staff_gts_campaign_new' %}
+{% set campaignShowRoute = is_granted('ROLE_ADMIN') ? 'admin_gts_campaign_show' : 'staff_gts_campaign_show' %}
+<div class="mx-auto max-w-6xl space-y-6">
+    <div class="flex flex-col gap-4 md:flex-row md:items-center justify-between">
+        <div class="max-w-3xl space-y-1.5">
+            <a href="{{ path(surveysIndexRoute) }}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-norsu">
+                <i class="bi bi-arrow-left"></i> All Surveys
+            </a>
+            <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800">
+                <i class="bi bi-envelope-paper text-norsu"></i>
+                <span>Campaigns for {{ surveyTemplate.title }}</span>
+            </h1>
+        </div>
+        <div class="flex flex-col gap-2 sm:flex-row items-center">
+            <a href="{{ path(campaignNewRoute, {id: surveyTemplate.id}) }}" class="btn-norsu inline-flex items-center justify-center">
+                <i class="bi bi-plus-lg mr-1"></i>New Campaign
+            </a>
+        </div>
+    </div>
+
+    {% if campaigns is empty %}
+        <div class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center shadow-sm">
+            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-500">
+                <i class="bi bi-envelope-paper text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800">No campaigns yet</h3>
+            <p class="mt-2 text-sm text-gray-500">Send an invitation batch to alumni for this survey.</p>
+            <div class="mt-5">
+                <a href="{{ path(campaignNewRoute, {id: surveyTemplate.id}) }}" class="btn-norsu inline-flex items-center justify-center">
+                    <i class="bi bi-plus-lg mr-1"></i>Create First Campaign
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="space-y-4">
+            {% for campaign in campaigns %}
+                <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+                    <div class="flex flex-col gap-4 p-6 md:flex-row md:items-center justify-between">
+                        <div class="min-w-0 flex-1 space-y-2">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700 uppercase">{{ campaign.status }}</span>
+                                <span class="text-xs text-gray-400">Created {{ campaign.createdAt|date('M d, Y') }}</span>
+                            </div>
+                            <h2 class="text-lg font-bold text-gray-800">{{ campaign.name }}</h2>
+                            <p class="text-sm text-gray-500">
+                                Target Years: {{ campaign.targetGraduationYears|join(', ') }}
+                                {% if campaign.targetCollege %} | College: {{ campaign.targetCollege }}{% endif %}
+                                {% if campaign.targetCourse %} | Course: {{ campaign.targetCourse }}{% endif %}
+                            </p>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2 shrink-0">
+                            <a href="{{ path(campaignShowRoute, {id: campaign.id}) }}"
+                               class="btn-outline-norsu btn-sm inline-flex items-center justify-center">
+                                <i class="bi bi-eye mr-1"></i>View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

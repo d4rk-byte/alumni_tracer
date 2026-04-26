@@ -1,0 +1,33 @@
+{% set itemType = item.inputType|default('text') %}
+{% set itemAnswer = item.answer|default('') %}
+
+{% if itemType == 'checkbox' %}
+    <div class="flex flex-wrap gap-1.5">
+        {% for value in itemAnswer %}
+            <span class="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800">{{ value }}</span>
+        {% endfor %}
+    </div>
+{% elseif itemType == 'repeater' %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                <tr>
+                    {% for column in item.options|default([]) %}
+                        <th class="px-3 py-2 text-left font-semibold">{{ column.label }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+                {% for row in itemAnswer %}
+                    <tr>
+                        {% for column in item.options|default([]) %}
+                            <td class="px-3 py-2">{{ row[column.key]|default('—') }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-700">{{ itemAnswer|e|nl2br }}</div>
+{% endif %}

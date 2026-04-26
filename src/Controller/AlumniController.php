@@ -8,6 +8,7 @@ use App\Form\AlumniType;
 use App\Form\AlumniVerificationType;
 use App\Repository\AlumniRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -53,12 +54,14 @@ class AlumniController extends AbstractController
         $campus   = $request->query->get('campus', '');
         $status   = $request->query->get('status', '');
         $province = $request->query->get('province', '');
+        $registrationState = $request->query->get('registration_state', '');
 
         $qb = $repo->searchByBatchCampusCourse(
             $year !== '' ? (int) $year : null,
             $campus !== '' ? $campus : null,
             $course !== '' ? $course : null
         );
+        $qb->leftJoin('a.user', 'u');
 
         if ($search !== '') {
             if ($isStaffPortal) {
@@ -77,8 +80,7 @@ class AlumniController extends AbstractController
         }
 
         if ($isStaffPortal) {
-            $qb->leftJoin('a.user', 'u')
-                ->andWhere('u.id IS NOT NULL')
+            $qb->andWhere('u.id IS NOT NULL')
                 ->andWhere('(u.roles LIKE :roleUser OR u.roles LIKE :roleAlumniLegacy)')
                 ->andWhere('u.roles NOT LIKE :staffRole')
                 ->andWhere('u.roles NOT LIKE :adminRole')
@@ -86,6 +88,12 @@ class AlumniController extends AbstractController
                 ->setParameter('roleAlumniLegacy', '%' . User::ROLE_ALUMNI . '%')
                 ->setParameter('staffRole', '%ROLE_STAFF%')
                 ->setParameter('adminRole', '%ROLE_ADMIN%');
+        }
+
+        $registrationStateCounts = $this->countRegistrationStates($qb, $repo);
+
+        if ($registrationState !== '') {
+            $repo->applyRegistrationStateFilter($qb, 'u', $registrationState);
         }
 
         $qb->orderBy('a.lastName', 'ASC');
@@ -122,6 +130,8 @@ class AlumniController extends AbstractController
             'filter_campus'   => $campus,
             'filter_status'   => $status,
             'filter_province' => $province,
+            'filter_registration_state' => $registrationState,
+            'registrationStateCounts' => $registrationStateCounts,
             'currentPage' => $page,
             'totalPages'  => $totalPages,
             'totalCount'  => $totalItems,
@@ -211,5 +221,30 @@ class AlumniController extends AbstractController
         }
 
         return $this->redirectToRoute('alumni_index');
+    }
+
+    /**
+     * @return array{unregistered: int, pending: int, active: int, inactive: int}
+     */
+    private function countRegistrationStates(QueryBuilder $baseQb, AlumniRepository $repo): array
+    {
+        $counts = [];
+
+        foreach ([
+            AlumniRepository::REGISTRATION_STATE_UNREGISTERED,
+            AlumniRepository::REGISTRATION_STATE_PENDING,
+            AlumniRepository::REGISTRATION_STATE_ACTIVE,
+            AlumniRepository::REGISTRATION_STATE_INACTIVE,
+        ] as $state) {
+            $countQb = clone $baseQb;
+            $countQb->resetDQLPart('orderBy');
+            $countQb->setFirstResult(null);
+            $countQb->setMaxResults(null);
+            $countQb->select('COUNT(a.id)');
+            $repo->applyRegistrationStateFilter($countQb, 'u', $state);
+            $counts[$state] = (int) $countQb->getQuery()->getSingleScalarResult();
+        }
+
+        return $counts;
     }
 }

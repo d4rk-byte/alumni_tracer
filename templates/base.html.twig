@@ -8,6 +8,10 @@
         <title>{% block title %}NORSU Alumni Tracker{% endblock %}</title>
         <link rel="icon" type="image/webp" href="{{ asset('images/norsu-logo.webp') }}">
 
+        <script>
+            document.documentElement.classList.add('ui-preload');
+        </script>
+
         {# ── Bootstrap Icons (icon font only — not Bootstrap CSS/JS) ── #}
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" integrity="sha384-XGjxtQfXaH2tnPFa9x+ruJTuLE3Aa6LhHSWRr1XeTyhezb4abCG4ccI5AkVDxqC+" crossorigin="anonymous">
         <link rel="stylesheet" href="{{ asset('skilline/vendor/poppins.css') }}">
@@ -208,9 +212,9 @@
                    href="{{ path('admin_verification') }}">
                     <i class="bi bi-patch-check-fill sidebar-icon"></i> Verify Users
                 </a>
-                <a class="sidebar-link {% if app.request.attributes.get('_route') in ['staff_gts_questions_index', 'staff_gts_questions_new', 'staff_gts_questions_edit'] %}active{% endif %}"
-                   href="{{ path('staff_gts_questions_index') }}">
-                    <i class="bi bi-ui-checks-grid sidebar-icon"></i> Edit Survey Questions
+                <a class="sidebar-link {% if app.request.attributes.get('_route') starts with 'staff_gts_survey' or app.request.attributes.get('_route') starts with 'staff_gts_question' %}active{% endif %}"
+                   href="{{ path('staff_gts_surveys_index') }}">
+                    <i class="bi bi-ui-checks-grid sidebar-icon"></i> Survey Builder
                 </a>
                 <a class="sidebar-link {% if 'tracer_' in app.request.attributes.get('_route')|default('') %}active{% endif %}"
                    href="{{ path('tracer_index') }}">
@@ -238,10 +242,14 @@
                    href="{{ path('report_import') }}">
                     <i class="bi bi-upload sidebar-icon"></i> Import / Export Data
                 </a>
+                     <a class="sidebar-link {% if currentRoute == 'admin_qr_registration' %}active{% endif %}"
+                         href="{{ path('admin_qr_registration') }}">
+                          <i class="bi bi-qr-code sidebar-icon"></i> QR Registration
+                     </a>
 
                 <div class="sidebar-section-title pt-3 pb-2 px-4 text-[0.7rem] uppercase tracking-[1.5px] text-gray-400 font-bold select-none">Graduate Tracer Study</div>
-                <a class="sidebar-link {% if currentRoute in ['admin_gts_questions_index', 'admin_gts_questions_new', 'admin_gts_questions_edit', 'staff_gts_questions_index', 'staff_gts_questions_new', 'staff_gts_questions_edit'] %}active{% endif %}"
-                   href="{{ path('admin_gts_questions_index') }}">
+                <a class="sidebar-link {% if currentRoute starts with 'admin_gts_survey' or currentRoute starts with 'admin_gts_question' or currentRoute starts with 'staff_gts_survey' or currentRoute starts with 'staff_gts_question' %}active{% endif %}"
+                   href="{{ path('admin_gts_surveys_index') }}">
                     <i class="bi bi-ui-checks-grid sidebar-icon"></i> Survey Builder
                 </a>
                 <a class="sidebar-link {% if currentRoute in ['gts_index', 'gts_show'] %}active{% endif %}"

@@ -3,9 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\GtsSurvey;
+use App\Entity\GtsSurveyTemplate;
 use App\Entity\User;
 use App\Form\GtsSurveyType;
+use App\Repository\GtsSurveyQuestionRepository;
 use App\Repository\GtsSurveyRepository;
+use App\Service\GtsSurveyQuestionBank;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,13 +32,27 @@ class SurveyController extends AbstractController
     }
 
     #[Route('/admin/survey/preview/{id}', name: 'admin_survey_preview', methods: ['GET'], requirements: ['id' => '\\d+'])]
-    #[IsGranted('ROLE_ADMIN')]
-    public function preview(int $id, GtsSurveyRepository $surveyRepository): Response
+    #[Route('/staff/survey/preview/{id}', name: 'staff_survey_preview', methods: ['GET'], requirements: ['id' => '\\d+'])]
+    public function preview(
+        int $id,
+        GtsSurveyRepository $surveyRepository,
+        GtsSurveyQuestionRepository $questionRepository,
+        GtsSurveyQuestionBank $questionBank,
+    ): Response
     {
+        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_STAFF')) {
+            throw $this->createAccessDeniedException('Survey preview is available to staff and admin accounts only.');
+        }
+
         $survey = $id === 0 ? $this->createMockSurvey() : $surveyRepository->find($id);
 
         if (!$survey instanceof GtsSurvey) {
             throw $this->createNotFoundException('Survey preview data not found.');
+        }
+
+        $runtimeQuestions = $questionBank->createRuntimeQuestions($questionRepository->findActiveOrdered());
+        if ($questionBank->getStoredResponseItems($survey->getDynamicAnswers()) !== []) {
+            $runtimeQuestions = $questionBank->createRuntimeQuestionsFromStoredResponses($survey->getDynamicAnswers());
         }
 
         $form = $this->createForm(GtsSurveyType::class, $survey, [
@@ -44,6 +61,42 @@ class SurveyController extends AbstractController
 
         return $this->render('admin/survey_preview.html.twig', [
             'form' => $form,
+            'survey' => $survey,
+            'institutionCode' => $survey->getInstitutionCode(),
+            'controlCode' => $survey->getControlCode(),
+            'questionSections' => $questionBank->groupBySection($runtimeQuestions),
+            'dynamicAnswers' => $questionBank->extractAnswerValues($survey->getDynamicAnswers()),
+            'isPreviewMode' => true,
+            'hasAlreadyResponded' => false,
+        ]);
+    }
+
+    #[Route('/admin/gts/surveys/{id}/preview', name: 'admin_gts_survey_preview', methods: ['GET'], requirements: ['id' => '\\d+'])]
+    #[Route('/staff/gts/surveys/{id}/preview', name: 'staff_gts_survey_preview', methods: ['GET'], requirements: ['id' => '\\d+'])]
+    public function previewTemplate(
+        GtsSurveyTemplate $surveyTemplate,
+        GtsSurveyQuestionRepository $questionRepository,
+        GtsSurveyQuestionBank $questionBank,
+    ): Response
+    {
+        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_STAFF')) {
+            throw $this->createAccessDeniedException('Survey preview is available to staff and admin accounts only.');
+        }
+
+        $survey = $this->createMockSurvey();
+        $runtimeQuestions = $questionBank->createRuntimeQuestions($questionRepository->findActiveOrderedByTemplate($surveyTemplate));
+
+        $form = $this->createForm(GtsSurveyType::class, $survey, [
+            'disabled' => true,
+        ]);
+
+        return $this->render('admin/survey_preview.html.twig', [
+            'form' => $form,
+            'survey' => $survey,
+            'institutionCode' => $survey->getInstitutionCode(),
+            'controlCode' => $survey->getControlCode(),
+            'questionSections' => $questionBank->groupBySection($runtimeQuestions),
+            'dynamicAnswers' => [],
             'isPreviewMode' => true,
             'hasAlreadyResponded' => false,
         ]);
@@ -131,13 +184,8 @@ class SurveyController extends AbstractController
         $survey = new GtsSurvey();
         $survey->setName('Sample Alumni, Preview User');
         $survey->setEmailAddress('preview@norsu.edu.ph');
-        $survey->setPermanentAddress('NORSU Main Campus, Dumaguete City, Negros Oriental');
-        $survey->setCivilStatus('Single');
-        $survey->setSex('Female');
-        $survey->setBirthday(new \DateTimeImmutable('2000-01-15'));
-        $survey->setPresentlyEmployed('Yes');
-        $survey->setPresentEmploymentStatus('Regular/Permanent');
-        $survey->setSuggestions('This is a mock preview survey response for admin review.');
+        $survey->setInstitutionCode('NORSU-GTS');
+        $survey->setControlCode('PREVIEW-GTS');
 
         return $survey;
     }

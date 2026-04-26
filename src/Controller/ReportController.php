@@ -117,13 +117,16 @@ class ReportController extends AbstractController
     public function export(Request $request, AlumniRepository $repo): StreamedResponse
     {
         $qb = $repo->createQueryBuilder('a')
+            ->leftJoin('a.user', 'u')
             ->andWhere('a.deletedAt IS NULL')
             ->orderBy('a.lastName', 'ASC');
 
         $course = $request->query->get('course', '');
         $year = $request->query->get('year', '');
+        $campus = $request->query->get('campus', '');
         $status = $request->query->get('status', '');
         $province = $request->query->get('province', '');
+        $registrationState = $request->query->get('registration_state', '');
 
         if ($course !== '') {
             $qb->andWhere('a.course = :course')->setParameter('course', $course);
@@ -131,11 +134,17 @@ class ReportController extends AbstractController
         if ($year !== '') {
             $qb->andWhere('a.yearGraduated = :year')->setParameter('year', (int) $year);
         }
+        if ($campus !== '') {
+            $qb->andWhere('a.college LIKE :campus')->setParameter('campus', '%' . trim((string) $campus) . '%');
+        }
         if ($status !== '') {
             $qb->andWhere('a.employmentStatus = :status')->setParameter('status', $status);
         }
         if ($province !== '') {
             $qb->andWhere('a.province = :province')->setParameter('province', $province);
+        }
+        if ($registrationState !== '') {
+            $repo->applyRegistrationStateFilter($qb, 'u', $registrationState);
         }
 
         $alumni = $qb->getQuery()->getResult();
@@ -143,8 +152,10 @@ class ReportController extends AbstractController
         $filterDesc = [];
         if ($course) $filterDesc[] = "course={$course}";
         if ($year) $filterDesc[] = "year={$year}";
+        if ($campus) $filterDesc[] = "campus={$campus}";
         if ($status) $filterDesc[] = "status={$status}";
         if ($province) $filterDesc[] = "province={$province}";
+        if ($registrationState) $filterDesc[] = "registration_state={$registrationState}";
         $filterStr = $filterDesc ? ' (filters: ' . implode(', ', $filterDesc) . ')' : '';
 
         $this->audit->log(

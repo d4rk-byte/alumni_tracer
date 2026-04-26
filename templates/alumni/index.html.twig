@@ -145,6 +145,29 @@
 </div>
 {% endif %}
 
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
+    <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+        <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Unregistered</div>
+        <div class="mt-2 text-2xl font-bold text-slate-800">{{ registrationStateCounts.unregistered|default(0) }}</div>
+        <div class="text-xs text-slate-500">Imported or added alumni without an account</div>
+    </div>
+    <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm">
+        <div class="text-xs font-semibold uppercase tracking-wide text-amber-700">Pending Approval</div>
+        <div class="mt-2 text-2xl font-bold text-amber-900">{{ registrationStateCounts.pending|default(0) }}</div>
+        <div class="text-xs text-amber-700">Registrants waiting for review</div>
+    </div>
+    <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-sm">
+        <div class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Active Accounts</div>
+        <div class="mt-2 text-2xl font-bold text-emerald-900">{{ registrationStateCounts.active|default(0) }}</div>
+        <div class="text-xs text-emerald-700">Approved and signed-up alumni</div>
+    </div>
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 shadow-sm">
+        <div class="text-xs font-semibold uppercase tracking-wide text-rose-700">Inactive Accounts</div>
+        <div class="mt-2 text-2xl font-bold text-rose-900">{{ registrationStateCounts.inactive|default(0) }}</div>
+        <div class="text-xs text-rose-700">Denied, suspended, or otherwise restricted accounts</div>
+    </div>
+</div>
+
 {# ══════════════════════════════════════════════
    SEARCH & FILTERS
    ══════════════════════════════════════════════ #}
@@ -160,48 +183,34 @@
                     <label class="form-label uppercase text-xs font-bold tracking-wide text-gray-500">Course</label>
                     <select name="course" class="form-select">
                         <option value="">All Courses</option>
-                        <option value="AB English" {{ filter_course == 'AB English' ? 'selected' }}>AB English</option>
-                        <option value="AB PolSci" {{ filter_course == 'AB PolSci' ? 'selected' }}>AB PolSci</option>
-                        <option value="BS Biology" {{ filter_course == 'BS Biology' ? 'selected' }}>BS Biology</option>
-                        <option value="BS Math" {{ filter_course == 'BS Math' ? 'selected' }}>BS Math</option>
-                        <option value="BSES" {{ filter_course == 'BSES' ? 'selected' }}>BSES</option>
-                        <option value="BSA" {{ filter_course == 'BSA' ? 'selected' }}>BSA</option>
-                        <option value="BSBA" {{ filter_course == 'BSBA' ? 'selected' }}>BSBA</option>
-                        <option value="BSHM" {{ filter_course == 'BSHM' ? 'selected' }}>BSHM</option>
-                        <option value="BSTM" {{ filter_course == 'BSTM' ? 'selected' }}>BSTM</option>
-                        <option value="BEEd" {{ filter_course == 'BEEd' ? 'selected' }}>BEEd</option>
-                        <option value="BSEd" {{ filter_course == 'BSEd' ? 'selected' }}>BSEd</option>
-                        <option value="BPEd" {{ filter_course == 'BPEd' ? 'selected' }}>BPEd</option>
-                        <option value="BSNEd" {{ filter_course == 'BSNEd' ? 'selected' }}>BSNEd</option>
-                        <option value="BSCE" {{ filter_course == 'BSCE' ? 'selected' }}>BSCE</option>
-                        <option value="BSEE" {{ filter_course == 'BSEE' ? 'selected' }}>BSEE</option>
-                        <option value="BSME" {{ filter_course == 'BSME' ? 'selected' }}>BSME</option>
-                        <option value="BS Architecture" {{ filter_course == 'BS Architecture' ? 'selected' }}>BS Architecture</option>
-                        <option value="BSIT" {{ filter_course == 'BSIT' ? 'selected' }}>BSIT</option>
-                        <option value="BSCS" {{ filter_course == 'BSCS' ? 'selected' }}>BSCS</option>
-                        <option value="BSIS" {{ filter_course == 'BSIS' ? 'selected' }}>BSIS</option>
-                        <option value="BSN" {{ filter_course == 'BSN' ? 'selected' }}>BSN</option>
-                        <option value="BS Midwifery" {{ filter_course == 'BS Midwifery' ? 'selected' }}>BS Midwifery</option>
-                        <option value="BSA Agriculture" {{ filter_course == 'BSA Agriculture' ? 'selected' }}>BSA Agriculture</option>
-                        <option value="BS Fisheries" {{ filter_course == 'BS Fisheries' ? 'selected' }}>BS Fisheries</option>
-                        <option value="BS Criminology" {{ filter_course == 'BS Criminology' ? 'selected' }}>BS Criminology</option>
-                        <option value="BSIT IndTech" {{ filter_course == 'BSIT IndTech' ? 'selected' }}>BSIT IndTech</option>
-                        <option value="Other" {{ filter_course == 'Other' ? 'selected' }}>Other</option>
+                        {% for courseOption in courses %}
+                            <option value="{{ courseOption }}" {{ filter_course == courseOption ? 'selected' }}>{{ courseOption }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="md:col-span-2">
                     <label class="form-label uppercase text-xs font-bold tracking-wide text-gray-500">Campus</label>
                     <input type="text" name="campus" value="{{ filter_campus|default('') }}" class="form-input" placeholder="e.g. College of Education">
                 </div>
-                <div class="md:col-span-2">
+                <div class="md:col-span-1">
                     <label class="form-label uppercase text-xs font-bold tracking-wide text-gray-500">Year</label>
                     <select name="year" class="form-select">
                         <option value="">All Years</option>
                         {% for y in years %}<option value="{{ y }}" {{ filter_year == y ? 'selected' }}>{{ y }}</option>{% endfor %}
                     </select>
                 </div>
+                <div class="md:col-span-2">
+                    <label class="form-label uppercase text-xs font-bold tracking-wide text-gray-500">Registration</label>
+                    <select name="registration_state" class="form-select">
+                        <option value="">All States</option>
+                        <option value="unregistered" {{ filter_registration_state == 'unregistered' ? 'selected' }}>Unregistered</option>
+                        <option value="pending" {{ filter_registration_state == 'pending' ? 'selected' }}>Pending</option>
+                        <option value="active" {{ filter_registration_state == 'active' ? 'selected' }}>Active</option>
+                        <option value="inactive" {{ filter_registration_state == 'inactive' ? 'selected' }}>Inactive</option>
+                    </select>
+                </div>
                 <div class="md:col-span-1">
-                    <label class="form-label uppercase text-xs font-bold tracking-wide text-gray-500">Status</label>
+                    <label class="form-label uppercase text-xs font-bold tracking-wide text-gray-500">Employment</label>
                     <select name="status" class="form-select">
                         <option value="">All</option>
                         <option value="Employed" {{ filter_status == 'Employed' ? 'selected' }}>Employed</option>
@@ -224,15 +233,15 @@
 <div class="flex justify-between items-center mb-3 no-print">
     <p class="text-sm text-gray-500 mb-0">
         Showing <strong>{{ totalCount }}</strong> alumni record{{ totalCount != 1 ? 's' : '' }}
-        {% if filter_course or filter_year or filter_campus or filter_status or filter_province or search %}
+        {% if filter_course or filter_year or filter_campus or filter_status or filter_province or filter_registration_state or search %}
             <span class="text-gray-400">
-                (filtered{% if filter_course %}, course: {{ filter_course }}{% endif %}{% if filter_campus %}, campus: {{ filter_campus }}{% endif %}{% if filter_year %}, year: {{ filter_year }}{% endif %}{% if filter_status %}, status: {{ filter_status }}{% endif %}{% if filter_province %}, province: {{ filter_province }}{% endif %}{% if search %}, search: "{{ search }}"{% endif %})
+                (filtered{% if filter_course %}, course: {{ filter_course }}{% endif %}{% if filter_campus %}, campus: {{ filter_campus }}{% endif %}{% if filter_year %}, year: {{ filter_year }}{% endif %}{% if filter_registration_state %}, registration: {{ filter_registration_state|replace({'_': ' ', '-': ' '})|title }}{% endif %}{% if filter_status %}, employment: {{ filter_status }}{% endif %}{% if filter_province %}, province: {{ filter_province }}{% endif %}{% if search %}, search: "{{ search }}"{% endif %})
             </span>
         {% endif %}
     </p>
     <div class="flex gap-2">
         {% if is_granted('ROLE_STAFF') %}
-        <a href="{{ path('report_export', {course: filter_course, year: filter_year, campus: filter_campus, status: filter_status, province: filter_province}) }}" class="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-3 py-2 rounded-lg transition">
+        <a href="{{ path('report_export', {course: filter_course, year: filter_year, campus: filter_campus, status: filter_status, province: filter_province, registration_state: filter_registration_state}) }}" class="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-3 py-2 rounded-lg transition">
             <i class="bi bi-file-earmark-spreadsheet"></i>Export CSV
         </a>
         {% endif %}
@@ -252,7 +261,8 @@
             {% if filter_course %} | Course: {{ filter_course }}{% endif %}
             {% if filter_campus %} | Campus: {{ filter_campus }}{% endif %}
             {% if filter_year %} | Year: {{ filter_year }}{% endif %}
-            {% if filter_status %} | Status: {{ filter_status }}{% endif %}
+            {% if filter_registration_state %} | Registration: {{ filter_registration_state|replace({'_': ' ', '-': ' '})|title }}{% endif %}
+            {% if filter_status %} | Employment: {{ filter_status }}{% endif %}
             {% if filter_province %} | Province: {{ filter_province }}{% endif %}
             {% if search %} | Search: "{{ search }}"{% endif %}
         </p>
@@ -274,7 +284,8 @@
                     <th>Course</th>
                     <th>Year</th>
                     <th>Province</th>
-                    <th>Status</th>
+                    <th>Registration</th>
+                    <th>Employment</th>
                     <th class="text-right pr-4 no-print">Actions</th>
                 </tr>
             </thead>
@@ -289,6 +300,17 @@
                     <td class="text-sm">{{ alumni.course }}</td>
                     <td class="text-sm">{{ alumni.yearGraduated ?? '—' }}</td>
                     <td class="text-sm">{{ alumni.province ?? '—' }}</td>
+                    <td>
+                        {% if alumni.user is null %}
+                            <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[0.72rem] font-semibold text-slate-700">Unregistered</span>
+                        {% elseif alumni.user.accountStatus == 'pending' %}
+                            <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-[0.72rem] font-semibold text-amber-800">Pending Approval</span>
+                        {% elseif alumni.user.accountStatus == 'active' %}
+                            <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-[0.72rem] font-semibold text-emerald-800">Active Account</span>
+                        {% else %}
+                            <span class="inline-flex items-center rounded-full bg-rose-100 px-2.5 py-1 text-[0.72rem] font-semibold text-rose-800">{{ alumni.user.accountStatus|replace({'_': ' ', '-': ' '})|title }}</span>
+                        {% endif %}
+                    </td>
                     <td>
                         {% if alumni.employmentStatus == 'Employed' %}
                             <span class="badge badge-employed">Employed</span>
@@ -318,7 +340,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="7" class="text-center text-gray-500 py-10">
+                    <td colspan="8" class="text-center text-gray-500 py-10">
                         <i class="bi bi-search text-gray-300 text-4xl block mb-2"></i>
                         No alumni records found.
                     </td>
@@ -333,7 +355,7 @@
     currentPage: currentPage,
     totalPages: totalPages,
     route: 'alumni_index',
-    routeParams: {q: search, course: filter_course, campus: filter_campus, year: filter_year, status: filter_status, province: filter_province}
+    routeParams: {q: search, course: filter_course, campus: filter_campus, year: filter_year, status: filter_status, province: filter_province, registration_state: filter_registration_state}
 } %}
 
 {# ── Tab and toggle JS ── #}

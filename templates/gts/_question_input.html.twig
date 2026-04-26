@@ -1,0 +1,110 @@
+{% set inputType = question.inputType|default('text') %}
+{% set answerValue = answer|default('') %}
+
+{% if inputType in ['text', 'date'] %}
+    <input type="{{ inputType }}" name="dynamic_answers[{{ question.key }}]" value="{{ answerValue is iterable ? '' : answerValue }}" class="form-input">
+{% elseif inputType == 'textarea' %}
+    <textarea name="dynamic_answers[{{ question.key }}]" rows="4" class="form-input">{{ answerValue is iterable ? '' : answerValue }}</textarea>
+{% elseif inputType == 'select' %}
+    <select name="dynamic_answers[{{ question.key }}]" class="form-select">
+        <option value="">-- Select --</option>
+        {% for option in question.options|default([]) %}
+            <option value="{{ option }}" {% if answerValue == option %}selected{% endif %}>{{ option }}</option>
+        {% endfor %}
+    </select>
+{% elseif inputType == 'radio' %}
+    <div class="space-y-2">
+        {% for option in question.options|default([]) %}
+            <label class="flex items-start gap-2 text-sm text-gray-700">
+                <input type="radio" name="dynamic_answers[{{ question.key }}]" value="{{ option }}" class="mt-0.5 accent-norsu" {% if answerValue == option %}checked{% endif %}>
+                <span>{{ option }}</span>
+            </label>
+        {% endfor %}
+    </div>
+{% elseif inputType == 'checkbox' %}
+    {% set answerList = answerValue is iterable ? answerValue : [] %}
+    <div class="space-y-2">
+        {% for option in question.options|default([]) %}
+            <label class="flex items-start gap-2 text-sm text-gray-700">
+                <input type="checkbox" name="dynamic_answers[{{ question.key }}][]" value="{{ option }}" class="mt-0.5 accent-norsu" {% if option in answerList %}checked{% endif %}>
+                <span>{{ option }}</span>
+            </label>
+        {% endfor %}
+    </div>
+{% elseif inputType == 'repeater' %}
+    {% set rows = answerValue is iterable ? answerValue : [] %}
+    {% if rows is empty %}
+        {% set rows = [{}] %}
+    {% endif %}
+
+    <div class="space-y-3" data-repeater-container="{{ question.key }}" data-next-index="{{ rows|length }}">
+        {% for row in rows %}
+            <div class="rounded-xl border border-gray-200 bg-gray-50 p-3" data-repeater-row>
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    {% for column in question.options|default([]) %}
+                        {% set columnValue = row[column.key]|default('') %}
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">{{ column.label }}</label>
+                            {% if column.type == 'textarea' %}
+                                <textarea name="dynamic_answers[{{ question.key }}][{{ loop.parent.loop.index0 }}][{{ column.key }}]" rows="3" class="form-input">{{ columnValue }}</textarea>
+                            {% elseif column.type == 'select' %}
+                                <select name="dynamic_answers[{{ question.key }}][{{ loop.parent.loop.index0 }}][{{ column.key }}]" class="form-select">
+                                    <option value="">-- Select --</option>
+                                    {% for option in column.options|default([]) %}
+                                        <option value="{{ option }}" {% if columnValue == option %}selected{% endif %}>{{ option }}</option>
+                                    {% endfor %}
+                                </select>
+                            {% else %}
+                                <input type="{{ column.type == 'date' ? 'date' : 'text' }}" name="dynamic_answers[{{ question.key }}][{{ loop.parent.loop.index0 }}][{{ column.key }}]" value="{{ columnValue }}" class="form-input">
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if not isPreviewMode|default(false) %}
+                    <div class="mt-3 flex justify-end">
+                        <button type="button" class="text-sm font-semibold text-red-600 hover:text-red-700" data-remove-repeater-row>
+                            <i class="bi bi-trash mr-1"></i>Remove row
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if not isPreviewMode|default(false) %}
+        <button type="button" class="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-norsu hover:underline" data-add-repeater-row="{{ question.key }}">
+            <i class="bi bi-plus-circle"></i>
+            <span>Add row</span>
+        </button>
+        <template data-repeater-template="{{ question.key }}">
+            <div class="rounded-xl border border-gray-200 bg-gray-50 p-3" data-repeater-row>
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    {% for column in question.options|default([]) %}
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">{{ column.label }}</label>
+                            {% if column.type == 'textarea' %}
+                                <textarea name="dynamic_answers[{{ question.key }}][__name__][{{ column.key }}]" rows="3" class="form-input"></textarea>
+                            {% elseif column.type == 'select' %}
+                                <select name="dynamic_answers[{{ question.key }}][__name__][{{ column.key }}]" class="form-select">
+                                    <option value="">-- Select --</option>
+                                    {% for option in column.options|default([]) %}
+                                        <option value="{{ option }}">{{ option }}</option>
+                                    {% endfor %}
+                                </select>
+                            {% else %}
+                                <input type="{{ column.type == 'date' ? 'date' : 'text' }}" name="dynamic_answers[{{ question.key }}][__name__][{{ column.key }}]" value="" class="form-input">
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-3 flex justify-end">
+                    <button type="button" class="text-sm font-semibold text-red-600 hover:text-red-700" data-remove-repeater-row>
+                        <i class="bi bi-trash mr-1"></i>Remove row
+                    </button>
+                </div>
+            </div>
+        </template>
+    {% endif %}
+{% else %}
+    <input type="text" name="dynamic_answers[{{ question.key }}]" value="{{ answerValue is iterable ? '' : answerValue }}" class="form-input">
+{% endif %}

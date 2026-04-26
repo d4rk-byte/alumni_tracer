@@ -12,6 +12,63 @@ body.no-navbar {
     background: #f9fafb;
 }
 
+html.ui-preload .norsu-main-content {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+html.ui-preload #mainNavbar,
+html.ui-preload #sidebar {
+    opacity: 0;
+    transform: translateY(-8px);
+}
+
+html.ui-ready .norsu-main-content {
+    animation: ui-open-content 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+html.ui-ready #mainNavbar,
+html.ui-ready #sidebar {
+    animation: ui-open-shell 0.38s ease-out both;
+}
+
+@keyframes ui-open-content {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes ui-open-shell {
+    0% {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html.ui-preload .norsu-main-content,
+    html.ui-preload #mainNavbar,
+    html.ui-preload #sidebar {
+        opacity: 1;
+        transform: none;
+    }
+
+    html.ui-ready .norsu-main-content,
+    html.ui-ready #mainNavbar,
+    html.ui-ready #sidebar {
+        animation: none;
+    }
+}
+
 #mainNavbar.norsu-topbar {
     background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 58%, #0ea5e9 100%);
     border-bottom: 1px solid rgba(255, 255, 255, 0.25);

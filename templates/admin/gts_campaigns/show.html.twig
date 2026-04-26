@@ -1,0 +1,149 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Campaign Details – {{ campaign.name }}{% endblock %}
+
+{% block body %}
+{% set campaignIndexRoute = is_granted('ROLE_ADMIN') ? 'admin_gts_campaign_index' : 'staff_gts_campaign_index' %}
+{% set resendRoute = is_granted('ROLE_ADMIN') ? 'admin_gts_invitation_resend' : 'staff_gts_invitation_resend' %}
+<div class="mx-auto max-w-6xl space-y-6">
+    <div class="flex flex-col gap-4 md:flex-row md:items-center justify-between">
+        <div class="max-w-3xl space-y-1.5">
+            <a href="{{ path(campaignIndexRoute, {id: campaign.surveyTemplate.id}) }}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-norsu">
+                <i class="bi bi-arrow-left"></i> All Campaigns
+            </a>
+            <h1 class="flex items-center gap-2 text-2xl font-bold text-gray-800">
+                <i class="bi bi-envelope-paper text-norsu"></i>
+                <span>{{ campaign.name }}</span>
+            </h1>
+        </div>
+        <div class="flex flex-col gap-2 sm:flex-row items-center">
+            <span class="inline-flex rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-800 uppercase tracking-wider">
+                Status: {{ campaign.status }}
+            </span>
+        </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-4">
+        <div class="lg:col-span-1 space-y-4">
+            <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <h3 class="text-xs font-bold uppercase tracking-wide text-gray-500 mb-4">Campaign Stats</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Total Recipients</span>
+                        <span class="font-semibold text-gray-900">{{ counts.total }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Queued</span>
+                        <span class="font-semibold text-yellow-600">{{ counts.queued }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Sent</span>
+                        <span class="font-semibold text-blue-600">{{ counts.sent }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Opened</span>
+                        <span class="font-semibold text-purple-600">{{ counts.opened }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Completed</span>
+                        <span class="font-semibold text-green-600">{{ counts.completed }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Expired</span>
+                        <span class="font-semibold text-gray-400">{{ counts.expired }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Failed</span>
+                        <span class="font-semibold text-red-600">{{ counts.failed }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <h3 class="text-xs font-bold uppercase tracking-wide text-gray-500 mb-4">Filters</h3>
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ path(app.request.attributes.get('_route'), app.request.attributes.get('_route_params')|merge(app.request.query.all)|merge({'status': ''})) }}" 
+                       class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ currentStatus is empty ? 'bg-norsu text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+                        All
+                    </a>
+                    {% for status in ['queued', 'sent', 'opened', 'completed', 'expired', 'failed'] %}
+                        <a href="{{ path(app.request.attributes.get('_route'), app.request.attributes.get('_route_params')|merge(app.request.query.all)|merge({'status': status})) }}" 
+                           class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ currentStatus == status ? 'bg-norsu text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+                            {{ status|capitalize }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-3">
+            <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-gray-600">
+                        <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                            <tr>
+                                <th scope="col" class="px-6 py-4 font-semibold">Recipient</th>
+                                <th scope="col" class="px-6 py-4 font-semibold">Status</th>
+                                <th scope="col" class="px-6 py-4 font-semibold">Dates</th>
+                                <th scope="col" class="px-6 py-4 font-semibold text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for invitation in invitations %}
+                                <tr class="transition-colors hover:bg-gray-50">
+                                    <td class="px-6 py-4">
+                                        <div class="font-semibold text-gray-900">{{ invitation.user.firstName }} {{ invitation.user.lastName }}</div>
+                                        <div class="text-xs text-gray-500">{{ invitation.user.email }}</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {% if invitation.status == 'completed' %}
+                                            <span class="inline-flex rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">Completed</span>
+                                        {% elseif invitation.status == 'opened' %}
+                                            <span class="inline-flex rounded-full bg-purple-100 px-2.5 py-1 text-xs font-semibold text-purple-700">Opened</span>
+                                        {% elseif invitation.status == 'sent' %}
+                                            <span class="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">Sent</span>
+                                        {% elseif invitation.status == 'failed' %}
+                                            <span class="inline-flex rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700" title="{{ invitation.failureReason }}">Failed</span>
+                                        {% elseif invitation.status == 'expired' %}
+                                            <span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">Expired</span>
+                                        {% else %}
+                                            <span class="inline-flex rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-700">Queued</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 text-xs">
+                                        {% if invitation.sentAt %}
+                                            <div title="Sent At">S: {{ invitation.sentAt|date('M d, H:i') }}</div>
+                                        {% endif %}
+                                        {% if invitation.openedAt %}
+                                            <div title="Opened At">O: {{ invitation.openedAt|date('M d, H:i') }}</div>
+                                        {% endif %}
+                                        {% if invitation.completedAt %}
+                                            <div title="Completed At">C: {{ invitation.completedAt|date('M d, H:i') }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        {% if invitation.status in ['failed', 'expired', 'opened', 'sent'] %}
+                                            <form method="post" action="{{ path(resendRoute, {id: invitation.id}) }}" onsubmit="return confirm('Resend invitation to this recipient?')">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('resend_invitation_' ~ invitation.id) }}">
+                                                <button type="submit" class="btn-outline-norsu btn-sm inline-flex items-center justify-center">
+                                                    <i class="bi bi-arrow-clockwise mr-1"></i>Resend
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="px-6 py-8 text-center text-gray-500">
+                                        No invitations match the current filter.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

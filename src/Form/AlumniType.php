@@ -3,6 +3,8 @@
 namespace App\Form;
 
 use App\Entity\Alumni;
+use App\Repository\CollegeRepository;
+use App\Repository\DepartmentRepository;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -10,13 +12,28 @@ use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class AlumniType extends AbstractType
 {
+    public function __construct(
+        private CollegeRepository $collegeRepository,
+        private DepartmentRepository $departmentRepository,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $alumni = $builder->getData();
+        $currentCollege = $alumni instanceof Alumni ? (string) ($alumni->getCollege() ?? '') : '';
+        $currentDegreeProgram = $alumni instanceof Alumni ? (string) ($alumni->getDegreeProgram() ?? '') : '';
+
+        $collegeChoices = $this->buildCollegeChoices($currentCollege);
+        [$departmentChoices, $departmentMetaByName] = $this->buildDepartmentChoices($currentDegreeProgram);
+
         $builder
             // ── Personal Information ──
             ->add('studentNumber', TextType::class, ['label' => 'Student Number', 'attr' => ['class' => 'form-input']])
@@ -51,69 +68,41 @@ class AlumniType extends AbstractType
             ->add('province', TextType::class, ['label' => 'Province', 'required' => false, 'attr' => ['class' => 'form-input']])
 
             // ── Academic Information ──
-            ->add('course', ChoiceType::class, [
-                'label' => 'Course', 'required' => false,
-                'placeholder' => '— Select Course —',
-                'choices' => [
-                    // College of Arts & Sciences
-                    'Bachelor of Arts in English Language (AB English)' => 'AB English',
-                    'Bachelor of Arts in Political Science (AB PolSci)' => 'AB PolSci',
-                    'Bachelor of Science in Biology (BS Biology)' => 'BS Biology',
-                    'Bachelor of Science in Mathematics (BS Math)' => 'BS Math',
-                    'Bachelor of Science in Environmental Science (BSES)' => 'BSES',
-                    // College of Business Administration
-                    'Bachelor of Science in Accountancy (BSA)' => 'BSA',
-                    'Bachelor of Science in Business Administration (BSBA)' => 'BSBA',
-                    'Bachelor of Science in Hospitality Management (BSHM)' => 'BSHM',
-                    'Bachelor of Science in Tourism Management (BSTM)' => 'BSTM',
-                    // College of Education
-                    'Bachelor of Elementary Education (BEEd)' => 'BEEd',
-                    'Bachelor of Secondary Education (BSEd)' => 'BSEd',
-                    'Bachelor of Physical Education (BPEd)' => 'BPEd',
-                    'Bachelor of Special Needs Education (BSNEd)' => 'BSNEd',
-                    // College of Engineering & Architecture
-                    'Bachelor of Science in Civil Engineering (BSCE)' => 'BSCE',
-                    'Bachelor of Science in Electrical Engineering (BSEE)' => 'BSEE',
-                    'Bachelor of Science in Mechanical Engineering (BSME)' => 'BSME',
-                    'Bachelor of Science in Architecture (BS Architecture)' => 'BS Architecture',
-                    // College of Information Technology
-                    'Bachelor of Science in Information Technology (BSIT)' => 'BSIT',
-                    'Bachelor of Science in Computer Science (BSCS)' => 'BSCS',
-                    'Bachelor of Science in Information Systems (BSIS)' => 'BSIS',
-                    // College of Nursing & Allied Health Sciences
-                    'Bachelor of Science in Nursing (BSN)' => 'BSN',
-                    'Bachelor of Science in Midwifery (BS Midwifery)' => 'BS Midwifery',
-                    // College of Agriculture
-                    'Bachelor of Science in Agriculture (BSA Agriculture)' => 'BSA Agriculture',
-                    'Bachelor of Science in Fisheries (BS Fisheries)' => 'BS Fisheries',
-                    // College of Criminal Justice Education
-                    'Bachelor of Science in Criminology (BS Criminology)' => 'BS Criminology',
-                    // College of Industrial Technology
-                    'Bachelor of Science in Industrial Technology (BSIT IndTech)' => 'BSIT IndTech',
-                    // Other
-                    'Other' => 'Other',
+            ->add('course', TextType::class, [
+                'label' => 'Course',
+                'required' => false,
+                'attr' => [
+                    'class' => 'form-input',
+                    'readonly' => true,
+                    'data-academic-course' => 'true',
+                    'placeholder' => 'Auto-filled from degree program',
                 ],
-                'attr' => ['class' => 'form-select'],
             ])
             ->add('college', ChoiceType::class, [
                 'label' => 'College', 'required' => false,
                 'placeholder' => '— Select College —',
-                'choices' => [
-                    'College of Arts & Sciences (CAS)' => 'CAS',
-                    'College of Business Administration (CBA)' => 'CBA',
-                    'College of Education (COEd)' => 'COEd',
-                    'College of Engineering & Architecture (CEA)' => 'CEA',
-                    'College of Information Technology (CIT)' => 'CIT',
-                    'College of Nursing & Allied Health Sciences (CNAHS)' => 'CNAHS',
-                    'College of Agriculture (CA)' => 'CA',
-                    'College of Criminal Justice Education (CCJE)' => 'CCJE',
-                    'College of Industrial Technology (CIndTech)' => 'CIndTech',
-                ],
-                'attr' => ['class' => 'form-select'],
+                'choices' => $collegeChoices,
+                'attr' => ['class' => 'form-select', 'data-academic-college' => 'true'],
             ])
             ->add('yearGraduated', IntegerType::class, ['label' => 'Year Graduated', 'required' => false, 'attr' => ['class' => 'form-input', 'placeholder' => 'e.g. 2024']])
             ->add('honorsReceived', TextType::class, ['label' => 'Honors Received', 'required' => false, 'attr' => ['class' => 'form-input']])
-            ->add('degreeProgram', TextType::class, ['label' => 'Degree Program', 'required' => false, 'attr' => ['class' => 'form-input']])
+            ->add('degreeProgram', ChoiceType::class, [
+                'label' => 'Degree Program',
+                'required' => false,
+                'placeholder' => '— Select Degree Program —',
+                'choices' => $departmentChoices,
+                'attr' => ['class' => 'form-select', 'data-academic-degree-program' => 'true'],
+                'choice_attr' => static function (?string $choice, string $key, mixed $value) use ($departmentMetaByName): array {
+                    if ($choice === null || !isset($departmentMetaByName[$choice])) {
+                        return [];
+                    }
+
+                    return [
+                        'data-college-name' => $departmentMetaByName[$choice]['college'],
+                        'data-course-code' => $departmentMetaByName[$choice]['code'],
+                    ];
+                },
+            ])
             ->add('major', TextType::class, ['label' => 'Major', 'required' => false, 'attr' => ['class' => 'form-input']])
             ->add('dateGraduated', DateType::class, ['label' => 'Date Graduated', 'required' => false, 'widget' => 'single_text', 'attr' => ['class' => 'form-input']])
             ->add('latinHonor', ChoiceType::class, [
@@ -187,6 +176,24 @@ class AlumniType extends AbstractType
             ->add('willingForDonation', CheckboxType::class, ['label' => 'Willing to donate?', 'required' => false, 'label_attr' => ['class' => 'form-check-label']])
             ->add('willingForMentorship', CheckboxType::class, ['label' => 'Willing to mentor students?', 'required' => false, 'label_attr' => ['class' => 'form-check-label']])
         ;
+
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) use ($departmentMetaByName): void {
+            $data = $event->getData();
+
+            if (!is_array($data)) {
+                return;
+            }
+
+            $degreeProgram = trim((string) ($data['degreeProgram'] ?? ''));
+            if ($degreeProgram === '' || !isset($departmentMetaByName[$degreeProgram])) {
+                return;
+            }
+
+            $data['college'] = $departmentMetaByName[$degreeProgram]['college'];
+            $data['course'] = $departmentMetaByName[$degreeProgram]['code'];
+
+            $event->setData($data);
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -194,5 +201,54 @@ class AlumniType extends AbstractType
         $resolver->setDefaults([
             'data_class' => Alumni::class,
         ]);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function buildCollegeChoices(string $currentCollege): array
+    {
+        $choices = [];
+
+        foreach ($this->collegeRepository->findActive() as $college) {
+            $choices[$college->getName()] = $college->getName();
+        }
+
+        if ($currentCollege !== '' && !in_array($currentCollege, $choices, true)) {
+            $choices[$currentCollege . ' (current)'] = $currentCollege;
+        }
+
+        return $choices;
+    }
+
+    /**
+     * @return array{0: array<string, array<string, string>>, 1: array<string, array{college: string, code: string}>}
+     */
+    private function buildDepartmentChoices(string $currentDegreeProgram): array
+    {
+        $choices = [];
+        $meta = [];
+
+        foreach ($this->departmentRepository->findActiveWithActiveCollege() as $department) {
+            $college = $department->getCollege();
+            $collegeName = $college?->getName() ?? 'Unassigned';
+            $departmentName = $department->getName();
+
+            $choices[$collegeName][$departmentName] = $departmentName;
+            $meta[$departmentName] = [
+                'college' => $collegeName,
+                'code' => $department->getCode(),
+            ];
+        }
+
+        if ($currentDegreeProgram !== '' && !isset($meta[$currentDegreeProgram])) {
+            $choices['Current Value'][$currentDegreeProgram . ' (current)'] = $currentDegreeProgram;
+            $meta[$currentDegreeProgram] = [
+                'college' => '',
+                'code' => '',
+            ];
+        }
+
+        return [$choices, $meta];
     }
 }

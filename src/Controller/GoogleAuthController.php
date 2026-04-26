@@ -124,7 +124,7 @@ class GoogleAuthController extends AbstractController
             $user->setFirstName($firstName);
             $user->setLastName($lastName);
             $user->setRoles([User::ROLE_ALUMNI]);
-            $user->setAccountStatus('pending');
+            $user->setAccountStatus('active');
             $user->setSchoolId(null);
             $user->setPassword(
                 $this->passwordHasher->hashPassword($user, bin2hex(random_bytes(32)))
@@ -139,8 +139,7 @@ class GoogleAuthController extends AbstractController
                 // Email sending issues must not block signup.
             }
 
-            $this->addFlash('success', 'Google sign-up submitted successfully. Your account is pending administrator review.');
-            return $this->redirectToRoute('app_login');
+            $this->addFlash('success', 'Google sign-in successful. Welcome to the Alumni Tracker.');
         }
 
         try {

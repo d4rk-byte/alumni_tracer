@@ -17,9 +17,71 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class AlumniRepository extends ServiceEntityRepository
 {
+    public const REGISTRATION_STATE_UNREGISTERED = 'unregistered';
+    public const REGISTRATION_STATE_PENDING = 'pending';
+    public const REGISTRATION_STATE_ACTIVE = 'active';
+    public const REGISTRATION_STATE_INACTIVE = 'inactive';
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Alumni::class);
+    }
+
+    public function applyRegistrationStateFilter(QueryBuilder $qb, string $userAlias, ?string $registrationState): void
+    {
+        $normalizedState = strtolower(trim((string) $registrationState));
+
+        switch ($normalizedState) {
+            case self::REGISTRATION_STATE_UNREGISTERED:
+                $qb->andWhere(sprintf('%s.id IS NULL', $userAlias));
+
+                break;
+
+            case self::REGISTRATION_STATE_PENDING:
+                $qb->andWhere(sprintf('%s.accountStatus = :registrationStatePending', $userAlias))
+                    ->setParameter('registrationStatePending', 'pending');
+
+                break;
+
+            case self::REGISTRATION_STATE_ACTIVE:
+                $qb->andWhere(sprintf('%s.accountStatus = :registrationStateActive', $userAlias))
+                    ->setParameter('registrationStateActive', 'active');
+
+                break;
+
+            case self::REGISTRATION_STATE_INACTIVE:
+                $qb->andWhere(sprintf('%s.id IS NOT NULL', $userAlias))
+                    ->andWhere(sprintf('%s.accountStatus NOT IN (:registrationStateOpen)', $userAlias))
+                    ->setParameter('registrationStateOpen', ['pending', 'active']);
+
+                break;
+        }
+    }
+
+    /**
+     * @return array{unregistered: int, pending: int, active: int, inactive: int}
+     */
+    public function countRegistrationStates(): array
+    {
+        $row = $this->createQueryBuilder('a')
+            ->select('SUM(CASE WHEN u.id IS NULL THEN 1 ELSE 0 END) AS unregistered')
+            ->addSelect('SUM(CASE WHEN u.accountStatus = :pending THEN 1 ELSE 0 END) AS pending')
+            ->addSelect('SUM(CASE WHEN u.accountStatus = :active THEN 1 ELSE 0 END) AS active')
+            ->addSelect('SUM(CASE WHEN u.id IS NOT NULL AND u.accountStatus NOT IN (:openStates) THEN 1 ELSE 0 END) AS inactive')
+            ->leftJoin('a.user', 'u')
+            ->andWhere('a.deletedAt IS NULL')
+            ->setParameter('pending', 'pending')
+            ->setParameter('active', 'active')
+            ->setParameter('openStates', ['pending', 'active'])
+            ->getQuery()
+            ->getSingleResult();
+
+        return [
+            self::REGISTRATION_STATE_UNREGISTERED => (int) ($row['unregistered'] ?? 0),
+            self::REGISTRATION_STATE_PENDING => (int) ($row['pending'] ?? 0),
+            self::REGISTRATION_STATE_ACTIVE => (int) ($row['active'] ?? 0),
+            self::REGISTRATION_STATE_INACTIVE => (int) ($row['inactive'] ?? 0),
+        ];
     }
 
     /**

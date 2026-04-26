@@ -4,12 +4,12 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\RegistrationFormType;
+use App\Service\AlumniRegistrationService;
 use App\Service\NotificationService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 class RegistrationController extends AbstractController
@@ -17,8 +17,7 @@ class RegistrationController extends AbstractController
     #[Route('/register', name: 'app_register')]
     public function register(
         Request $request,
-        UserPasswordHasherInterface $userPasswordHasher,
-        EntityManagerInterface $entityManager,
+        AlumniRegistrationService $registrationService,
         NotificationService $notifier,
     ): Response {
         // If already logged in, redirect to home
@@ -31,28 +30,37 @@ class RegistrationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $plainPassword = (string) $form->get('plainPassword')->getData();
-            $user->setPassword(
-                $userPasswordHasher->hashPassword(
-                    $user,
-                    $plainPassword
-                )
-            );
-
-            $user->setRoles(['ROLE_ALUMNI']);
-            $user->setAccountStatus('pending');
-
-            $entityManager->persist($user);
-            $entityManager->flush();
-
             try {
-                $notifier->notifyNewRegistration($user);
-            } catch (\Throwable) {
-                // Email delivery failure should not block registration
-            }
+                $registeredUser = $registrationService->register([
+                    'email' => (string) $user->getEmail(),
+                    'studentId' => (string) $user->getSchoolId(),
+                    'firstName' => (string) $user->getFirstName(),
+                    'lastName' => (string) $user->getLastName(),
+                    'plainPassword' => (string) $form->get('plainPassword')->getData(),
+                    'yearGraduated' => $form->get('yearGraduated')->getData(),
+                    'dpaConsent' => (bool) $form->get('dataPrivacyConsent')->getData(),
+                ], 'pending');
 
-            $this->addFlash('success', 'Registration submitted successfully. Your account is registered as alumni and is pending administrator review.');
-            return $this->redirectToRoute('app_login');
+                try {
+                    $notifier->notifyNewRegistration($registeredUser);
+                } catch (\Throwable) {
+                    // Email delivery failure should not block registration
+                }
+
+                $this->addFlash('success', 'Registration submitted successfully. Your account is awaiting approval. You can sign in after an administrator activates it.');
+
+                return $this->redirectToRoute('app_login');
+            } catch (\App\Service\RegistrationValidationException $exception) {
+                foreach ($exception->getFieldErrors() as $field => $message) {
+                    if ($field === 'form' || !$form->has($field)) {
+                        $form->addError(new FormError($message));
+
+                        continue;
+                    }
+
+                    $form->get($field)->addError(new FormError($message));
+                }
+            }
         }
 
         return $this->render('registration/register.html.twig', [

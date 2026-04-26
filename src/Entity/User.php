@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -65,8 +67,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: Alumni::class, cascade: ['persist'])]
     private ?Alumni $alumni = null;
 
-    #[ORM\OneToOne(mappedBy: 'user', targetEntity: GtsSurvey::class)]
-    private ?GtsSurvey $gtsSurvey = null;
+    /** @var Collection<int, GtsSurvey> */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: GtsSurvey::class)]
+    private Collection $gtsSurveys;
 
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $dpaConsent = false;
@@ -80,12 +83,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __construct()
     {
         $this->dateRegistered = new \DateTime();
+        $this->gtsSurveys = new ArrayCollection();
     }
 
     public function getId(): ?int { return $this->id; }
 
     public function getEmail(): ?string { return $this->email; }
-    public function setEmail(string $email): static { $this->email = $email; return $this; }
+    public function setEmail(string $email): static
+    {
+        $this->email = strtolower(trim($email));
+
+        return $this;
+    }
 
     public function getFirstName(): ?string { return $this->firstName; }
     public function setFirstName(string $firstName): static { $this->firstName = $firstName; return $this; }
@@ -129,12 +138,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getAlumni(): ?Alumni { return $this->alumni; }
     public function setAlumni(?Alumni $alumni): static { $this->alumni = $alumni; return $this; }
 
-    public function getGtsSurvey(): ?GtsSurvey { return $this->gtsSurvey; }
-    public function setGtsSurvey(?GtsSurvey $gtsSurvey): static
-    {
-        $this->gtsSurvey = $gtsSurvey;
-        return $this;
-    }
+    /** @return Collection<int, GtsSurvey> */
+    public function getGtsSurveys(): Collection { return $this->gtsSurveys; }
+
+    /** Keep a convenience accessor for the first/legacy submission (null if none). */
+    public function getGtsSurvey(): ?GtsSurvey { return $this->gtsSurveys->first() ?: null; }
 
     public function getFullName(): string { return $this->firstName . ' ' . $this->lastName; }
 

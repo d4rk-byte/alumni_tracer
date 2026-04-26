@@ -38,7 +38,9 @@ class StaffController extends AbstractController
             $selfEmployed = $alumniRepo->count(['employmentStatus' => 'Self-Employed']);
             $totalUsers = $userRepo->count([]);
             $employmentRate = $totalAlumni > 0 ? round(($employed + $selfEmployed) / $totalAlumni * 100, 1) : 0;
-            return compact('totalAlumni', 'employed', 'unemployed', 'selfEmployed', 'totalUsers', 'employmentRate');
+            $registrationStates = $alumniRepo->countRegistrationStates();
+
+            return compact('totalAlumni', 'employed', 'unemployed', 'selfEmployed', 'totalUsers', 'employmentRate', 'registrationStates');
         });
         extract($stats);
 
@@ -89,18 +91,18 @@ class StaffController extends AbstractController
 
         $topCourse = $courseStats[0]['course'] ?? 'N/A';
         $quickReport = sprintf(
-            'Total Alumni: %d | Employment Rate: %.1f%% | Fully Traced: %d | Fresh Submissions (30d): %d | Top Course: %s',
+            'Total Alumni: %d | Active Accounts: %d | Pending Approval: %d | Unregistered: %d | Employment Rate: %.1f%% | Top Course: %s',
             $totalAlumni,
+            $registrationStates[AlumniRepository::REGISTRATION_STATE_ACTIVE] ?? 0,
+            $registrationStates[AlumniRepository::REGISTRATION_STATE_PENDING] ?? 0,
+            $registrationStates[AlumniRepository::REGISTRATION_STATE_UNREGISTERED] ?? 0,
             $employmentRate,
-            $fullyTracedCount,
-            $freshSubmissionCount,
             $topCourse
         );
 
         // Role counts
-        $conn = $em->getConnection();
-        $adminCount = (int) $conn->fetchOne("SELECT COUNT(*) FROM `user` WHERE JSON_CONTAINS(roles, '\"ROLE_ADMIN\"')");
-        $staffCount = (int) $conn->fetchOne("SELECT COUNT(*) FROM `user` WHERE JSON_CONTAINS(roles, '\"ROLE_STAFF\"')");
+        $adminCount = $userRepo->countUsersWithRole('ROLE_ADMIN');
+        $staffCount = $userRepo->countUsersWithRole('ROLE_STAFF');
         $alumniCount = $totalUsers - $adminCount - $staffCount;
 
         // Online users
@@ -116,6 +118,7 @@ class StaffController extends AbstractController
             'selfEmployed' => $selfEmployed,
             'totalUsers' => $totalUsers,
             'employmentRate' => $employmentRate,
+            'registrationStates' => $registrationStates,
             'courseStats' => $courseStats,
             'pendingUsers' => $pendingUsers,
             'pendingList' => $pendingList,

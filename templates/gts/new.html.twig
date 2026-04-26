@@ -4,32 +4,12 @@
 
 {% block body %}
 {% set isPreviewMode = isPreviewMode|default(false) %}
-{% set canManageSurveyUi = (is_granted('ROLE_ADMIN') or is_granted('ROLE_STAFF')) and not isPreviewMode %}
-{% if isPreviewMode %}
-    <style>
-        .preview-mode input,
-        .preview-mode select,
-        .preview-mode textarea,
-        .preview-mode button[type="button"] {
-            background-color: #f3f4f6;
-            color: #4b5563;
-            cursor: not-allowed;
-            opacity: 0.95;
-        }
-    </style>
-{% endif %}
-<div class="max-w-4xl mx-auto {% if isPreviewMode %}preview-mode{% endif %}">
-    {# ── Header ── #}
+<div class="max-w-5xl mx-auto">
     <div class="text-center mb-6">
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-norsu-50 text-norsu mb-3">
             <i class="bi bi-clipboard2-check text-3xl"></i>
         </div>
         <h2 class="text-2xl font-bold text-gray-800">Graduate Tracer Survey (GTS)</h2>
-        <p class="text-gray-500 text-sm mt-1 max-w-xl mx-auto">
-            Based on the CHED Graduate Tracer Study Questionnaire. Your answers will be used for research purposes
-            in order to assess graduate employability and improve course offerings. All responses are treated with
-            strictest confidentiality.
-        </p>
     </div>
 
     {% if isPreviewMode %}
@@ -39,483 +19,68 @@
         </div>
     {% endif %}
 
+    <div class="mb-6 rounded-2xl border border-blue-200 bg-blue-50 px-8 py-6 md:px-10 text-sm leading-6 text-gray-700 shadow-sm">
+        <p class="font-semibold text-gray-900">Dear Graduate:</p>
+        <p class="mt-2">
+            Good day! Please complete this GTS questionnaire as accurately and frankly as possible by checking (/)
+            the box corresponding to your response.
+        </p>
+        <p class="mt-2">
+            Your answer will be used for research purposes in order to assess graduate employability and eventually,
+            improve course offerings to your alma mater and other universities/colleges in the Philippines.
+        </p>
+        <p class="mt-2">
+            Your answers to this survey will be treated with strictest confidentiality.
+        </p>
+    </div>
+
     {{ form_start(form, {'attr': {'id': 'gtsForm', 'novalidate': 'novalidate'}}) }}
 
-    <div class="mb-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
-        <div class="flex flex-wrap items-center gap-2 text-sm">
-            <span class="font-semibold text-blue-800">Institution Code:</span>
-            <span class="inline-flex items-center rounded-full bg-blue-700 px-3 py-1 text-xs font-bold tracking-wide text-white">{{ institutionCode|default('NORSU-GTS') }}</span>
-            <span class="text-blue-700">Control Code: <strong>{{ controlCode|default('Auto-generated') }}</strong></span>
+    <div class="grid gap-4 mb-5 md:grid-cols-2">
+        <div class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+                <span class="font-semibold text-blue-800">Institution Code:</span>
+                <span class="inline-flex items-center rounded-full bg-blue-700 px-3 py-1 text-xs font-bold tracking-wide text-white">{{ institutionCode|default('NORSU-GTS') }}</span>
+                <span class="text-blue-700">Control Code: <strong>{{ controlCode|default('Auto-generated') }}</strong></span>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
+            <div class="text-xs font-bold uppercase tracking-wide text-gray-500">Respondent</div>
+            <div class="mt-2 text-base font-semibold text-gray-900">{{ survey.name }}</div>
+            <div class="text-sm text-gray-500">{{ survey.emailAddress ?: 'No email on file' }}</div>
+            <p class="mt-3 text-xs text-gray-500">The questionnaire below is loaded from the Survey Builder. Edit the builder to change the live alumni form.</p>
         </div>
     </div>
 
-    {% if gtsQuestions is defined and gtsQuestions|length > 0 %}
-        <div class="card mb-5">
-            <div class="card-header-norsu flex items-center gap-2">
-                <i class="bi bi-ui-checks-grid text-lg"></i>
-                <span>Editable Survey Questions</span>
-            </div>
-            <div class="card-body space-y-4">
-                {% set currentSection = null %}
-                {% for question in gtsQuestions %}
-                    {% if currentSection != question.section %}
-                        {% set currentSection = question.section %}
-                        <div class="pt-1 text-xs font-bold uppercase tracking-wide text-blue-700">{{ currentSection }}</div>
-                    {% endif %}
-
-                    {% set answer = dynamicAnswers[question.id]|default('') %}
-                    <div>
-                        <label class="mb-1 block text-sm font-semibold text-gray-700">{{ question.questionText }}</label>
-
-                        {% if question.inputType in ['text', 'date'] %}
-                            <input type="{{ question.inputType }}" name="dynamic_answers[{{ question.id }}]" value="{{ answer is iterable ? '' : answer }}" class="form-input">
-                        {% elseif question.inputType == 'textarea' %}
-                            <textarea name="dynamic_answers[{{ question.id }}]" rows="3" class="form-input">{{ answer is iterable ? '' : answer }}</textarea>
-                        {% elseif question.inputType == 'select' %}
-                            <select name="dynamic_answers[{{ question.id }}]" class="form-select">
-                                <option value="">-- Select --</option>
-                                {% for opt in question.options|default([]) %}
-                                    <option value="{{ opt }}" {% if answer == opt %}selected{% endif %}>{{ opt }}</option>
-                                {% endfor %}
-                            </select>
-                        {% elseif question.inputType == 'radio' %}
-                            <div class="space-y-1.5">
-                                {% for opt in question.options|default([]) %}
-                                    <label class="flex items-center gap-2 text-sm">
-                                        <input type="radio" name="dynamic_answers[{{ question.id }}]" value="{{ opt }}" class="accent-norsu" {% if answer == opt %}checked{% endif %}>
-                                        <span>{{ opt }}</span>
-                                    </label>
-                                {% endfor %}
-                            </div>
-                        {% elseif question.inputType == 'checkbox' %}
-                            {% set answerList = answer is iterable ? answer : [] %}
-                            <div class="space-y-1.5">
-                                {% for opt in question.options|default([]) %}
-                                    <label class="flex items-center gap-2 text-sm">
-                                        <input type="checkbox" name="dynamic_answers[{{ question.id }}][]" value="{{ opt }}" class="accent-norsu" {% if opt in answerList %}checked{% endif %}>
-                                        <span>{{ opt }}</span>
-                                    </label>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <input type="text" name="dynamic_answers[{{ question.id }}]" value="{{ answer is iterable ? '' : answer }}" class="form-input">
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-    {% endif %}
-
-    {# ═══════════════════════════════════════════════════
-       SECTION A — General Information
-       ═══════════════════════════════════════════════════ #}
-    <div class="card mb-5">
-        <div class="card-header-norsu flex items-center gap-2">
-            <i class="bi bi-person-vcard text-lg"></i>
-            <span>A. General Information</span>
-        </div>
-        <div class="card-body space-y-4">
-            <div>{{ form_label(form.name) }}{{ form_widget(form.name) }}{{ form_errors(form.name) }}</div>
-
-            <div>{{ form_label(form.permanentAddress) }}{{ form_widget(form.permanentAddress) }}{{ form_errors(form.permanentAddress) }}</div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>{{ form_label(form.emailAddress) }}{{ form_widget(form.emailAddress) }}{{ form_errors(form.emailAddress) }}</div>
-                <div>{{ form_label(form.telephoneNumber) }}{{ form_widget(form.telephoneNumber) }}{{ form_errors(form.telephoneNumber) }}</div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>{{ form_label(form.mobileNumber) }}{{ form_widget(form.mobileNumber) }}{{ form_errors(form.mobileNumber) }}</div>
-                <div>{{ form_label(form.civilStatus) }}{{ form_widget(form.civilStatus) }}{{ form_errors(form.civilStatus) }}</div>
-                <div>{{ form_label(form.sex) }}{{ form_widget(form.sex) }}{{ form_errors(form.sex) }}</div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>{{ form_label(form.birthday) }}{{ form_widget(form.birthday) }}{{ form_errors(form.birthday) }}</div>
-                <div>{{ form_label(form.regionOfOrigin) }}{{ form_widget(form.regionOfOrigin) }}{{ form_errors(form.regionOfOrigin) }}</div>
-                <div>{{ form_label(form.province) }}{{ form_widget(form.province) }}{{ form_errors(form.province) }}</div>
-            </div>
-
-            <div class="md:w-1/3">
-                {{ form_label(form.locationOfResidence) }}{{ form_widget(form.locationOfResidence) }}{{ form_errors(form.locationOfResidence) }}
-            </div>
-        </div>
-    </div>
-
-    {# ═══════════════════════════════════════════════════
-       SECTION B — Educational Background
-       ═══════════════════════════════════════════════════ #}
-    <div class="card mb-5">
-        <div class="card-header-norsu flex items-center gap-2">
-            <i class="bi bi-mortarboard text-lg"></i>
-            <span>B. Educational Background</span>
-        </div>
-        <div class="card-body space-y-6">
-            {# Q12 — Educational Attainment (dynamic rows) #}
-            <div>
-                <label class="form-label font-semibold">12. Educational Attainment (Baccalaureate Degree Only)</label>
-                {% if canManageSurveyUi %}
-                    <p class="text-xs text-gray-500 mb-2">Add each degree entry below. College and Year options are managed by Symfony form choices.</p>
-                    <p class="text-xs text-amber-700 mb-2">Admin/Staff only: Use Add/Remove controls to manage multiple degree records.</p>
-                {% endif %}
-                {% set degreePrototype = '' %}
-                {% if canManageSurveyUi and form.degrees.vars.prototype is defined %}
-                    {% set degreePrototype %}
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-2 degree-row items-center">
-                            <div class="md:col-span-5">{{ form_widget(form.degrees.vars.prototype.college) }}</div>
-                            <div class="md:col-span-5">{{ form_widget(form.degrees.vars.prototype.yearGraduated) }}</div>
-                            <button type="button" class="text-red-500 hover:text-red-700 md:col-span-2 flex items-center justify-center degree-remove-btn" title="Remove row">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    {% endset %}
-                {% endif %}
-                <div
-                    id="degreeRows"
-                    class="space-y-3"
-                    data-index="{{ form.degrees|length }}"
-                    {% if degreePrototype is not empty %}data-prototype="{{ degreePrototype|e('html_attr') }}"{% endif %}
-                >
-                    {% for degreeField in form.degrees %}
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-2 degree-row items-center">
-                            <div class="md:col-span-5">{{ form_widget(degreeField.college) }}</div>
-                            <div class="md:col-span-5">{{ form_widget(degreeField.yearGraduated) }}</div>
-                            {% if canManageSurveyUi %}
-                                <button type="button" class="text-red-500 hover:text-red-700 md:col-span-2 flex items-center justify-center degree-remove-btn" title="Remove row">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
+    <fieldset {% if isPreviewMode %}disabled{% endif %} class="space-y-5">
+        {% for section in questionSections|default([]) %}
+            <div class="card mb-5">
+                <div class="card-header-norsu flex items-center gap-2">
+                    <i class="bi bi-ui-checks-grid text-lg"></i>
+                    <span>{{ section.title }}</span>
                 </div>
-                {% if canManageSurveyUi %}
-                    <button type="button" id="addDegreeBtn" class="mt-2 text-sm text-norsu hover:underline"><i class="bi bi-plus-circle mr-1"></i>Add another degree</button>
-                {% endif %}
-            </div>
-
-            {# Q13 — Professional Examinations #}
-            <div>
-                <label class="form-label font-semibold">13. Professional Examination(s) Passed</label>
-                {% if canManageSurveyUi %}
-                    <p class="text-xs text-amber-700 mb-2">Admin/Staff only: Add or remove examination rows as needed.</p>
-                {% endif %}
-                <div id="examRows" class="space-y-3">
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-2 exam-row">
-                        <input type="text" name="exam_rows[0][name]" placeholder="Name of Examination" class="form-input md:col-span-5">
-                        <input type="date" name="exam_rows[0][dateTaken]" class="form-input md:col-span-3">
-                        <select name="exam_rows[0][rating]" class="form-select md:col-span-4">
-                            <option value="">— Rating —</option>
-                            <option value="Passed">Passed</option>
-                            <option value="Failed">Failed</option>
-                            <option value="Pending">Pending</option>
-                        </select>
-                    </div>
-                </div>
-                {% if canManageSurveyUi %}
-                    <button type="button" onclick="addExamRow()" class="mt-2 text-sm text-norsu hover:underline"><i class="bi bi-plus-circle mr-1"></i>Add another examination</button>
-                {% endif %}
-            </div>
-
-            {# Q14 — Reasons for taking the course #}
-            <div>
-                <label class="form-label font-semibold mb-2 block">14. Reason(s) for taking the course(s) or pursuing degree(s)</label>
-                <p class="text-xs text-gray-500 mb-3">You may check more than one answer for each column.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-gray-50 rounded-xl p-4">
-                        <p class="text-xs font-bold text-gray-600 uppercase mb-2">Undergraduate / AB / BS</p>
-                        <div class="space-y-1.5">
-                            {% for child in form.reasonsForCourseUndergrad %}
-                                <label class="flex items-start gap-2 text-sm cursor-pointer">
-                                    {{ form_widget(child, {'attr': {'class': 'mt-0.5 accent-norsu'}}) }}
-                                    <span>{{ child.vars.label }}</span>
-                                </label>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 rounded-xl p-4">
-                        <p class="text-xs font-bold text-gray-600 uppercase mb-2">Graduate / MS / MA / Ph.D.</p>
-                        <div class="space-y-1.5">
-                            {% for child in form.reasonsForCourseGrad %}
-                                <label class="flex items-start gap-2 text-sm cursor-pointer">
-                                    {{ form_widget(child, {'attr': {'class': 'mt-0.5 accent-norsu'}}) }}
-                                    <span>{{ child.vars.label }}</span>
-                                </label>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    {{ form_label(form.reasonsForCourseOther) }}{{ form_widget(form.reasonsForCourseOther) }}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {# ═══════════════════════════════════════════════════
-       SECTION C — Training / Advance Studies
-       ═══════════════════════════════════════════════════ #}
-    <div class="card mb-5">
-        <div class="card-header-norsu flex items-center gap-2">
-            <i class="bi bi-journal-bookmark text-lg"></i>
-            <span>C. Training(s) / Advance Studies Attended After College</span>
-        </div>
-        <div class="card-body space-y-5">
-            {# Q15a — Trainings (dynamic rows) #}
-            <div>
-                <label class="form-label font-semibold">15a. Professional or work-related training program(s) including advance studies</label>
-                <div id="trainingRows" class="space-y-3">
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-2 training-row">
-                        <input type="text" name="training_rows[0][title]" placeholder="Title of Training / Advance Study" class="form-input md:col-span-5">
-                        <input type="text" name="training_rows[0][duration]" placeholder="Duration & Credits Earned" class="form-input md:col-span-3">
-                        <input type="text" name="training_rows[0][institution]" placeholder="Training Institution" class="form-input md:col-span-4">
-                    </div>
-                </div>
-                {% if canManageSurveyUi %}
-                    <button type="button" onclick="addTrainingRow()" class="mt-2 text-sm text-norsu hover:underline"><i class="bi bi-plus-circle mr-1"></i>Add another training</button>
-                {% endif %}
-            </div>
-
-            {# Certifications — Symfony CollectionType demo #}
-            <div>
-                <div class="flex items-center justify-between gap-3 mb-2">
-                    <label class="form-label font-semibold mb-0">Certifications</label>
-                    {% if canManageSurveyUi %}
-                        <button
-                            type="button"
-                            id="addCertBtn"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 text-blue-700 hover:bg-blue-50 transition-colors text-sm font-semibold"
-                            title="Add new certification"
-                        >
-                            <i class="bi bi-plus-lg"></i>
-                            <span>Add New</span>
-                        </button>
-                    {% endif %}
-                </div>
-                <p class="text-xs text-gray-500 mb-2">Click + to add another certification row.</p>
-
-                <div
-                    id="certRows"
-                    class="space-y-2"
-                    data-index="{{ form.certs|length }}"
-                    {% if canManageSurveyUi and form.certs.vars.prototype is defined %}
-                        data-prototype="{{ form_widget(form.certs.vars.prototype)|e('html_attr') }}"
-                    {% endif %}
-                >
-                    {% for certField in form.certs %}
-                        <div class="cert-row grid grid-cols-12 gap-2 items-center">
-                            <div class="col-span-11">
-                                {{ form_widget(certField) }}
-                            </div>
-                            {% if canManageSurveyUi %}
-                                <button
-                                    type="button"
-                                    class="col-span-1 text-red-500 hover:text-red-700 flex items-center justify-center cert-remove-btn"
-                                    title="Remove row"
-                                >
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            {% endif %}
+                <div class="card-body space-y-6">
+                    {% for question in section.items %}
+                        {% set answer = dynamicAnswers[question.key]|default(question.inputType in ['checkbox', 'repeater'] ? [] : '') %}
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-800">{{ question.questionText }}</label>
+                            {% include 'gts/_question_input.html.twig' with {
+                                question: question,
+                                answer: answer,
+                                isPreviewMode: isPreviewMode
+                            } only %}
                         </div>
                     {% endfor %}
                 </div>
             </div>
-
-            {# Q15b — Reasons for advance studies #}
-            <div>
-                <div class="space-y-1.5">
-                    {% for child in form.reasonsAdvanceStudy %}
-                        <label class="flex items-start gap-2 text-sm cursor-pointer">
-                            {{ form_widget(child, {'attr': {'class': 'mt-0.5 accent-norsu'}}) }}
-                            <span>{{ child.vars.label }}</span>
-                        </label>
-                    {% endfor %}
-                </div>
-                <div class="mt-2">
-                    {{ form_label(form.reasonAdvanceStudyOther) }}{{ form_widget(form.reasonAdvanceStudyOther) }}
-                </div>
+        {% else %}
+            <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                No active survey questions are configured yet. Open the Survey Builder to import or create the questionnaire.
             </div>
-        </div>
-    </div>
+        {% endfor %}
+    </fieldset>
 
-    {# ═══════════════════════════════════════════════════
-       SECTION D — Employment Data
-       ═══════════════════════════════════════════════════ #}
-    <div class="card mb-5">
-        <div class="card-header-norsu flex items-center gap-2">
-            <i class="bi bi-briefcase text-lg"></i>
-            <span>D. Employment Data</span>
-        </div>
-        <div class="card-body space-y-5">
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
-                <i class="bi bi-info-circle mr-1"></i>
-                <strong>Note:</strong> Employment here means any type of work performed or services rendered in exchange for compensation under a contract of hire which creates the employer and employee relation.
-            </div>
-
-            {# Q16 — Presently employed? #}
-            <div class="md:w-1/2">
-                {{ form_label(form.presentlyEmployed) }}{{ form_widget(form.presentlyEmployed) }}{{ form_errors(form.presentlyEmployed) }}
-                <p class="text-xs text-gray-500 mt-1">If <strong>No</strong> or <strong>Never Employed</strong>, answer Q17. If <strong>Yes</strong>, skip to Q18.</p>
-            </div>
-
-            {# Q17 — Reasons not employed #}
-            <div id="sectionNotEmployed">
-                <div class="bg-gray-50 rounded-xl p-4">
-                    <div class="space-y-1.5">
-                        {% for child in form.reasonsNotEmployed %}
-                            <label class="flex items-start gap-2 text-sm cursor-pointer">
-                                {{ form_widget(child, {'attr': {'class': 'mt-0.5 accent-norsu'}}) }}
-                                <span>{{ child.vars.label }}</span>
-                            </label>
-                        {% endfor %}
-                    </div>
-                    <div class="mt-2">
-                        {{ form_label(form.reasonNotEmployedOther) }}{{ form_widget(form.reasonNotEmployedOther) }}
-                    </div>
-                </div>
-            </div>
-
-            {# Q18–Q22 — Employment details #}
-            <div id="sectionEmployed" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>{{ form_label(form.presentEmploymentStatus) }}{{ form_widget(form.presentEmploymentStatus) }}</div>
-                    <div>{{ form_label(form.presentOccupation) }}{{ form_widget(form.presentOccupation) }}</div>
-                </div>
-
-                <div>{{ form_label(form.companyNameAddress) }}{{ form_widget(form.companyNameAddress) }}</div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>{{ form_label(form.lineOfBusiness) }}{{ form_widget(form.lineOfBusiness) }}</div>
-                    <div>{{ form_label(form.placeOfWork) }}{{ form_widget(form.placeOfWork) }}</div>
-                </div>
-
-                <div class="md:w-1/2">
-                    {{ form_label(form.isFirstJobAfterCollege) }}{{ form_widget(form.isFirstJobAfterCollege) }}
-                    <p class="text-xs text-gray-500 mt-1">If <strong>No</strong>, skip to Q26 & Q27.</p>
-                </div>
-            </div>
-
-            {# Q23 — Reasons for staying #}
-            <div id="sectionFirstJob" class="space-y-4">
-                <div class="bg-gray-50 rounded-xl p-4">
-                    <div class="space-y-1.5">
-                        {% for child in form.reasonsForStaying %}
-                            <label class="flex items-start gap-2 text-sm cursor-pointer">
-                                {{ form_widget(child, {'attr': {'class': 'mt-0.5 accent-norsu'}}) }}
-                                <span>{{ child.vars.label }}</span>
-                            </label>
-                        {% endfor %}
-                    </div>
-                    <div class="mt-2">
-                        {{ form_label(form.reasonForStayingOther) }}{{ form_widget(form.reasonForStayingOther) }}
-                    </div>
-                </div>
-
-                {# Q24 — First job related to course? #}
-                <div class="md:w-1/2">
-                    {{ form_label(form.firstJobRelatedToCourse) }}{{ form_widget(form.firstJobRelatedToCourse) }}
-                </div>
-
-                {# Q25 — Reasons for accepting #}
-                <div class="bg-gray-50 rounded-xl p-4">
-                    <div class="space-y-1.5">
-                        {% for child in form.reasonsForAccepting %}
-                            <label class="flex items-start gap-2 text-sm cursor-pointer">
-                                {{ form_widget(child, {'attr': {'class': 'mt-0.5 accent-norsu'}}) }}
-                                <span>{{ child.vars.label }}</span>
-                            </label>
-                        {% endfor %}
-                    </div>
-                    <div class="mt-2">
-                        {{ form_label(form.reasonForAcceptingOther) }}{{ form_widget(form.reasonForAcceptingOther) }}
-                    </div>
-                </div>
-            </div>
-
-            {# Q26–Q27 — Job change (shown when isFirstJobAfterCollege = No) #}
-            <div id="sectionJobChange" class="space-y-4">
-                <div class="bg-gray-50 rounded-xl p-4">
-                    <div class="space-y-1.5">
-                        {% for child in form.reasonsForChanging %}
-                            <label class="flex items-start gap-2 text-sm cursor-pointer">
-                                {{ form_widget(child, {'attr': {'class': 'mt-0.5 accent-norsu'}}) }}
-                                <span>{{ child.vars.label }}</span>
-                            </label>
-                        {% endfor %}
-                    </div>
-                    <div class="mt-2">
-                        {{ form_label(form.reasonForChangingOther) }}{{ form_widget(form.reasonForChangingOther) }}
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>{{ form_label(form.durationFirstJob) }}{{ form_widget(form.durationFirstJob) }}</div>
-                    <div>{{ form_label(form.durationFirstJobOther) }}{{ form_widget(form.durationFirstJobOther) }}</div>
-                </div>
-            </div>
-
-            {# Q28–Q34 — Common employment questions #}
-            <div id="sectionCommonEmployment" class="space-y-5">
-                {# Q28 — How found first job #}
-                <div class="bg-gray-50 rounded-xl p-4">
-                    <div class="space-y-1.5">
-                        {% for child in form.howFoundFirstJob %}
-                            <label class="flex items-start gap-2 text-sm cursor-pointer">
-                                {{ form_widget(child, {'attr': {'class': 'mt-0.5 accent-norsu'}}) }}
-                                <span>{{ child.vars.label }}</span>
-                            </label>
-                        {% endfor %}
-                    </div>
-                    <div class="mt-2">
-                        {{ form_label(form.howFoundFirstJobOther) }}{{ form_widget(form.howFoundFirstJobOther) }}
-                    </div>
-                </div>
-
-                {# Q29 — Time to land first job #}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>{{ form_label(form.timeToLandFirstJob) }}{{ form_widget(form.timeToLandFirstJob) }}</div>
-                    <div>{{ form_label(form.timeToLandFirstJobOther) }}{{ form_widget(form.timeToLandFirstJobOther) }}</div>
-                </div>
-
-                {# Q30 — Job level #}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>{{ form_label(form.jobLevelFirstJob) }}{{ form_widget(form.jobLevelFirstJob) }}</div>
-                    <div>{{ form_label(form.jobLevelCurrentJob) }}{{ form_widget(form.jobLevelCurrentJob) }}</div>
-                </div>
-
-                {# Q31 — Initial Monthly Earning #}
-                <div class="md:w-1/2">
-                    {{ form_label(form.initialMonthlyEarning) }}{{ form_widget(form.initialMonthlyEarning) }}
-                </div>
-
-                {# Q32 — Curriculum relevant? #}
-                <div class="md:w-1/2">
-                    {{ form_label(form.curriculumRelevant) }}{{ form_widget(form.curriculumRelevant) }}
-                </div>
-
-                {# Q33 — Competencies useful #}
-                <div class="bg-gray-50 rounded-xl p-4">
-                    <div class="space-y-1.5">
-                        {% for child in form.competenciesUseful %}
-                            <label class="flex items-start gap-2 text-sm cursor-pointer">
-                                {{ form_widget(child, {'attr': {'class': 'mt-0.5 accent-norsu'}}) }}
-                                <span>{{ child.vars.label }}</span>
-                            </label>
-                        {% endfor %}
-                    </div>
-                    <div class="mt-2">
-                        {{ form_label(form.competenciesUsefulOther) }}{{ form_widget(form.competenciesUsefulOther) }}
-                    </div>
-                </div>
-
-                {# Q34 — Suggestions #}
-                <div>
-                    {{ form_label(form.suggestions) }}{{ form_widget(form.suggestions) }}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {# ── Submit ── #}
     <div class="flex justify-end gap-3 mb-8">
         <a href="{{ path('app_home') }}" class="btn-secondary"><i class="bi bi-x-lg mr-1"></i>Cancel</a>
         {% if isPreviewMode %}
@@ -536,107 +101,56 @@
 </div>
 
 <script>
-/* ── Dynamic row helpers ── */
 const isPreviewMode = {{ isPreviewMode ? 'true' : 'false' }};
-let examIdx = 1, trainIdx = 1;
-
-function addDegreeRow() {
-    const container = document.getElementById('degreeRows');
-    if (!container) return;
-
-    const index = Number(container.dataset.index || 0);
-    const prototype = container.dataset.prototype || '';
-    const html = prototype.replace(/__name__/g, String(index));
-
-    container.insertAdjacentHTML('beforeend', html);
-    container.dataset.index = String(index + 1);
-}
-
-function addExamRow() {
-    const i = examIdx++;
-    const html = `<div class="grid grid-cols-1 md:grid-cols-12 gap-2 exam-row">
-        <input type="text" name="exam_rows[${i}][name]" placeholder="Name of Examination" class="form-input md:col-span-4">
-        <input type="date" name="exam_rows[${i}][dateTaken]" class="form-input md:col-span-3">
-        <select name="exam_rows[${i}][rating]" class="form-select md:col-span-3">
-            <option value="">— Rating —</option>
-            <option value="Passed">Passed</option>
-            <option value="Failed">Failed</option>
-            <option value="Pending">Pending</option>
-        </select>
-        <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 md:col-span-1 flex items-center justify-center"><i class="bi bi-trash"></i></button>
-    </div>`;
-    document.getElementById('examRows').insertAdjacentHTML('beforeend', html);
-}
-
-function addTrainingRow() {
-    const i = trainIdx++;
-    const html = `<div class="grid grid-cols-1 md:grid-cols-12 gap-2 training-row">
-        <input type="text" name="training_rows[${i}][title]" placeholder="Title of Training / Advance Study" class="form-input md:col-span-4">
-        <input type="text" name="training_rows[${i}][duration]" placeholder="Duration & Credits Earned" class="form-input md:col-span-3">
-        <input type="text" name="training_rows[${i}][institution]" placeholder="Training Institution" class="form-input md:col-span-4">
-        <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 md:col-span-1 flex items-center justify-center"><i class="bi bi-trash"></i></button>
-    </div>`;
-    document.getElementById('trainingRows').insertAdjacentHTML('beforeend', html);
-}
-
-/* ── Symfony CollectionType rows: Certifications ── */
-function addCertRow() {
-    const container = document.getElementById('certRows');
-    if (!container) return;
-
-    const index = Number(container.dataset.index || 0);
-    const prototype = container.dataset.prototype || '';
-    const fieldHtml = prototype.replace(/__name__/g, String(index));
-
-    const rowHtml = `<div class="cert-row grid grid-cols-12 gap-2 items-center">
-        <div class="col-span-11">${fieldHtml}</div>
-        <button type="button" class="col-span-1 text-red-500 hover:text-red-700 flex items-center justify-center cert-remove-btn" title="Remove row">
-            <i class="bi bi-trash"></i>
-        </button>
-    </div>`;
-
-    container.insertAdjacentHTML('beforeend', rowHtml);
-    container.dataset.index = String(index + 1);
-}
 
 document.addEventListener('click', function (e) {
     if (isPreviewMode) {
         return;
     }
 
-    const addDegreeBtn = e.target.closest('#addDegreeBtn');
-    if (addDegreeBtn) {
-        addDegreeRow();
+    const addButton = e.target.closest('[data-add-repeater-row]');
+    if (addButton) {
+        const key = addButton.getAttribute('data-add-repeater-row');
+        if (!key) {
+            return;
+        }
+
+        const container = document.querySelector(`[data-repeater-container="${key}"]`);
+        const template = document.querySelector(`[data-repeater-template="${key}"]`);
+        if (!container || !template) {
+            return;
+        }
+
+        const nextIndex = Number(container.getAttribute('data-next-index') || '0');
+        container.insertAdjacentHTML('beforeend', template.innerHTML.replace(/__name__/g, String(nextIndex)));
+        container.setAttribute('data-next-index', String(nextIndex + 1));
         return;
     }
 
-    const removeDegreeBtn = e.target.closest('.degree-remove-btn');
-    if (removeDegreeBtn) {
-        const row = removeDegreeBtn.closest('.degree-row');
-        if (row) row.remove();
-        return;
-    }
+    const removeButton = e.target.closest('[data-remove-repeater-row]');
+    if (removeButton) {
+        const row = removeButton.closest('[data-repeater-row]');
+        const container = removeButton.closest('[data-repeater-container]');
+        if (!row) {
+            return;
+        }
 
-    const addBtn = e.target.closest('#addCertBtn');
-    if (addBtn) {
-        addCertRow();
-        return;
-    }
+        if (container && container.querySelectorAll('[data-repeater-row]').length > 1) {
+            row.remove();
+            return;
+        }
 
-    const removeBtn = e.target.closest('.cert-remove-btn');
-    if (removeBtn) {
-        const row = removeBtn.closest('.cert-row');
-        if (row) row.remove();
-    }
-});
+        row.querySelectorAll('input, textarea, select').forEach((field) => {
+            if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+                field.value = '';
+                return;
+            }
 
-if (isPreviewMode) {
-    const formEl = document.getElementById('gtsForm');
-    if (formEl) {
-        formEl.querySelectorAll('input, select, textarea, button[type="button"]').forEach((el) => {
-            el.setAttribute('disabled', 'disabled');
+            if (field instanceof HTMLSelectElement) {
+                field.selectedIndex = 0;
+            }
         });
     }
-}
+});
 </script>
 {% endblock %}

@@ -33,6 +33,10 @@ class GtsSurveyQuestion
     #[ORM\Column]
     private bool $isActive = true;
 
+    #[ORM\ManyToOne(inversedBy: 'questions')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    private ?GtsSurveyTemplate $surveyTemplate = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -106,6 +110,18 @@ class GtsSurveyQuestion
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getSurveyTemplate(): ?GtsSurveyTemplate
+    {
+        return $this->surveyTemplate;
+    }
+
+    public function setSurveyTemplate(?GtsSurveyTemplate $surveyTemplate): static
+    {
+        $this->surveyTemplate = $surveyTemplate;
 
         return $this;
     }

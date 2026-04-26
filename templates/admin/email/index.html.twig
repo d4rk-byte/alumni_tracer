@@ -5,8 +5,8 @@
 {% block body %}
 <div class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
     <div>
-        <h1 class="text-2xl font-bold text-gray-900"><i class="bi bi-envelope-paper mr-2 text-blue-700"></i>Email Communications</h1>
-        <p class="text-sm text-gray-500">Inbox/Outbox style communication hub for alumni announcements.</p>
+        <h1 class="text-2xl font-bold text-gray-900"><i class="bi bi-envelope-paper mr-2 text-blue-700"></i>Invite Drafts and Outbox</h1>
+        <p class="text-sm text-gray-500">Prepare alumni invite drafts, review recipient previews, and save communication history. This module does not send email.</p>
     </div>
 </div>
 
@@ -14,7 +14,7 @@
     <section class="lg:col-span-4">
         <div class="rounded-xl border border-blue-100 bg-white shadow-sm">
             <div class="border-b border-gray-100 px-4 py-3">
-                <h2 class="text-sm font-semibold uppercase tracking-wide text-blue-700">Compose</h2>
+                <h2 class="text-sm font-semibold uppercase tracking-wide text-blue-700">Compose Draft</h2>
             </div>
             <div class="space-y-4 p-4">
                 {{ form_start(filterForm, { attr: { class: 'grid grid-cols-1 gap-3 md:grid-cols-12 md:items-end' } }) }}
@@ -31,6 +31,23 @@
                     <p class="font-semibold">Recipients Matched</p>
                     <p class="mt-1 text-2xl font-extrabold leading-none">{{ recipientCount }}</p>
                     <p class="mt-1 text-xs text-blue-700">Filter: {{ selectedYear ?? 'All years' }}</p>
+                    <p class="mt-2 text-xs text-blue-700">This screen saves drafts and recipient previews only. It does not deliver email.</p>
+                </div>
+
+                <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-800">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="font-semibold" data-email-link-mode="{{ selectedYear is not null ? 'batch' : 'general' }}">{{ registrationLinkLabel }}</p>
+                            <p class="mt-1 text-xs text-gray-500">Paste this into your draft so alumni land on the correct registration page.</p>
+                        </div>
+                        <span class="rounded-full px-2.5 py-1 text-[0.68rem] font-semibold {{ registrationLinkReady ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
+                            {{ registrationLinkReady ? 'Ready' : 'Needs QR batch' }}
+                        </span>
+                    </div>
+                    <input data-registration-link-preview type="text" readonly value="{{ registrationLink }}" class="mt-3 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700">
+                    {% if registrationLinkWarning %}
+                        <p data-registration-link-warning class="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{{ registrationLinkWarning }}</p>
+                    {% endif %}
                 </div>
 
                 <form method="post" class="space-y-3">
@@ -44,7 +61,7 @@
                         <textarea name="message" rows="5" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200" placeholder="Write your email message"></textarea>
                     </div>
                     <button type="submit" class="btn-norsu w-full">
-                        <i class="bi bi-send mr-1"></i>Save Communication
+                        <i class="bi bi-save mr-1"></i>Save Draft to Outbox
                     </button>
                 </form>
             </div>
@@ -54,7 +71,7 @@
     <section class="lg:col-span-8 space-y-5">
         <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
             <div class="border-b border-gray-100 px-4 py-3">
-                <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-700">Outbox</h2>
+                <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-700">Draft Outbox</h2>
             </div>
             <div class="max-h-[360px] divide-y divide-gray-100 overflow-y-auto">
                 {% for item in communications %}

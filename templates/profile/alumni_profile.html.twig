@@ -340,7 +340,13 @@
             <button data-modal-close class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
         </div>
         <div class="p-4 text-center">
-            <div id="qrCodeContainer" class="mx-auto mb-3" style="width:200px;height:200px;"></div>
+            <div id="qrCodeContainer" class="mx-auto mb-3 flex items-center justify-center" style="width:200px;height:200px;">
+                 <img src="{{ qr_code_data_uri(qrData, 'default', { size: 200, margin: 2 }) }}"
+                     alt="QR code for {{ alumni.fullName }}"
+                     width="200"
+                     height="200"
+                     class="h-[200px] w-[200px] rounded-lg">
+            </div>
             <p class="text-sm text-gray-500 mb-2">Scan to view my verified alumni profile</p>
             <p class="font-semibold mb-1">{{ alumni.fullName }}</p>
             <p class="text-sm text-gray-500">{{ alumni.course }} {{ alumni.yearGraduated ? "'" ~ (alumni.yearGraduated|slice(-2)) : '' }}</p>
@@ -351,42 +357,13 @@
         </div>
     </div>
 </div>
-
-{# QR Code generation via CDN library #}
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <script>
-document.addEventListener('turbo:load', initQR);
-document.addEventListener('DOMContentLoaded', initQR);
-
-let qrInitialized = false;
-function initQR() {
-    if (qrInitialized) return;
-    const container = document.getElementById('qrCodeContainer');
-    if (!container || container.querySelector('canvas')) return;
-
-    const qrData = {{ qrData|json_encode }};
-
-    if (typeof QRCode !== 'undefined') {
-        QRCode.toCanvas(qrData, {
-            width: 200,
-            margin: 2,
-            color: { dark: '#1E40AF', light: '#FFFFFF' }
-        }, function(err, canvas) {
-            if (!err) {
-                canvas.style.borderRadius = '8px';
-                container.appendChild(canvas);
-                qrInitialized = true;
-            }
-        });
-    }
-}
-
 function downloadQR() {
-    const canvas = document.querySelector('#qrCodeContainer canvas');
-    if (canvas) {
+    const qrImage = document.querySelector('#qrCodeContainer img');
+    if (qrImage) {
         const link = document.createElement('a');
         link.download = 'alumni-qr-{{ alumni.fullName|replace({' ': '-'})|lower }}.png';
-        link.href = canvas.toDataURL('image/png');
+        link.href = qrImage.src;
         link.click();
     }
 }

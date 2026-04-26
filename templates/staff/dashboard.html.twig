@@ -280,6 +280,30 @@
     {% endfor %}
 </div>
 
+{% set registrationCards = [
+    {key: 'unregistered', label: 'Unregistered Alumni', count: registrationStates.unregistered, note: 'Imported or manual directory entries', accent: 'border-slate-200 bg-slate-50 text-slate-800', link: path('alumni_index', {registration_state: 'unregistered'})},
+    {key: 'pending', label: 'Pending Approval', count: registrationStates.pending, note: 'Accounts currently in review', accent: 'border-amber-200 bg-amber-50 text-amber-900', link: path('alumni_index', {registration_state: 'pending'})},
+    {key: 'active', label: 'Active Accounts', count: registrationStates.active, note: 'Approved linked alumni accounts', accent: 'border-emerald-200 bg-emerald-50 text-emerald-900', link: path('alumni_index', {registration_state: 'active'})},
+    {key: 'inactive', label: 'Inactive Accounts', count: registrationStates.inactive, note: 'Denied or restricted registrations', accent: 'border-rose-200 bg-rose-50 text-rose-900', link: path('alumni_index', {registration_state: 'inactive'})}
+] %}
+<div class="card mb-4">
+    <div class="card-header-norsu px-4 py-3 flex items-center gap-2">
+        <i class="bi bi-diagram-3-fill text-lg"></i>
+        <span class="font-bold">Registration Snapshot</span>
+    </div>
+    <div class="card-body">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            {% for card in registrationCards %}
+                <a href="{{ card.link }}" data-registration-state-card="{{ card.key }}" class="block rounded-xl border px-4 py-4 no-underline shadow-sm transition hover:-translate-y-0.5 hover:shadow-md {{ card.accent }}">
+                    <div class="text-xs font-semibold uppercase tracking-[0.18em] opacity-70">{{ card.label }}</div>
+                    <div class="mt-2 text-3xl font-bold">{{ card.count }}</div>
+                    <div class="mt-1 text-sm opacity-80">{{ card.note }}</div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
 {# ══════════════════════════════════════════════
    EMPLOYMENT RATE · USER OVERVIEW · QUICK ACTIONS
    ══════════════════════════════════════════════ #}

@@ -22,11 +22,7 @@ class UserFixtures extends Fixture
     {
         $existingAdmin = $this->userRepository->findOneBy(['email' => 'admin@norsu.edu.ph']);
 
-        if ($existingAdmin instanceof User) {
-            return;
-        }
-
-        $admin = new User();
+        $admin = $existingAdmin instanceof User ? $existingAdmin : new User();
         $admin->setEmail('admin@norsu.edu.ph');
         $admin->setFirstName('System');
         $admin->setLastName('Administrator');
@@ -34,7 +30,10 @@ class UserFixtures extends Fixture
         $admin->setAccountStatus('active');
         $admin->setPassword($this->passwordHasher->hashPassword($admin, 'Admin@12345'));
 
-        $manager->persist($admin);
+        if (!$existingAdmin instanceof User) {
+            $manager->persist($admin);
+        }
+
         $manager->flush();
     }
 }

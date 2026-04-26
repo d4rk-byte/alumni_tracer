@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ isEdit ? 'Edit Survey' : 'New Survey' }}{% endblock %}
+
+{% block body %}
+{% set surveysIndexRoute = is_granted('ROLE_ADMIN') ? 'admin_gts_surveys_index' : 'staff_gts_surveys_index' %}
+<div class="mx-auto max-w-4xl space-y-6">
+    <div class="flex flex-col gap-3 sm:flex-row items-start justify-between">
+        <div class="space-y-1.5">
+            <h1 class="text-2xl font-bold text-gray-800">{{ isEdit ? 'Edit Survey' : 'New Survey' }}</h1>
+            <p class="max-w-2xl text-sm text-gray-500">
+                {{ isEdit ? 'Update the survey name and settings.' : 'Give your survey a name and description. You can add questions after creating it.' }}
+            </p>
+        </div>
+        <a href="{{ path(surveysIndexRoute) }}" class="btn-secondary btn-sm inline-flex items-center justify-center">
+            <i class="bi bi-arrow-left mr-1"></i>Back
+        </a>
+    </div>
+
+    <div class="grid gap-6 md:grid-cols-12">
+        <div class="md:col-span-8 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            {{ form_start(form, { attr: { class: 'space-y-6' } }) }}
+                <div class="space-y-4">
+                    <div class="space-y-1.5">
+                        {{ form_label(form.title, null, { label_attr: { class: 'block text-sm font-semibold text-gray-700' } }) }}
+                        {{ form_widget(form.title) }}
+                        <div class="text-sm text-red-600">{{ form_errors(form.title) }}</div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        {{ form_label(form.description, null, { label_attr: { class: 'block text-sm font-semibold text-gray-700' } }) }}
+                        {{ form_widget(form.description) }}
+                        <div class="text-sm text-red-600">{{ form_errors(form.description) }}</div>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-gray-100 bg-white px-4 py-4">
+                    <label class="inline-flex items-center gap-3 text-sm text-gray-700">
+                        {{ form_widget(form.isActive) }}
+                        <span class="font-medium">Active survey</span>
+                    </label>
+                </div>
+
+                <div class="flex flex-col gap-2 border-t border-gray-100 pt-4 sm:flex-row justify-end">
+                    <a href="{{ path(surveysIndexRoute) }}" class="btn-secondary inline-flex items-center justify-center">Cancel</a>
+                    <button type="submit" class="btn-norsu inline-flex items-center justify-center">
+                        {{ isEdit ? 'Save Changes' : 'Create Survey' }}
+                    </button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+
+        <aside class="md:col-span-4 rounded-2xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
+            <div class="text-xs font-bold uppercase tracking-wide text-blue-700">What happens next</div>
+            <div class="mt-3 space-y-4 text-sm text-gray-600">
+                {% if isEdit %}
+                    <p>Changes to the survey title and status are saved immediately.</p>
+                    <p>Questions are managed separately from the question builder inside the survey.</p>
+                {% else %}
+                    <p>After creating the survey you'll be taken directly into the question builder where you can start adding questions.</p>
+                    <p>You can also import the default GTS questionnaire template with one click.</p>
+                {% endif %}
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}

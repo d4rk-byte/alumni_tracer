@@ -13,7 +13,10 @@ class CollegeRepository extends ServiceEntityRepository
         parent::__construct($registry, College::class);
     }
 
-    public function findActive()
+    /**
+     * @return list<College>
+     */
+    public function findActive(): array
     {
         return $this->createQueryBuilder('c')
             ->where('c.isActive = :active')
