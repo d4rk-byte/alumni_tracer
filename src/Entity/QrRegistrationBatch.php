@@ -16,11 +16,14 @@ class QrRegistrationBatch
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(name: 'batch_year')]
+    #[ORM\Column(name: 'batch_year', type: Types::SMALLINT)]
     private int $batchYear;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private \DateTimeInterface $createdAt;
+
+    #[ORM\Column(name: 'is_open', type: Types::BOOLEAN, options: ['default' => true])]
+    private bool $isOpen = true;
 
     public function __construct()
     {
@@ -40,6 +43,14 @@ class QrRegistrationBatch
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function isOpen(): bool { return $this->isOpen; }
+    public function setIsOpen(bool $isOpen): static
+    {
+        $this->isOpen = $isOpen;
+
         return $this;
     }
 

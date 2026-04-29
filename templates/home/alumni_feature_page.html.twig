@@ -1,0 +1,652 @@
+{% extends 'home/landing_layout.html.twig' %}
+
+{% set featureKey = featureKey|default('generic') %}
+{% set featurePills = pagePills|default([]) %}
+{% set featureCards = pageCards|default([]) %}
+{% set announcementFeed = announcementFeed|default([]) %}
+{% set jobFeed = jobFeed|default([]) %}
+{% set jobPreviewImages = [
+    asset('skilline/img/laptop-news.png'),
+    asset('skilline/img/children-laptop.png'),
+    asset('skilline/img/girl-laptop.png')
+] %}
+{% set latestSurvey = latestSurvey|default(null) %}
+{% set linkedAlumni = alumni|default(null) %}
+{% set tracerCampaign = tracerCampaignSnapshot|default({
+    hasInvitation: false,
+    hasCampaign: false,
+    campaignName: hasGtsSurvey ? 'Direct tracer response' : 'No tracer campaign yet',
+    campaignStatusLabel: 'No campaign',
+    invitationStatusLabel: hasGtsSurvey ? 'Completed' : 'No invitation',
+    statusSummary: hasGtsSurvey ? 'Your latest tracer response is on file.' : 'No tracer invitation campaign is currently assigned to this account.',
+    timelineLabel: profileSnapshot.lastTracerSubmissionAt ? 'Latest Response' : 'Tracer Timeline',
+    timelineValue: profileSnapshot.lastTracerSubmissionAt ? profileSnapshot.lastTracerSubmissionAt|date('M d, Y') : (hasGtsSurvey ? 'Response on file' : 'No activity yet'),
+    windowValue: hasGtsSurvey ? 'Completed' : 'Not scheduled',
+    audienceSummary: hasGtsSurvey ? 'Direct tracer submission' : 'No audience configured'
+}) %}
+{% set featureAccent = '#2563eb' %}
+{% set featureAccentStrong = '#1d4ed8' %}
+{% set featureAccentSoft = 'rgba(37, 99, 235, 0.12)' %}
+{% set featureAccentBorder = 'rgba(147, 197, 253, 0.48)' %}
+{% set featureHeroBackground = 'linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(239,246,255,0.95) 55%, rgba(219,234,254,0.88) 100%)' %}
+{% set featurePageBackground = 'linear-gradient(180deg, #e8f0fb 0%, #eef4ff 100%)' %}
+{% set featureSpotlightEyebrow = 'Landing Focus' %}
+{% set featureSpotlightTitle = 'Feature page overview' %}
+{% set featureSpotlightBody = 'This page keeps alumni content inside the landing experience with a clearer feature-specific layout.' %}
+{% set featureSpotlightTags = ['Landing-only view', 'Alumni self-service'] %}
+
+{% if featureKey == 'announcements' %}
+    {% set featureAccent = '#2563eb' %}
+    {% set featureAccentStrong = '#1e40af' %}
+    {% set featureAccentSoft = 'rgba(37, 99, 235, 0.12)' %}
+    {% set featureAccentBorder = 'rgba(147, 197, 253, 0.52)' %}
+    {% set featureHeroBackground = 'linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(239,246,255,0.95) 52%, rgba(219,234,254,0.9) 100%)' %}
+    {% set featurePageBackground = 'linear-gradient(180deg, #edf4ff 0%, #e8f0fb 100%)' %}
+    {% set featureSpotlightEyebrow = 'Notice Focus' %}
+    {% set featureSpotlightTitle = announcementFeed|length > 0 ? 'Published alumni notices are ready' : 'Waiting for the next office notice' %}
+    {% set featureSpotlightBody = announcementFeed|length > 0 ? 'This page emphasizes updates, categories, and posting context so announcements feel like a real notice desk.' : 'The layout is ready for advisories, reminders, and event posts as soon as active announcements are published.' %}
+    {% set featureSpotlightTags = ['Office updates', 'Event reminders'] %}
+{% elseif featureKey == 'jobs' %}
+    {% set featureAccent = '#d97706' %}
+    {% set featureAccentStrong = '#b45309' %}
+    {% set featureAccentSoft = 'rgba(245, 158, 11, 0.14)' %}
+    {% set featureAccentBorder = 'rgba(251, 191, 36, 0.5)' %}
+    {% set featureHeroBackground = 'linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(255,251,235,0.96) 56%, rgba(254,243,199,0.88) 100%)' %}
+    {% set featurePageBackground = 'linear-gradient(180deg, #fff8eb 0%, #fdf2d9 100%)' %}
+    {% set featureSpotlightEyebrow = 'Career Focus' %}
+    {% set featureSpotlightTitle = jobFeed|length > 0 ? 'Opportunity details lead this page' : 'Waiting for the next hiring cycle' %}
+    {% set featureSpotlightBody = jobFeed|length > 0 ? 'Jobs get a warmer, action-oriented layout that highlights role fit, salary, deadlines, and employer context.' : 'When jobs are available, this page will focus on openings, deadlines, and alumni-ready role details.' %}
+    {% set featureSpotlightTags = ['Career board', 'Hiring windows'] %}
+{% elseif featureKey == 'tracer' %}
+    {% set featureAccent = '#0f766e' %}
+    {% set featureAccentStrong = '#115e59' %}
+    {% set featureAccentSoft = 'rgba(20, 184, 166, 0.14)' %}
+    {% set featureAccentBorder = 'rgba(94, 234, 212, 0.45)' %}
+    {% set featureHeroBackground = 'linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(240,253,250,0.96) 54%, rgba(204,251,241,0.88) 100%)' %}
+    {% set featurePageBackground = 'linear-gradient(180deg, #ecfffb 0%, #e1f7f2 100%)' %}
+    {% set featureSpotlightEyebrow = 'Response Focus' %}
+    {% set featureSpotlightTitle = hasGtsSurvey ? 'Your latest tracer status is on file' : 'Your tracer status still needs action' %}
+    {% set featureSpotlightBody = hasGtsSurvey ? 'Tracer uses a monitoring-style layout so response status and employment summary read differently from announcements or jobs.' : 'This page is designed like a readiness checkpoint, keeping survey status and next steps more explicit than the other features.' %}
+    {% set featureSpotlightTags = ['Survey state', 'Employment summary'] %}
+{% elseif featureKey == 'profile' %}
+    {% set featureAccent = '#4f46e5' %}
+    {% set featureAccentStrong = '#3730a3' %}
+    {% set featureAccentSoft = 'rgba(99, 102, 241, 0.14)' %}
+    {% set featureAccentBorder = 'rgba(165, 180, 252, 0.48)' %}
+    {% set featureHeroBackground = 'linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(238,242,255,0.96) 54%, rgba(224,231,255,0.9) 100%)' %}
+    {% set featurePageBackground = 'linear-gradient(180deg, #eef2ff 0%, #e6ebfb 100%)' %}
+    {% set featureSpotlightEyebrow = 'Record Focus' %}
+    {% set featureSpotlightTitle = linkedAlumni ? 'Your account and alumni record are paired' : 'Your account is waiting for a linked alumni record' %}
+    {% set featureSpotlightBody = linkedAlumni ? 'Profile uses a more identity-driven layout so academic, account, and employment details feel different from the operational pages.' : 'This page emphasizes identity and record completeness, which should feel more personal than the jobs or tracer views.' %}
+    {% set featureSpotlightTags = ['Account details', 'Alumni record'] %}
+{% endif %}
+
+{% block title %}{{ pageTitle }} | NORSU Alumni Tracker{% endblock %}
+
+{% block page_content %}
+<div class="pb-12 sm:pb-16" style="background: {{ featurePageBackground }};">
+    <div class="max-w-screen-xl px-5 sm:px-8 mx-auto pt-10 sm:pt-14">
+        <div class="max-w-7xl mx-auto">
+            {% if featureKey == 'announcements' %}
+                {% set latestAnnouncement = announcementFeed|first %}
+                <section data-aos="fade-up" data-alumni-feature-hero="announcements" class="rounded-[2rem] px-5 sm:px-8 py-6 sm:py-8 shadow-[0_22px_48px_rgba(15,23,42,0.08)]" style="background: {{ featureHeroBackground }}; border: 1px solid {{ featureAccentBorder }};">
+                    <div class="grid lg:grid-cols-2 gap-5 sm:gap-6 items-start">
+                        <div>
+                            <p class="text-[0.72rem] font-bold tracking-[0.24em] uppercase mb-3" style="color: {{ featureAccentStrong }};">{{ pageEyebrow }}</p>
+                            <h1 class="text-3xl sm:text-4xl font-bold text-darken leading-tight">{{ pageTitle }}</h1>
+                            <p class="mt-4 text-sm sm:text-base leading-relaxed text-gray-500 max-w-3xl">{{ pageDescription }}</p>
+
+                            <div class="mt-6 grid sm:grid-cols-3 gap-3">
+                                <div class="rounded-2xl px-4 py-4" style="background: rgba(255,255,255,0.82); border: 1px solid {{ featureAccentBorder }};">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] mb-1" style="color: {{ featureAccentStrong }};">Active Notices</p>
+                                    <p class="text-xl font-bold text-darken mb-0">{{ announcementFeed|length }}</p>
+                                </div>
+                                <div class="rounded-2xl px-4 py-4" style="background: rgba(255,255,255,0.82); border: 1px solid {{ featureAccentBorder }};">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] mb-1" style="color: {{ featureAccentStrong }};">Latest Category</p>
+                                    <p class="text-sm font-semibold text-darken mb-0">{{ latestAnnouncement ? (latestAnnouncement.category ?: 'General Notice') : 'Office updates' }}</p>
+                                </div>
+                                <div class="rounded-2xl px-4 py-4" style="background: rgba(255,255,255,0.82); border: 1px solid {{ featureAccentBorder }};">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] mb-1" style="color: {{ featureAccentStrong }};">Latest Posted</p>
+                                    <p class="text-sm font-semibold text-darken mb-0">{{ latestAnnouncement ? latestAnnouncement.datePosted|date('M d, Y') : 'Waiting for next post' }}</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                                <a href="{{ primaryAction.href }}" class="inline-flex items-center justify-center rounded-full text-white font-semibold px-6 py-3 no-underline shadow-sm" style="background: {{ featureAccent }}; box-shadow: 0 14px 30px {{ featureAccentSoft }};">{{ primaryAction.label }}</a>
+                                <a href="{{ secondaryAction.href }}" class="inline-flex items-center justify-center rounded-full font-semibold px-6 py-3 no-underline border" style="background: rgba(255, 255, 255, 0.82); color: {{ featureAccentStrong }}; border-color: {{ featureAccentBorder }};">{{ secondaryAction.label }}</a>
+                            </div>
+
+                            <p class="mt-4 text-sm text-gray-500">{{ pageModuleHint }}</p>
+                        </div>
+
+                        <article class="rounded-[1.6rem] px-5 py-5 shadow-sm" style="background: rgba(255, 255, 255, 0.82); border: 1px solid {{ featureAccentBorder }};">
+                            <p class="text-[0.68rem] font-bold tracking-[0.22em] uppercase mb-2" style="color: {{ featureAccentStrong }};">Latest Notice Snapshot</p>
+                            <h2 class="text-xl font-bold text-darken mb-2">{{ latestAnnouncement ? latestAnnouncement.title : 'No active notices published yet' }}</h2>
+                            <p class="text-sm leading-relaxed text-gray-500 mb-4">{{ latestAnnouncement ? (latestAnnouncement.description|length > 150 ? latestAnnouncement.description|slice(0, 150) ~ '…' : latestAnnouncement.description) : 'This top section stays focused on notice activity, posting context, and what alumni should expect next.' }}</p>
+                            <div class="grid gap-3 text-sm">
+                                <div class="rounded-2xl bg-white/70 border border-white/80 px-4 py-3">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Audience</p>
+                                    <p class="font-semibold text-darken mb-0">Active alumni readers</p>
+                                </div>
+                                <div class="rounded-2xl bg-white/70 border border-white/80 px-4 py-3">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Focus</p>
+                                    <p class="font-semibold text-darken mb-0">Office advisories, reminders, and event posts</p>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+            {% elseif featureKey == 'jobs' %}
+                {% set latestJob = jobFeed|first %}
+                <section data-aos="fade-up" data-alumni-feature-hero="jobs" class="rounded-[2rem] px-5 sm:px-8 py-6 sm:py-8 shadow-[0_22px_48px_rgba(15,23,42,0.08)]" style="background: {{ featureHeroBackground }}; border: 1px solid {{ featureAccentBorder }};">
+                    <div class="grid lg:grid-cols-2 gap-5 sm:gap-6 items-start">
+                        <div>
+                            <p class="text-[0.72rem] font-bold tracking-[0.24em] uppercase mb-3" style="color: {{ featureAccentStrong }};">{{ pageEyebrow }}</p>
+                            <h1 class="text-3xl sm:text-4xl font-bold text-darken leading-tight">{{ pageTitle }}</h1>
+                            <p class="mt-4 text-sm sm:text-base leading-relaxed text-gray-500 max-w-3xl">{{ pageDescription }}</p>
+
+                            <div class="mt-6 flex flex-wrap gap-2.5">
+                                <span class="px-3.5 py-2 rounded-full text-xs sm:text-sm font-semibold border" style="background: {{ featureAccentSoft }}; color: {{ featureAccentStrong }}; border-color: {{ featureAccentBorder }};">{{ jobFeed|length }} active opportunities</span>
+                                <span class="px-3.5 py-2 rounded-full text-xs sm:text-sm font-semibold border" style="background: {{ featureAccentSoft }}; color: {{ featureAccentStrong }}; border-color: {{ featureAccentBorder }};">{{ latestJob ? (latestJob.relatedCourse ?: 'Multiple programs') : 'Career-ready roles' }}</span>
+                                <span class="px-3.5 py-2 rounded-full text-xs sm:text-sm font-semibold border" style="background: {{ featureAccentSoft }}; color: {{ featureAccentStrong }}; border-color: {{ featureAccentBorder }};">{{ hasGtsSurvey ? 'Tracer already on file' : 'Tracer still pending' }}</span>
+                            </div>
+
+                            <div class="mt-6 grid sm:grid-cols-2 gap-3">
+                                <div class="rounded-2xl px-4 py-4" style="background: rgba(255,255,255,0.82); border: 1px solid {{ featureAccentBorder }};">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] mb-1" style="color: {{ featureAccentStrong }};">Latest Employer</p>
+                                    <p class="text-sm font-semibold text-darken mb-0">{{ latestJob ? latestJob.companyName : 'Waiting for new postings' }}</p>
+                                </div>
+                                <div class="rounded-2xl px-4 py-4" style="background: rgba(255,255,255,0.82); border: 1px solid {{ featureAccentBorder }};">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] mb-1" style="color: {{ featureAccentStrong }};">Hiring Window</p>
+                                    <p class="text-sm font-semibold text-darken mb-0">{{ latestJob and latestJob.deadline ? latestJob.deadline|date('M d, Y') : 'Open until filled' }}</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                                <a href="{{ primaryAction.href }}" class="inline-flex items-center justify-center rounded-full text-white font-semibold px-6 py-3 no-underline shadow-sm" style="background: {{ featureAccent }}; box-shadow: 0 14px 30px {{ featureAccentSoft }};">{{ primaryAction.label }}</a>
+                                <a href="{{ secondaryAction.href }}" class="inline-flex items-center justify-center rounded-full font-semibold px-6 py-3 no-underline border" style="background: rgba(255, 255, 255, 0.82); color: {{ featureAccentStrong }}; border-color: {{ featureAccentBorder }};">{{ secondaryAction.label }}</a>
+                            </div>
+
+                            <p class="mt-4 text-sm text-gray-500">{{ pageModuleHint }}</p>
+                        </div>
+
+                        <article class="rounded-[1.6rem] overflow-hidden px-4 sm:px-5 py-4 sm:py-5 shadow-sm" style="background: rgba(255, 255, 255, 0.82); border: 1px solid {{ featureAccentBorder }};">
+                            <div class="rounded-[1.1rem] overflow-hidden border border-white/80 bg-white/80 mb-4">
+                                <img
+                                    src="{{ latestJob and latestJob.imageFilename ? asset('uploads/job_postings/' ~ latestJob.imageFilename) : jobPreviewImages[0] }}"
+                                    alt="{{ latestJob and latestJob.imageFilename ? latestJob.title ~ ' image' : 'Job opportunity preview' }}"
+                                    class="w-full h-36 sm:h-40 object-cover"
+                                    loading="lazy"
+                                >
+                            </div>
+                            <p class="text-[0.68rem] font-bold tracking-[0.22em] uppercase mb-2" style="color: {{ featureAccentStrong }};">Opportunity Snapshot</p>
+                            <h2 class="text-lg sm:text-xl font-bold text-darken mb-2">{{ latestJob ? latestJob.title : 'No current opportunity highlight' }}</h2>
+                            <p class="text-sm leading-relaxed text-gray-500 mb-3">{{ latestJob ? (latestJob.companyName ~ (latestJob.location ? ' • ' ~ latestJob.location : '')) : 'This top section is focused on role fit, employer context, and hiring windows instead of generic feature text.' }}</p>
+                            <div class="grid gap-3 text-sm">
+                                <div class="rounded-2xl bg-white/70 border border-white/80 px-4 py-2.5">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Salary Range</p>
+                                    <p class="font-semibold text-darken mb-0">{{ latestJob ? (latestJob.salaryRange ?: 'Discuss during hiring') : 'Will appear once jobs are posted' }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-white/70 border border-white/80 px-4 py-2.5">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Career Fit</p>
+                                    <p class="font-semibold text-darken mb-0">{{ latestJob ? (latestJob.relatedCourse ?: 'Open to multiple programs') : 'Waiting for role alignment data' }}</p>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+            {% elseif featureKey == 'tracer' %}
+                <section data-aos="fade-up" data-alumni-feature-hero="tracer" class="rounded-[2rem] px-5 sm:px-8 py-6 sm:py-8 shadow-[0_22px_48px_rgba(15,23,42,0.08)]" style="background: {{ featureHeroBackground }}; border: 1px solid {{ featureAccentBorder }};">
+                    <div class="grid lg:grid-cols-2 gap-5 sm:gap-6 items-start">
+                        <div>
+                            <p class="text-[0.72rem] font-bold tracking-[0.24em] uppercase mb-3" style="color: {{ featureAccentStrong }};">{{ pageEyebrow }}</p>
+                            <h1 class="text-3xl sm:text-4xl font-bold text-darken leading-tight">{{ pageTitle }}</h1>
+                            <p class="mt-4 text-sm sm:text-base leading-relaxed text-gray-500 max-w-3xl">{{ pageDescription }}</p>
+
+                            <div class="mt-6 grid sm:grid-cols-3 gap-3">
+                                <div class="rounded-2xl px-4 py-4" style="background: rgba(255,255,255,0.82); border: 1px solid {{ featureAccentBorder }};">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] mb-1" style="color: {{ featureAccentStrong }};">Invitation Status</p>
+                                    <p class="text-sm font-semibold text-darken mb-0">{{ tracerCampaign.invitationStatusLabel }}</p>
+                                </div>
+                                <div class="rounded-2xl px-4 py-4" style="background: rgba(255,255,255,0.82); border: 1px solid {{ featureAccentBorder }};">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] mb-1" style="color: {{ featureAccentStrong }};">Campaign Status</p>
+                                    <p class="text-sm font-semibold text-darken mb-0">{{ tracerCampaign.campaignStatusLabel }}</p>
+                                </div>
+                                <div class="rounded-2xl px-4 py-4" style="background: rgba(255,255,255,0.82); border: 1px solid {{ featureAccentBorder }};">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] mb-1" style="color: {{ featureAccentStrong }};">Profile Readiness</p>
+                                    <p class="text-sm font-semibold text-darken mb-0">{{ profileSnapshot.completionPercent|default(0) }}% complete</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                                <a href="{{ primaryAction.href }}" class="inline-flex items-center justify-center rounded-full text-white font-semibold px-6 py-3 no-underline shadow-sm" style="background: {{ featureAccent }}; box-shadow: 0 14px 30px {{ featureAccentSoft }};">{{ primaryAction.label }}</a>
+                                <a href="{{ secondaryAction.href }}" class="inline-flex items-center justify-center rounded-full font-semibold px-6 py-3 no-underline border" style="background: rgba(255, 255, 255, 0.82); color: {{ featureAccentStrong }}; border-color: {{ featureAccentBorder }};">{{ secondaryAction.label }}</a>
+                            </div>
+
+                            <p class="mt-4 text-sm text-gray-500">{{ pageModuleHint }}</p>
+                        </div>
+
+                        <article class="rounded-[1.6rem] px-5 py-5 shadow-sm" style="background: rgba(255, 255, 255, 0.82); border: 1px solid {{ featureAccentBorder }};">
+                            <p class="text-[0.68rem] font-bold tracking-[0.22em] uppercase mb-2" style="color: {{ featureAccentStrong }};">Tracer Snapshot</p>
+                            <h2 class="text-xl font-bold text-darken mb-2">{{ tracerCampaign.campaignName }}</h2>
+                            <p class="text-sm leading-relaxed text-gray-500 mb-4">{{ tracerCampaign.statusSummary }}</p>
+                            <div class="grid gap-3 text-sm">
+                                <div class="rounded-2xl bg-white/70 border border-white/80 px-4 py-3">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Timeline</p>
+                                    <p class="font-semibold text-darken mb-0">{{ tracerCampaign.timelineLabel }} • {{ tracerCampaign.timelineValue }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-white/70 border border-white/80 px-4 py-3">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Invitation Window</p>
+                                    <p class="font-semibold text-darken mb-0">{{ tracerCampaign.windowValue }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-white/70 border border-white/80 px-4 py-3">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Audience</p>
+                                    <p class="font-semibold text-darken mb-0">{{ tracerCampaign.audienceSummary }}</p>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+            {% elseif featureKey == 'profile' %}
+                <section data-aos="fade-up" data-alumni-feature-hero="profile" class="rounded-[2rem] px-5 sm:px-8 py-6 sm:py-8 shadow-[0_22px_48px_rgba(15,23,42,0.08)]" style="background: {{ featureHeroBackground }}; border: 1px solid {{ featureAccentBorder }};">
+                    <div class="grid lg:grid-cols-2 gap-5 sm:gap-6 items-start">
+                        <div>
+                            <p class="text-[0.72rem] font-bold tracking-[0.24em] uppercase mb-3" style="color: {{ featureAccentStrong }};">{{ pageEyebrow }}</p>
+                            <h1 class="text-3xl sm:text-4xl font-bold text-darken leading-tight">{{ pageTitle }}</h1>
+                            <p class="mt-4 text-sm sm:text-base leading-relaxed text-gray-500 max-w-3xl">{{ pageDescription }}</p>
+
+                            <div class="mt-6 flex items-center gap-4 rounded-[1.6rem] px-4 py-4" style="background: rgba(255,255,255,0.82); border: 1px solid {{ featureAccentBorder }};">
+                                {% if app.user.profileImage %}
+                                    <img src="{{ asset('uploads/profile/' ~ app.user.profileImage) }}" alt="{{ app.user.fullName }} profile photo" class="h-16 w-16 rounded-full object-cover border shadow-sm" style="border-color: {{ featureAccentBorder }};">
+                                {% else %}
+                                    <div class="inline-flex h-16 w-16 items-center justify-center rounded-full text-white text-xl font-bold shadow-sm" style="background: linear-gradient(135deg, {{ featureAccent }} 0%, {{ featureAccentStrong }} 100%);">
+                                        {{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <h2 class="text-xl font-bold text-darken mb-1">{{ app.user.fullName }}</h2>
+                                    <p class="text-sm text-gray-500 mb-0">{{ app.user.email }}</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 grid sm:grid-cols-3 gap-3">
+                                <div class="rounded-2xl px-4 py-4" style="background: rgba(255,255,255,0.82); border: 1px solid {{ featureAccentBorder }};">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] mb-1" style="color: {{ featureAccentStrong }};">Completion</p>
+                                    <p class="text-sm font-semibold text-darken mb-0">{{ profileSnapshot.completionPercent|default(0) }}% complete</p>
+                                </div>
+                                <div class="rounded-2xl px-4 py-4" style="background: rgba(255,255,255,0.82); border: 1px solid {{ featureAccentBorder }};">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] mb-1" style="color: {{ featureAccentStrong }};">Account</p>
+                                    <p class="text-sm font-semibold text-darken mb-0">{{ profileSnapshot.accountStatus }}</p>
+                                </div>
+                                <div class="rounded-2xl px-4 py-4" style="background: rgba(255,255,255,0.82); border: 1px solid {{ featureAccentBorder }};">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] mb-1" style="color: {{ featureAccentStrong }};">Linked Record</p>
+                                    <p class="text-sm font-semibold text-darken mb-0">{{ linkedAlumni ? 'Connected' : 'Needs attention' }}</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                                <a data-alumni-profile-edit-link href="{{ primaryAction.href }}" class="inline-flex items-center justify-center rounded-full text-white font-semibold px-6 py-3 no-underline shadow-sm" style="background: {{ featureAccent }}; box-shadow: 0 14px 30px {{ featureAccentSoft }};">{{ primaryAction.label }}</a>
+                                <a href="{{ secondaryAction.href }}" class="inline-flex items-center justify-center rounded-full font-semibold px-6 py-3 no-underline border" style="background: rgba(255, 255, 255, 0.82); color: {{ featureAccentStrong }}; border-color: {{ featureAccentBorder }};">{{ secondaryAction.label }}</a>
+                            </div>
+
+                            <p class="mt-4 text-sm text-gray-500">{{ pageModuleHint }}</p>
+                        </div>
+
+                        <article class="rounded-[1.6rem] px-5 py-5 shadow-sm" style="background: rgba(255, 255, 255, 0.82); border: 1px solid {{ featureAccentBorder }};">
+                            <p class="text-[0.68rem] font-bold tracking-[0.22em] uppercase mb-2" style="color: {{ featureAccentStrong }};">Identity Snapshot</p>
+                            <h2 class="text-xl font-bold text-darken mb-2">{{ linkedAlumni ? (linkedAlumni.course ?: 'Linked alumni profile') : 'Account ready for alumni record linking' }}</h2>
+                            <p class="text-sm leading-relaxed text-gray-500 mb-4">{{ linkedAlumni ? ((linkedAlumni.college ?: 'College not set') ~ (linkedAlumni.yearGraduated ? ' • Batch ' ~ linkedAlumni.yearGraduated : '')) : 'This page is centered on identity, account details, and alumni record completeness rather than announcements or operations.' }}</p>
+                            <div class="grid gap-3 text-sm">
+                                <div class="rounded-2xl bg-white/70 border border-white/80 px-4 py-3">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Employment Snapshot</p>
+                                    <p class="font-semibold text-darken mb-0">{{ linkedAlumni ? (linkedAlumni.jobTitle ?: linkedAlumni.employmentStatus ?: 'No employment details yet') : 'No employment summary available' }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-white/70 border border-white/80 px-4 py-3">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Tracer State</p>
+                                    <p class="font-semibold text-darken mb-0">{{ linkedAlumni ? (linkedAlumni.tracerStatus ?: 'Pending') : 'Pending' }}</p>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+            {% else %}
+                <section data-aos="fade-up" data-alumni-feature-hero="generic" class="rounded-[2rem] px-5 sm:px-8 py-6 sm:py-8 shadow-[0_22px_48px_rgba(15,23,42,0.08)]" style="background: {{ featureHeroBackground }}; border: 1px solid {{ featureAccentBorder }};">
+                    <div>
+                        <p class="text-[0.72rem] font-bold tracking-[0.24em] uppercase mb-3" style="color: {{ featureAccentStrong }};">{{ pageEyebrow }}</p>
+                        <h1 class="text-3xl sm:text-4xl font-bold text-darken leading-tight">{{ pageTitle }}</h1>
+                        <p class="mt-4 text-sm sm:text-base leading-relaxed text-gray-500 max-w-3xl">{{ pageDescription }}</p>
+                    </div>
+                </section>
+            {% endif %}
+
+            {% if featureKey == 'announcements' %}
+                <section id="announcement-board" class="mt-6 space-y-4 sm:space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                        <div>
+                            <p class="text-[0.72rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Announcement Board</p>
+                            <h2 class="text-xl sm:text-2xl font-bold text-darken mb-0">Active notices for alumni readers</h2>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-0">Each card shows the full landing-page notice content instead of pushing you into the admin announcement module.</p>
+                    </div>
+
+                    {% if announcementFeed|length > 0 %}
+                        <div class="grid lg:grid-cols-2 gap-4 sm:gap-5">
+                            {% for announcement in announcementFeed %}
+                                {% set authorName = announcement.postedBy ? announcement.postedBy.fullName : 'Office Admin' %}
+                                <article data-alumni-feature-announcement-card data-aos="fade-up" data-aos-delay="{{ loop.index0 * 70 }}" class="rounded-[1.5rem] sm:rounded-[1.75rem] bg-white border border-blue-100 px-5 sm:px-6 py-5 sm:py-6 shadow-[0_18px_36px_rgba(15,23,42,0.07)]">
+                                    <div class="flex flex-wrap items-center gap-2 mb-3">
+                                        <span class="inline-flex items-center rounded-full bg-blue-50 text-blue-800 text-xs font-semibold px-3 py-1.5 border border-blue-100">{{ announcement.category ?: 'General Notice' }}</span>
+                                        <span class="text-xs text-gray-500">{{ announcement.datePosted|date('M d, Y') }}</span>
+                                    </div>
+                                    <h3 class="text-lg sm:text-xl font-bold text-darken mb-2">{{ announcement.title }}</h3>
+                                    <p class="text-sm leading-relaxed text-gray-500 mb-4">{{ announcement.description }}</p>
+                                    <div class="grid sm:grid-cols-2 gap-3 text-sm">
+                                        <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Posted By</p>
+                                            <p class="font-semibold text-darken mb-0">{{ authorName }}</p>
+                                        </div>
+                                        <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Audience</p>
+                                            <p class="font-semibold text-darken mb-0">Active alumni readers</p>
+                                        </div>
+                                    </div>
+                                </article>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <article class="rounded-[1.5rem] bg-white border border-dashed border-blue-200 px-6 py-10 text-center text-gray-500 shadow-sm">
+                            <p class="text-lg font-semibold text-darken mb-2">No active announcements yet</p>
+                            <p class="mb-0">New alumni office notices will appear here as soon as they are published.</p>
+                        </article>
+                    {% endif %}
+                </section>
+            {% elseif featureKey == 'jobs' %}
+                <section id="career-board" class="mt-6 space-y-4 sm:space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                        <div>
+                            <p class="text-[0.72rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Career Board</p>
+                            <h2 class="text-xl sm:text-2xl font-bold text-darken mb-0">Active roles for alumni opportunities</h2>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-0">The landing page now carries the job details alumni need without redirecting into the jobs module.</p>
+                    </div>
+
+                    {% if jobFeed|length > 0 %}
+                        <div class="grid lg:grid-cols-2 gap-4 sm:gap-5">
+                            {% for job in jobFeed %}
+                                <article data-alumni-feature-job-card data-aos="fade-up" data-aos-delay="{{ loop.index0 * 70 }}" class="rounded-[1.5rem] sm:rounded-[1.75rem] overflow-hidden bg-white border border-blue-100 shadow-[0_18px_36px_rgba(15,23,42,0.07)]">
+                                    <div class="overflow-hidden border-b border-blue-50 bg-slate-50">
+                                        <img
+                                            src="{{ job.imageFilename ? asset('uploads/job_postings/' ~ job.imageFilename) : jobPreviewImages[loop.index0 % jobPreviewImages|length] }}"
+                                            alt="{{ job.imageFilename ? job.title ~ ' image' : 'Job opportunity preview' }}"
+                                            class="w-full h-36 sm:h-40 object-cover"
+                                            loading="lazy"
+                                        >
+                                    </div>
+                                    <div class="px-4 sm:px-5 py-4 sm:py-5">
+                                    <div class="flex flex-wrap items-center gap-2 mb-2.5">
+                                        {% if job.employmentType %}
+                                            <span class="inline-flex items-center rounded-full bg-blue-50 text-blue-800 text-xs font-semibold px-3 py-1.5 border border-blue-100">{{ job.employmentType }}</span>
+                                        {% endif %}
+                                        <span class="text-xs text-gray-500">Posted {{ job.datePosted|date('M d, Y') }}</span>
+                                    </div>
+                                    <h3 class="text-base sm:text-lg font-bold text-darken mb-1">{{ job.title }}</h3>
+                                    <p class="text-sm font-semibold text-blue-800 mb-2.5">{{ job.companyName }}{% if job.location %} • {{ job.location }}{% endif %}</p>
+                                    <p class="text-sm leading-relaxed text-gray-500 mb-3.5">{{ job.description|length > 160 ? job.description|slice(0, 160) ~ '…' : job.description }}</p>
+                                    <div class="grid sm:grid-cols-2 gap-3 text-sm">
+                                        <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-2.5">
+                                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Salary</p>
+                                            <p class="font-semibold text-darken mb-0">{{ job.salaryRange ?: 'Discuss during hiring' }}</p>
+                                        </div>
+                                        <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-2.5">
+                                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Related Course</p>
+                                            <p class="font-semibold text-darken mb-0">{{ job.relatedCourse ?: 'Open to multiple programs' }}</p>
+                                        </div>
+                                        <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-2.5">
+                                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Industry</p>
+                                            <p class="font-semibold text-darken mb-0">{{ job.industry ?: 'General opportunity' }}</p>
+                                        </div>
+                                        <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-2.5">
+                                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Deadline</p>
+                                            <p class="font-semibold text-darken mb-0">{{ job.deadline ? job.deadline|date('M d, Y') : 'Open until filled' }}</p>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </article>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <article class="rounded-[1.5rem] bg-white border border-dashed border-blue-200 px-6 py-10 text-center text-gray-500 shadow-sm">
+                            <p class="text-lg font-semibold text-darken mb-2">No active jobs available</p>
+                            <p class="mb-0">Career opportunities will appear here once active, non-expired postings are available.</p>
+                        </article>
+                    {% endif %}
+                </section>
+            {% elseif featureKey == 'tracer' %}
+                <section id="tracer-summary" class="mt-6 space-y-4 sm:space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                        <div>
+                            <p class="text-[0.72rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Tracer Control Center</p>
+                            <h2 class="text-xl sm:text-2xl font-bold text-darken mb-0">Your survey readiness and latest response</h2>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-0">This page shows only your own tracer state and does not open the tracer module route.</p>
+                    </div>
+
+                    <div class="grid lg:grid-cols-2 gap-4 sm:gap-5">
+                        <article data-alumni-feature-tracer-summary class="rounded-[1.5rem] sm:rounded-[1.75rem] bg-white border border-blue-100 px-5 sm:px-6 py-5 sm:py-6 shadow-[0_18px_36px_rgba(15,23,42,0.07)]">
+                            <p class="text-[0.68rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Submission Status</p>
+                            <h3 class="text-xl sm:text-2xl font-bold text-darken mb-2">{{ hasGtsSurvey ? 'Tracer response saved' : 'Tracer response still pending' }}</h3>
+                            <p class="text-sm leading-relaxed text-gray-500 mb-5">{{ tracerCampaign.statusSummary }}</p>
+
+                            <div class="grid sm:grid-cols-2 gap-3 text-sm">
+                                <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Tracer Status</p>
+                                    <p class="font-semibold text-darken mb-0">{{ profileSnapshot.tracerStatus|default('Pending') }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Invitation Status</p>
+                                    <p class="font-semibold text-darken mb-0">{{ tracerCampaign.invitationStatusLabel }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Campaign Status</p>
+                                    <p class="font-semibold text-darken mb-0">{{ tracerCampaign.campaignStatusLabel }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Invitation Window</p>
+                                    <p class="font-semibold text-darken mb-0">{{ tracerCampaign.windowValue }}</p>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="rounded-[1.5rem] sm:rounded-[1.75rem] bg-white border border-blue-100 px-5 sm:px-6 py-5 sm:py-6 shadow-[0_18px_36px_rgba(15,23,42,0.07)]">
+                            <p class="text-[0.68rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Latest Response Summary</p>
+                            {% if latestSurvey %}
+                                <div class="space-y-3 text-sm">
+                                    <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Employment</p>
+                                        <p class="font-semibold text-darken mb-0">{{ latestSurvey.presentEmploymentStatus ?: latestSurvey.presentlyEmployed ?: 'Status not provided' }}</p>
+                                    </div>
+                                    <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Occupation</p>
+                                        <p class="font-semibold text-darken mb-0">{{ latestSurvey.presentOccupation ?: 'No occupation summary recorded' }}</p>
+                                    </div>
+                                    <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Company</p>
+                                        <p class="font-semibold text-darken mb-0">{{ latestSurvey.companyNameAddress ?: 'No employer summary recorded' }}</p>
+                                    </div>
+                                    <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Place Of Work</p>
+                                        <p class="font-semibold text-darken mb-0">{{ latestSurvey.placeOfWork ?: 'Not specified' }}</p>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="rounded-2xl bg-slate-50 border border-dashed border-slate-300 px-5 py-8 text-center text-gray-500">
+                                    <p class="text-base font-semibold text-darken mb-2">No tracer response summary available</p>
+                                    <p class="mb-0">Once a survey response is saved, the latest employment and workplace details will appear here.</p>
+                                </div>
+                            {% endif %}
+                        </article>
+                    </div>
+                </section>
+            {% elseif featureKey == 'profile' %}
+                <section id="profile-record" class="mt-6 space-y-4 sm:space-y-5">
+                    <div>
+                        <div>
+                            <p class="text-[0.72rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Profile Overview</p>
+                            <h2 class="text-xl sm:text-2xl font-bold text-darken mb-0">Account details and alumni record</h2>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-0">This page combines your account details and linked alumni record, and now gives you a direct way to update your profile details when needed.</p>
+
+                    <div class="grid md:grid-cols-2 gap-4 sm:gap-5 items-start">
+                        <article data-alumni-feature-profile-card class="h-full rounded-[1.5rem] sm:rounded-[1.75rem] bg-white border border-blue-100 px-5 sm:px-6 py-5 sm:py-6 shadow-[0_18px_36px_rgba(15,23,42,0.07)] flex flex-col">
+                            <p class="text-[0.68rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Account Identity</p>
+                            <div class="flex items-center gap-4 mb-5">
+                                {% if app.user.profileImage %}
+                                    <img src="{{ asset('uploads/profile/' ~ app.user.profileImage) }}" alt="{{ app.user.fullName }} profile photo" class="h-16 w-16 rounded-full object-cover border border-blue-100 shadow-sm">
+                                {% else %}
+                                    <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-400 text-white text-xl font-bold shadow-sm">
+                                        {{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <h3 class="text-xl font-bold text-darken mb-1">{{ app.user.fullName }}</h3>
+                                    <p class="text-sm text-gray-500 mb-0">{{ app.user.email }}</p>
+                                </div>
+                            </div>
+
+                            <div class="grid sm:grid-cols-2 gap-3 text-sm">
+                                <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Account Status</p>
+                                    <p class="font-semibold text-darken mb-0">{{ profileSnapshot.accountStatus }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Date Registered</p>
+                                    <p class="font-semibold text-darken mb-0">{{ app.user.dateRegistered|date('M d, Y') }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Last Login</p>
+                                    <p class="font-semibold text-darken mb-0">{{ app.user.lastLogin ? app.user.lastLogin|date('M d, Y h:i A') : 'Never' }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Data Privacy</p>
+                                    <p class="font-semibold text-darken mb-0">{{ app.user.dpaConsent ? 'Consent recorded' : 'Consent not recorded' }}{% if app.user.dpaConsentDate %} • {{ app.user.dpaConsentDate|date('M d, Y') }}{% endif %}</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-5 pt-1 flex flex-col sm:flex-row gap-3 md:mt-auto">
+                                <a href="#linked-alumni-record" class="inline-flex items-center justify-center rounded-full font-semibold px-5 py-3 no-underline border border-blue-100 bg-blue-50 text-blue-800">Review linked record</a>
+                            </div>
+                        </article>
+
+                        <article id="linked-alumni-record" class="h-full rounded-[1.5rem] sm:rounded-[1.75rem] bg-white border border-blue-100 px-5 sm:px-6 py-5 sm:py-6 shadow-[0_18px_36px_rgba(15,23,42,0.07)] flex flex-col">
+                            <p class="text-[0.68rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Linked Alumni Record</p>
+                            {% if linkedAlumni %}
+                                <div class="grid lg:grid-cols-2 gap-4 text-sm">
+                                    <div class="space-y-3">
+                                        <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Student Number</p>
+                                            <p class="font-semibold text-darken mb-0">{{ linkedAlumni.studentNumber }}</p>
+                                        </div>
+                                        <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Academic Profile</p>
+                                            <p class="font-semibold text-darken mb-0">{{ linkedAlumni.course ?: 'Course not set' }}{% if linkedAlumni.yearGraduated %} • Batch {{ linkedAlumni.yearGraduated }}{% endif %}</p>
+                                        </div>
+                                        <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">College</p>
+                                            <p class="font-semibold text-darken mb-0">{{ linkedAlumni.college ?: 'College not set' }}</p>
+                                        </div>
+                                        <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Contact</p>
+                                            <p class="font-semibold text-darken mb-0">{{ linkedAlumni.contactNumber ?: 'Contact number not set' }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-3">
+                                        <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Employment Snapshot</p>
+                                            <p class="font-semibold text-darken mb-0">{{ linkedAlumni.jobTitle ?: linkedAlumni.employmentStatus ?: 'Employment details not set' }}</p>
+                                        </div>
+                                        <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Company</p>
+                                            <p class="font-semibold text-darken mb-0">{{ linkedAlumni.companyName ?: 'Company not set' }}</p>
+                                        </div>
+                                        <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Industry</p>
+                                            <p class="font-semibold text-darken mb-0">{{ linkedAlumni.industry ?: 'Industry not set' }}</p>
+                                        </div>
+                                        <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Tracer Status</p>
+                                            <p class="font-semibold text-darken mb-0">{{ linkedAlumni.tracerStatus ?: 'Pending' }}{% if linkedAlumni.lastTracerSubmissionAt %} • {{ linkedAlumni.lastTracerSubmissionAt|date('M d, Y') }}{% endif %}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="grid sm:grid-cols-2 gap-3 text-sm mt-4">
+                                    <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Address</p>
+                                        <p class="font-semibold text-darken mb-0">{{ linkedAlumni.homeAddress ?: 'Home address not set' }}</p>
+                                    </div>
+                                    <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3">
+                                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Career Achievements</p>
+                                        <p class="font-semibold text-darken mb-0">{{ linkedAlumni.careerAchievements ?: 'No achievement summary recorded yet.' }}</p>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="rounded-2xl bg-slate-50 border border-dashed border-slate-300 px-5 py-8 text-center text-gray-500">
+                                    <p class="text-base font-semibold text-darken mb-2">No linked alumni record yet</p>
+                                    <p class="mb-0">Once your alumni record is linked, your academic and employment profile details will appear here.</p>
+                                </div>
+                            {% endif %}
+                        </article>
+                    </div>
+                </section>
+            {% else %}
+                <section class="mt-6 grid md:grid-cols-3 gap-4 sm:gap-5">
+                    {% for card in featureCards %}
+                        <article data-aos="fade-up" data-aos-delay="{{ loop.index0 * 90 }}" class="rounded-[1.45rem] sm:rounded-[1.7rem] bg-white border border-blue-100 px-5 py-5 shadow-[0_18px_36px_rgba(15,23,42,0.07)]">
+                            <p class="text-[0.68rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">{{ card.eyebrow }}</p>
+                            <h2 class="text-lg sm:text-xl font-bold text-darken mb-2">{{ card.title }}</h2>
+                            <p class="text-sm text-gray-500 leading-relaxed mb-0">{{ card.body }}</p>
+                        </article>
+                    {% endfor %}
+                </section>
+            {% endif %}
+
+            {% if featureKey in ['tracer', 'profile', 'generic'] %}
+                <section class="mt-6 grid lg:grid-cols-2 gap-4 sm:gap-5">
+                    <article data-aos="fade-up" class="rounded-[1.6rem] sm:rounded-[1.9rem] bg-white border border-blue-100 px-5 sm:px-6 py-5 sm:py-6 shadow-[0_18px_36px_rgba(15,23,42,0.07)]">
+                        <p class="text-[0.68rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Account Snapshot</p>
+                        <h3 class="text-xl sm:text-2xl font-bold text-darken mb-3">{{ profileSnapshot.completionPercent|default(0) }}% profile completion</h3>
+                        <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+                            <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-sky-400" style="width: {{ profileSnapshot.completionPercent|default(0) }}%"></div>
+                        </div>
+
+                        <div class="grid sm:grid-cols-2 gap-3 mt-5">
+                            <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-4">
+                                <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 mb-2">Account</p>
+                                <p class="text-sm font-semibold text-darken mb-1">{{ profileSnapshot.accountStatus|default('Pending') }}</p>
+                                <p class="text-xs text-gray-500 mb-0">Current alumni account standing inside the platform.</p>
+                            </div>
+                            <div class="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-4">
+                                <p class="text-xs font-bold uppercase tracking-[0.18em] text-slate-500 mb-2">Tracer</p>
+                                <p class="text-sm font-semibold text-darken mb-1">{{ profileSnapshot.tracerStatus|default('Pending') }}</p>
+                                <p class="text-xs text-gray-500 mb-0">Latest tracer participation status tied to your alumni account.</p>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article data-aos="fade-up" data-aos-delay="80" class="rounded-[1.6rem] sm:rounded-[1.9rem] px-5 sm:px-6 py-5 sm:py-6" style="background: #2563eb; border: 1px solid rgba(191, 219, 254, 0.45); box-shadow: 0 24px 52px rgba(37, 99, 235, 0.22);">
+                        <p class="text-[0.68rem] font-bold tracking-[0.22em] uppercase mb-2" style="color: rgba(255, 255, 255, 0.78);">Next Move</p>
+                        <h3 class="text-xl sm:text-2xl font-bold mb-3" style="color: #ffffff;">{{ nextStep.title }}</h3>
+                        <p class="text-sm leading-relaxed mb-5" style="color: rgba(255, 255, 255, 0.86);">{{ nextStep.body }}</p>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <a href="{{ primaryAction.href }}" class="inline-flex items-center justify-center rounded-full font-semibold px-5 py-3 no-underline" style="background: #ffffff; color: #2563eb; box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);">{{ primaryAction.label }}</a>
+                            <a href="{{ secondaryAction.href }}" class="inline-flex items-center justify-center rounded-full font-semibold px-5 py-3 no-underline" style="border: 1px solid rgba(255, 255, 255, 0.32); color: #ffffff; background: rgba(255, 255, 255, 0.08);">{{ secondaryAction.label }}</a>
+                        </div>
+                    </article>
+                </section>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

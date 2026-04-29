@@ -1,0 +1,54 @@
+{% extends 'home/landing_layout.html.twig' %}
+
+{% block title %}Verify Email — NORSU Alumni Tracker{% endblock %}
+
+{% block page_content %}
+<div class="bg-cream pb-12">
+    <div class="max-w-screen-xl px-8 mx-auto pt-14">
+        <div data-aos="fade-up" class="max-w-2xl mx-auto text-center mb-10">
+            <h1 class="font-bold text-darken my-3 text-3xl">Verify your <span class="text-yellow-500">email</span></h1>
+            <p class="leading-relaxed text-gray-500">We sent a 6-digit verification code to <span class="font-semibold text-gray-700">{{ draftEmail }}</span>. Enter it below to finish creating your alumni account.</p>
+        </div>
+
+        <section data-aos="fade-up" data-aos-delay="100" class="max-w-xl mx-auto bg-white shadow-xl rounded-xl p-8" aria-label="Email verification form">
+            {% for message in app.flashes('success') %}
+                <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ message }}</div>
+            {% endfor %}
+
+            {% for message in app.flashes('warning') %}
+                <div class="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{{ message }}</div>
+            {% endfor %}
+
+            {% for message in app.flashes('danger') %}
+                <div class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{{ message }}</div>
+            {% endfor %}
+
+            <div class="mb-6 rounded-xl border border-blue-100 bg-blue-50 px-4 py-4 text-sm text-blue-900">
+                The code expires in {{ otpExpiryMinutes }} minutes. If the email does not arrive, you can request another code below.
+            </div>
+
+            {{ form_start(otpForm, {'attr': {'class': 'space-y-4'}}) }}
+                {{ form_errors(otpForm) }}
+
+                <div>
+                    <label for="registration_otp_verification_otpCode" class="block text-sm font-semibold text-gray-700 mb-2">Verification Code</label>
+                    {{ form_widget(otpForm.otpCode, {'attr': {'class': 'w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-center text-2xl tracking-[0.4em] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300'}}) }}
+                    <div class="text-sm text-red-600 mt-1">{{ form_errors(otpForm.otpCode) }}</div>
+                </div>
+
+                <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-indigo-700 to-indigo-900 text-white font-semibold py-3">Verify Email</button>
+            {{ form_end(otpForm) }}
+
+            <form method="post" action="{{ path('app_register_resend_otp') }}" class="mt-4">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('register_resend_otp') }}">
+                <button type="submit" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-800 font-medium hover:bg-slate-50 {% if remainingResends == 0 %}opacity-60 cursor-not-allowed{% endif %}" {% if remainingResends == 0 %}disabled{% endif %}>Resend Code{% if remainingResends > 0 %} ({{ remainingResends }} left){% endif %}</button>
+            </form>
+
+            <div class="mt-5 text-center text-sm text-slate-500">
+                Need to change your registration details?
+                <a href="{{ path('app_register') }}" class="text-blue-700 no-underline hover:underline">Go back to sign up</a>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

@@ -4,10 +4,8 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\UserType;
-use App\Repository\AlumniRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -42,38 +40,86 @@ class AdminController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function users(Request $request, UserRepository $repo): Response
     {
-        $page  = max(1, $request->query->getInt('page', 1));
-        $limit = 20;
-        $search = $request->query->get('q', '');
-        $roleFilter = $request->query->get('role', '');
+        $search = trim((string) $request->query->get('q', ''));
+        $roleFilter = trim((string) $request->query->get('role', ''));
+        $selectedCollege = trim((string) $request->query->get('college', ''));
+        $selectedDepartment = trim((string) $request->query->get('department', ''));
+        $selectedBatch = trim((string) $request->query->get('batch', ''));
 
-        $qb = $repo->createQueryBuilder('u');
-
-        if ($search !== '') {
-            $qb->andWhere('u.firstName LIKE :q OR u.lastName LIKE :q OR u.email LIKE :q')
-               ->setParameter('q', '%' . $search . '%');
-        }
+        $qb = $repo->createQueryBuilder('u')
+            ->leftJoin('u.alumni', 'a')
+            ->addSelect('a');
 
         if ($roleFilter === 'staff') {
-            $qb->andWhere('u.roles LIKE :staffRole')
-               ->setParameter('staffRole', '%"ROLE_STAFF"%');
+            $qb->andWhere($repo->createRoleMatchExpression($qb, 'u', User::ROLE_CODE_STAFF, 'staff_role'));
         }
 
-        $qb->orderBy('u.dateRegistered', 'DESC');
-        $qb->setFirstResult(($page - 1) * $limit)->setMaxResults($limit);
-        $paginator = new Paginator($qb);
-        $totalItems = count($paginator);
-        $totalPages = (int) ceil($totalItems / $limit);
+        /** @var list<User> $users */
+        $users = $qb
+            ->orderBy('u.dateRegistered', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        $collegeOptions = [];
+        $departmentOptions = [];
+        $departmentCollegeMap = [];
+        $batchOptions = [];
+
+        foreach ($users as $user) {
+            $alumni = $user->getAlumni();
+            if ($alumni === null) {
+                continue;
+            }
+
+            $college = trim((string) ($alumni->getCollege() ?? ''));
+            if ($college !== '') {
+                $collegeOptions[$college] = $college;
+            }
+
+            $department = trim((string) ($alumni->getDegreeProgram() ?? ''));
+            if ($department === '') {
+                $department = trim((string) ($alumni->getCourse() ?? ''));
+            }
+
+            if ($department !== '') {
+                $departmentOptions[$department] = $department;
+
+                if ($college !== '' && !isset($departmentCollegeMap[$department])) {
+                    $departmentCollegeMap[$department] = $college;
+                }
+            }
+
+            $batch = $alumni->getYearGraduated();
+            if ($batch !== null) {
+                $batchOptions[(string) $batch] = $batch;
+            }
+        }
+
+        $collegeOptions = array_values($collegeOptions);
+        natcasesort($collegeOptions);
+        $collegeOptions = array_values($collegeOptions);
+
+        $departmentOptions = array_values($departmentOptions);
+        natcasesort($departmentOptions);
+        $departmentOptions = array_values($departmentOptions);
+
+        $batchOptions = array_values($batchOptions);
+        rsort($batchOptions, SORT_NUMERIC);
 
         $pendingCount = $repo->count(['accountStatus' => 'pending']);
 
         return $this->render('admin/users.html.twig', [
-            'users' => $paginator,
+            'users' => $users,
             'pendingCount' => $pendingCount,
-            'currentPage' => $page,
-            'totalPages'  => $totalPages,
             'search' => $search,
             'roleFilter' => $roleFilter,
+            'collegeOptions' => $collegeOptions,
+            'departmentOptions' => $departmentOptions,
+            'departmentCollegeMap' => $departmentCollegeMap,
+            'batchOptions' => $batchOptions,
+            'selectedCollege' => $selectedCollege,
+            'selectedDepartment' => $selectedDepartment,
+            'selectedBatch' => $selectedBatch,
         ]);
     }
 

@@ -122,15 +122,10 @@ class SurveyController extends AbstractController
             throw $this->createAccessDeniedException('Login required.');
         }
 
-        if (!$surveyRepository->hasUserSubmitted($currentUser)) {
+        $survey = $surveyRepository->findLatestByUser($currentUser);
+        if ($survey === null) {
             $this->addFlash('warning', 'Please complete the survey first before downloading your certificate.');
             return $this->redirectToRoute('gts_new');
-        }
-
-        $survey = $surveyRepository->findOneByUser($currentUser);
-        if ($survey === null) {
-            $this->addFlash('danger', 'Survey record not found.');
-            return $this->redirectToRoute('app_dashboard');
         }
 
         $alumni = $currentUser->getAlumni();

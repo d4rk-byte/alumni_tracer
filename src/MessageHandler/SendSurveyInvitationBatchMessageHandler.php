@@ -52,7 +52,6 @@ final class SendSurveyInvitationBatchMessageHandler
 
             try {
                 $email = (new TemplatedEmail())
-                    ->from('noreply@norsu.edu.ph')
                     ->to($emailAddress)
                     ->subject($campaign->getEmailSubject())
                     ->htmlTemplate('emails/survey_invitation.html.twig')

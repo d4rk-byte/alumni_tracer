@@ -3,167 +3,122 @@
 {% block title %}My Profile{% endblock %}
 
 {% block body %}
-<div class="flex justify-between items-center mb-4 flex-wrap gap-2">
-    <h4 class="font-bold mb-0"><i class="bi bi-person-circle mr-2"></i>{% if 'ROLE_ADMIN' in user.roles %}Administrator{% elseif 'ROLE_STAFF' in user.roles %}Staff{% else %}Alumni{% endif %} Profile</h4>
-    <a href="{{ path('app_profile_edit') }}" class="btn-norsu"><i class="bi bi-pencil-square mr-1"></i>Edit Profile</a>
-</div>
+{% set isAdmin = 'ROLE_ADMIN' in user.roles %}
+{% set isStaff = 'ROLE_STAFF' in user.roles %}
+{% set roleLabel = isAdmin ? 'Administrator' : (isStaff ? 'Staff' : 'Alumni') %}
+{% set roleBadgeClass = isAdmin ? 'badge-danger' : (isStaff ? 'badge-info' : 'badge-success') %}
+{% set accountBadgeClass = user.accountStatus == 'active' ? 'badge-success' : (user.accountStatus == 'pending' ? 'badge-warning' : 'badge-danger') %}
 
-<div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-    {# ── Profile Card ── #}
-    <div class="md:col-span-4">
-        <div class="card text-center">
-            <div class="card-body py-5">
-                {% if user.profileImage %}
-                    <img src="{{ asset('uploads/profile/' ~ user.profileImage) }}" alt="Profile photo" class="mx-auto mb-3 rounded-full object-cover" style="width:90px;height:90px;">
-                {% else %}
-                    <div class="mx-auto mb-3 rounded-full inline-flex items-center justify-center text-3xl font-bold text-white" style="width:90px;height:90px;background:linear-gradient(135deg,#1E40AF,#059669)">
-                        {{ user.firstName|first|upper }}{{ user.lastName|first|upper }}
-                    </div>
-                {% endif %}
-                <h5 class="font-bold mb-1">{{ user.fullName }}</h5>
-                <p class="text-gray-500 mb-2">{{ user.email }}</p>
-                {% if 'ROLE_ADMIN' in user.roles %}
-                    <span class="badge badge-success"><i class="bi bi-shield-check mr-1"></i>Administrator</span>
-                {% elseif 'ROLE_STAFF' in user.roles %}
-                    <span class="badge badge-info"><i class="bi bi-person-badge mr-1"></i>Staff</span>
-                {% else %}
-                    <span class="badge badge-primary"><i class="bi bi-mortarboard mr-1"></i>Alumni</span>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    {# ── Account Details ── #}
-    <div class="md:col-span-8">
-        <div class="card">
-            <div class="card-header bg-white font-semibold"><i class="bi bi-info-circle mr-1"></i> Account Information</div>
-            <div class="card-body">
-                <table class="w-full text-sm">
-                    <tbody>
-                        <tr>
-                            <td class="text-gray-500 py-2" style="width:200px"><i class="bi bi-person mr-2"></i>First Name</td>
-                            <td class="font-semibold py-2">{{ user.firstName }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-gray-500 py-2"><i class="bi bi-person mr-2"></i>Last Name</td>
-                            <td class="font-semibold py-2">{{ user.lastName }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-gray-500 py-2"><i class="bi bi-envelope mr-2"></i>Email Address</td>
-                            <td class="font-semibold py-2">{{ user.email }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-gray-500 py-2"><i class="bi bi-shield mr-2"></i>Role</td>
-                            <td class="py-2">
-                                <span class="badge {% if 'ROLE_ADMIN' in user.roles %}badge-danger{% elseif 'ROLE_STAFF' in user.roles %}badge-info{% else %}badge-success{% endif %}">{% if 'ROLE_ADMIN' in user.roles %}Administrator{% elseif 'ROLE_STAFF' in user.roles %}Staff{% else %}Alumni{% endif %}</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="text-gray-500 py-2"><i class="bi bi-check-circle mr-2"></i>Account Status</td>
-                            <td class="py-2">
-                                {% if user.accountStatus == 'active' %}
-                                    <span class="badge badge-success">Active</span>
-                                {% elseif user.accountStatus == 'pending' %}
-                                    <span class="badge badge-warning">Pending</span>
-                                {% else %}
-                                    <span class="badge badge-danger">Inactive</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="text-gray-500 py-2"><i class="bi bi-calendar-event mr-2"></i>Date Registered</td>
-                            <td class="font-semibold py-2">{{ user.dateRegistered|date('F d, Y \\a\\t h:i A') }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-gray-500 py-2"><i class="bi bi-clock-history mr-2"></i>Last Login</td>
-                            <td class="font-semibold py-2">
-                                {% if user.lastLogin %}
-                                    <span id="last-login-realtime"></span>
-                                {% else %}
-                                    <span class="text-gray-400">Never</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        {% if user.lastLogin %}
-        <script>
-            (function() {
-                var el = document.getElementById('last-login-realtime');
-                if (!el) return;
-
-                function formatDate(d) {
-                    var months = ['January','February','March','April','May','June',
-                                  'July','August','September','October','November','December'];
-                    var month = months[d.getMonth()];
-                    var day = String(d.getDate()).padStart(2, '0');
-                    var year = d.getFullYear();
-                    var hours = d.getHours();
-                    var minutes = String(d.getMinutes()).padStart(2, '0');
-                    var seconds = String(d.getSeconds()).padStart(2, '0');
-                    var ampm = hours >= 12 ? 'PM' : 'AM';
-                    hours = hours % 12;
-                    if (hours === 0) hours = 12;
-                    hours = String(hours).padStart(2, '0');
-                    return month + ' ' + day + ', ' + year + ' at ' + hours + ':' + minutes + ':' + seconds + ' ' + ampm;
-                }
-
-                function tick() {
-                    el.textContent = formatDate(new Date());
-                }
-
-                tick();
-                setInterval(tick, 1000);
-            })();
-        </script>
-        {% endif %}
-
-        {# ── Security ── #}
-        <div class="card mt-3">
-            <div class="card-header bg-white font-semibold"><i class="bi bi-lock mr-1"></i> Security</div>
-            <div class="card-body">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="mb-1 font-semibold">Password</p>
-                        <p class="text-gray-500 mb-0 text-sm">Last changed at registration. Update your password regularly for security.</p>
-                    </div>
-                    <a href="{{ path('app_profile_edit') }}" class="btn-outline-norsu btn-sm"><i class="bi bi-key mr-1"></i>Change Password</a>
-                </div>
-            </div>
-        </div>
-
-        {# ── Data Privacy (DPA Compliance) ── #}
-        <div class="card mt-3">
-            <div class="card-header bg-white font-semibold"><i class="bi bi-shield-lock mr-1"></i> Data Privacy</div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <p class="text-sm text-gray-600 mb-2">
-                        In compliance with the <strong>Data Privacy Act of 2012 (R.A. 10173)</strong>, you have the right to access, correct, and request erasure of your personal data.
-                    </p>
-                    {% if user.dpaConsent %}
-                        <p class="text-sm text-green-700"><i class="bi bi-check-circle mr-1"></i>DPA Consent given on {{ user.dpaConsentDate ? user.dpaConsentDate|date('F d, Y') : 'N/A' }}</p>
+<div class="space-y-4">
+    <section class="card overflow-hidden">
+        <div class="card-body px-4 sm:px-5 py-4">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div class="flex items-center gap-4 min-w-0">
+                    {% if user.profileImage %}
+                        <img src="{{ asset('uploads/profile/' ~ user.profileImage) }}" alt="Profile photo" class="rounded-full object-cover border border-gray-200 shadow-sm flex-shrink-0" style="width:84px;height:84px;">
                     {% else %}
-                        <p class="text-sm text-amber-600"><i class="bi bi-exclamation-triangle mr-1"></i>No DPA consent on record.</p>
+                        <div class="rounded-full inline-flex items-center justify-center text-2xl font-bold text-white shadow-sm flex-shrink-0" style="width:84px;height:84px;background:linear-gradient(135deg,#1E40AF,#059669)">
+                            {{ user.firstName|first|upper }}{{ user.lastName|first|upper }}
+                        </div>
                     {% endif %}
-                </div>
-                <hr class="my-3">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="mb-1 font-semibold text-red-700">Request Data Erasure</p>
-                        <p class="text-gray-500 mb-0 text-sm">This will permanently anonymize your account and data. This action cannot be undone.</p>
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-700 mb-1">My Profile</p>
+                        <h4 class="font-bold mb-1 text-darken">{{ user.fullName }}</h4>
+                        <p class="text-gray-500 mb-2 break-all">{{ user.email }}</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="badge {{ roleBadgeClass }}">{{ roleLabel }}</span>
+                            <span class="badge {{ accountBadgeClass }}">{{ user.accountStatus|capitalize }} account</span>
+                        </div>
                     </div>
-                    <form method="post" action="{{ path('app_profile_erase') }}"
-                          onsubmit="return confirm('Are you sure you want to erase all your personal data? This action is PERMANENT and cannot be undone. You will be logged out immediately.')">
-                        <input type="hidden" name="_token" value="{{ csrf_token('erase_data') }}">
-                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-lg">
-                            <i class="bi bi-trash mr-1"></i>Erase My Data
-                        </button>
-                    </form>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ path('app_profile_edit') }}" class="btn-norsu"><i class="bi bi-pencil-square mr-1"></i>Edit Profile</a>
+                    <a href="{{ path('app_profile_edit') }}#password-panel" class="btn-outline-norsu"><i class="bi bi-key mr-1"></i>Change Password</a>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <div class="grid grid-cols-1 xl:grid-cols-[1.15fr_0.85fr] gap-4">
+        <section class="card">
+            <div class="card-header bg-white font-semibold"><i class="bi bi-info-circle mr-1"></i> Account Overview</div>
+            <div class="card-body">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">First Name</p>
+                        <p class="font-semibold text-darken mb-0">{{ user.firstName }}</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">Last Name</p>
+                        <p class="font-semibold text-darken mb-0">{{ user.lastName }}</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 sm:col-span-2">
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">Email Address</p>
+                        <p class="font-semibold text-darken mb-0 break-all">{{ user.email }}</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">Role</p>
+                        <p class="font-semibold text-darken mb-0">{{ roleLabel }}</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">Account Status</p>
+                        <p class="font-semibold text-darken mb-0">{{ user.accountStatus|capitalize }}</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">Date Registered</p>
+                        <p class="font-semibold text-darken mb-0">{{ user.dateRegistered|date('F d, Y \\a\\t h:i A') }}</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">Last Login</p>
+                        <p class="font-semibold text-darken mb-0">{{ user.lastLogin ? user.lastLogin|date('F d, Y \\a\\t h:i A') : 'Never' }}</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="space-y-4">
+            <section class="card">
+                <div class="card-header bg-white font-semibold"><i class="bi bi-lightning-charge mr-1"></i> Quick Actions</div>
+                <div class="card-body space-y-3">
+                    <div class="rounded-2xl border border-slate-200 px-4 py-3">
+                        <p class="font-semibold text-darken mb-1">Profile Details</p>
+                        <p class="text-sm text-gray-500 mb-3">Update your name, email, and profile photo from one edit screen.</p>
+                        <a href="{{ path('app_profile_edit') }}" class="btn-outline-norsu btn-sm"><i class="bi bi-pencil-square mr-1"></i>Open Edit Profile</a>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 px-4 py-3">
+                        <p class="font-semibold text-darken mb-1">Security</p>
+                        <p class="text-sm text-gray-500 mb-3">Change your password from the same compact form when needed.</p>
+                        <a href="{{ path('app_profile_edit') }}#password-panel" class="btn-outline-norsu btn-sm"><i class="bi bi-key mr-1"></i>Go to Password</a>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-header bg-white font-semibold"><i class="bi bi-shield-lock mr-1"></i> Data Privacy</div>
+                <div class="card-body space-y-3">
+                    <p class="text-sm text-gray-600 mb-0">You can review your consent status and request erasure of your personal data from this panel.</p>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 mb-1">Consent Status</p>
+                        {% if user.dpaConsent %}
+                            <p class="font-semibold text-green-700 mb-0"><i class="bi bi-check-circle mr-1"></i>DPA consent recorded{% if user.dpaConsentDate %} on {{ user.dpaConsentDate|date('F d, Y') }}{% endif %}</p>
+                        {% else %}
+                            <p class="font-semibold text-amber-600 mb-0"><i class="bi bi-exclamation-triangle mr-1"></i>No DPA consent on record.</p>
+                        {% endif %}
+                    </div>
+                    <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                            <p class="font-semibold text-red-700 mb-1">Request Data Erasure</p>
+                            <p class="text-sm text-red-700/80 mb-0">This permanently anonymizes your account and signs you out immediately.</p>
+                        </div>
+                        <form method="post" action="{{ path('app_profile_erase') }}" onsubmit="return confirm('Are you sure you want to erase all your personal data? This action is PERMANENT and cannot be undone. You will be logged out immediately.')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('erase_data') }}">
+                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-lg whitespace-nowrap">
+                                <i class="bi bi-trash mr-1"></i>Erase My Data
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
 </div>

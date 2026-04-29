@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Form\AlumniType;
 use App\Form\AlumniVerificationType;
 use App\Repository\AlumniRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
@@ -21,7 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class AlumniController extends AbstractController
 {
     #[Route('/', name: 'alumni_index', methods: ['GET', 'POST'])]
-    public function index(Request $request, AlumniRepository $repo, EntityManagerInterface $em): Response
+    public function index(Request $request, AlumniRepository $repo, UserRepository $userRepo, EntityManagerInterface $em): Response
     {
         if (!$this->isGranted('ROLE_STAFF')) {
             throw $this->createAccessDeniedException('Only staff can access Alumni Verification Portal.');
@@ -80,14 +81,14 @@ class AlumniController extends AbstractController
         }
 
         if ($isStaffPortal) {
+            $alumniRoleExpression = $userRepo->createRoleMatchExpression($qb, 'u', User::ROLE_CODE_USER, 'alumni_role');
+            $staffRoleExpression = $userRepo->createRoleMatchExpression($qb, 'u', User::ROLE_CODE_STAFF, 'staff_role');
+            $adminRoleExpression = $userRepo->createRoleMatchExpression($qb, 'u', User::ROLE_CODE_ADMIN, 'admin_role');
+
             $qb->andWhere('u.id IS NOT NULL')
-                ->andWhere('(u.roles LIKE :roleUser OR u.roles LIKE :roleAlumniLegacy)')
-                ->andWhere('u.roles NOT LIKE :staffRole')
-                ->andWhere('u.roles NOT LIKE :adminRole')
-                ->setParameter('roleUser', '%ROLE_USER%')
-                ->setParameter('roleAlumniLegacy', '%' . User::ROLE_ALUMNI . '%')
-                ->setParameter('staffRole', '%ROLE_STAFF%')
-                ->setParameter('adminRole', '%ROLE_ADMIN%');
+                ->andWhere($alumniRoleExpression)
+                ->andWhere(sprintf('NOT %s', $staffRoleExpression))
+                ->andWhere(sprintf('NOT %s', $adminRoleExpression));
         }
 
         $registrationStateCounts = $this->countRegistrationStates($qb, $repo);

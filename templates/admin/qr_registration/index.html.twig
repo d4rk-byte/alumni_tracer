@@ -2,114 +2,772 @@
 
 {% block title %}QR Registration{% endblock %}
 
-{% block body %}
-<div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900">Batch QR Registration</h1>
-        <p class="text-sm text-gray-600 mt-1">Create and manage multiple batch QR codes. Each saved batch gets its own registration QR code.</p>
-    </div>
+{% block stylesheets %}
+    <style>
+        .qr-admin-shell {
+            max-width: 88rem;
+            margin: 0 auto;
+            padding: 1.5rem 1.25rem 2rem;
+        }
 
-    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
-        <div class="mb-4">
-            <h2 class="text-lg font-semibold text-gray-900">Create New Batch QR</h2>
-            <p class="text-sm text-gray-600 mt-1">Enter a batch year, then click the button to create and save its QR registration code.</p>
+        .qr-admin-hero {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .qr-admin-title {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.1;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+        }
+
+        .qr-admin-copy {
+            margin: 0.5rem 0 0;
+            max-width: 46rem;
+            color: #64748b;
+            font-size: 0.98rem;
+            line-height: 1.6;
+        }
+
+        .qr-admin-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .qr-admin-summary-card {
+            min-width: 10rem;
+            border: 1px solid #dbeafe;
+            border-radius: 1.25rem;
+            background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(239,246,255,0.96));
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+            padding: 0.95rem 1rem;
+        }
+
+        .qr-admin-summary-label {
+            display: block;
+            color: #64748b;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+
+        .qr-admin-summary-value {
+            display: block;
+            color: #0f172a;
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        .qr-create-card {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #dbeafe;
+            border-radius: 1.75rem;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fbff 55%, #edf6ff 100%);
+            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+            padding: 1.6rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .qr-create-card::after {
+            content: '';
+            position: absolute;
+            inset: auto -3rem -3rem auto;
+            width: 13rem;
+            height: 13rem;
+            border-radius: 9999px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.12), rgba(37, 99, 235, 0));
+            pointer-events: none;
+        }
+
+        .qr-create-layout {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            gap: 1.25rem;
+        }
+
+        .qr-section-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.7rem;
+            color: #2563eb;
+            font-size: 0.73rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .qr-section-title {
+            margin: 0;
+            color: #0f172a;
+            font-size: 1.4rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .qr-section-copy {
+            margin: 0.5rem 0 0;
+            color: #64748b;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            max-width: 40rem;
+        }
+
+        .qr-create-form {
+            display: grid;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .qr-field-label {
+            display: block;
+            margin-bottom: 0.55rem;
+            color: #334155;
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .qr-field-input {
+            width: 100%;
+            min-height: 3.25rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.92);
+            color: #0f172a;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 0.9rem 1rem;
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+        }
+
+        .qr-field-input:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.2);
+        }
+
+        .qr-create-hint {
+            border: 1px solid rgba(191, 219, 254, 0.9);
+            border-radius: 1.25rem;
+            background: rgba(255, 255, 255, 0.88);
+            padding: 1rem 1.1rem;
+        }
+
+        .qr-create-hint-title {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            margin: 0;
+            color: #0f172a;
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+
+        .qr-create-hint-copy {
+            margin: 0.55rem 0 0;
+            color: #64748b;
+            font-size: 0.88rem;
+            line-height: 1.55;
+        }
+
+        .qr-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.55rem;
+            min-height: 3rem;
+            border-radius: 1rem;
+            border: 1px solid transparent;
+            padding: 0.8rem 1.15rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            line-height: 1;
+            text-decoration: none;
+            transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+            cursor: pointer;
+        }
+
+        .qr-btn:hover {
+            transform: translateY(-1px);
+            text-decoration: none;
+        }
+
+        .qr-btn-primary {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #ffffff;
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.24);
+        }
+
+        .qr-btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            color: #ffffff;
+        }
+
+        .qr-btn-secondary {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #334155;
+        }
+
+        .qr-btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+            color: #0f172a;
+        }
+
+        .qr-btn-danger {
+            background: #fff1f2;
+            border-color: #fecdd3;
+            color: #e11d48;
+        }
+
+        .qr-btn-danger:hover {
+            background: #ffe4e6;
+            border-color: #fda4af;
+            color: #be123c;
+        }
+
+        .qr-batch-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .qr-batch-card {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            height: 100%;
+            border: 1px solid #dbe3f0;
+            border-radius: 1.75rem;
+            background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+            padding: 1.5rem;
+        }
+
+        .qr-batch-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .qr-batch-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.65rem;
+            border-radius: 9999px;
+            background: #eff6ff;
+            color: #2563eb;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 0.4rem 0.7rem;
+        }
+
+        .qr-batch-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.42rem;
+            margin-top: 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.42rem 0.78rem;
+        }
+
+        .qr-batch-status-open {
+            background: #ecfdf5;
+            color: #047857;
+        }
+
+        .qr-batch-status-closed {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .qr-batch-name {
+            margin: 0;
+            color: #0f172a;
+            font-size: 1.35rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .qr-batch-meta {
+            margin: 0.45rem 0 0;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .qr-batch-layout {
+            display: grid;
+            gap: 1.25rem;
+            align-items: start;
+        }
+
+        .qr-url-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 1.25rem;
+            background: #f8fbff;
+            padding: 1rem;
+        }
+
+        .qr-url-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #334155;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .qr-url-input {
+            width: 100%;
+            border: 1px solid #d7e3f0;
+            border-radius: 0.95rem;
+            background: #ffffff;
+            color: #334155;
+            font-size: 0.92rem;
+            line-height: 1.45;
+            padding: 0.9rem 1rem;
+        }
+
+        .qr-url-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .qr-batch-note {
+            border: 1px solid #dbeafe;
+            border-radius: 1.2rem;
+            background: linear-gradient(135deg, #eff6ff, #f8fbff);
+            color: #1d4ed8;
+            padding: 1rem 1.05rem;
+        }
+
+        .qr-batch-note-title {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+
+        .qr-batch-note-copy {
+            margin: 0.5rem 0 0;
+            font-size: 0.9rem;
+            line-height: 1.55;
+        }
+
+        .qr-preview-card {
+            border: 1px solid #dbeafe;
+            border-radius: 1.5rem;
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+            padding: 1rem;
+            text-align: center;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .qr-preview-title {
+            margin: 0 0 0.8rem;
+            color: #334155;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .batch-qr-container {
+            width: 15rem;
+            height: 15rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.95rem;
+            border: 1px dashed #bfdbfe;
+            border-radius: 1.4rem;
+            background: #ffffff;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .batch-qr-container img {
+            display: block;
+            width: 12.5rem;
+            height: 12.5rem;
+            border-radius: 1rem;
+        }
+
+        .qr-preview-caption {
+            margin: 0 0 1rem;
+            color: #64748b;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .qr-empty-state {
+            border: 1px dashed #cbd5e1;
+            border-radius: 1.75rem;
+            background: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            padding: 3rem 1.5rem;
+            box-shadow: 0 16px 38px rgba(15, 23, 42, 0.05);
+        }
+
+        .qr-empty-icon {
+            width: 4rem;
+            height: 4rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1.2rem;
+            background: #eff6ff;
+            color: #2563eb;
+            font-size: 1.7rem;
+            margin-bottom: 1rem;
+        }
+
+        .qr-empty-title {
+            margin: 0;
+            color: #0f172a;
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .qr-empty-copy {
+            margin: 0.6rem auto 0;
+            max-width: 32rem;
+            color: #64748b;
+            line-height: 1.65;
+        }
+
+        .qr-admin-toast {
+            position: fixed;
+            right: 1.25rem;
+            bottom: 1.25rem;
+            z-index: 1200;
+            max-width: 20rem;
+            border-radius: 1rem;
+            background: rgba(15, 23, 42, 0.92);
+            color: #ffffff;
+            font-size: 0.92rem;
+            font-weight: 600;
+            line-height: 1.5;
+            padding: 0.9rem 1rem;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .qr-admin-toast.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (min-width: 960px) {
+            .qr-admin-hero {
+                grid-template-columns: minmax(0, 1.3fr) auto;
+                align-items: end;
+            }
+
+            .qr-create-layout {
+                grid-template-columns: minmax(0, 1.3fr) minmax(18rem, 0.75fr);
+                align-items: center;
+            }
+
+            .qr-create-form {
+                grid-template-columns: minmax(15rem, 18rem) auto;
+            }
+        }
+
+        @media (min-width: 1100px) {
+            .qr-batch-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .qr-batch-layout {
+                grid-template-columns: minmax(0, 1.25fr) minmax(16rem, 0.82fr);
+            }
+        }
+
+        @media (max-width: 639px) {
+            .qr-admin-shell {
+                padding-inline: 0.95rem;
+            }
+
+            .qr-admin-title {
+                font-size: 1.7rem;
+            }
+
+            .qr-create-card,
+            .qr-batch-card,
+            .qr-empty-state {
+                padding: 1.2rem;
+            }
+
+            .batch-qr-container {
+                width: 13.25rem;
+                height: 13.25rem;
+            }
+
+            .batch-qr-container img {
+                width: 11.1rem;
+                height: 11.1rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+{% set latestBatch = batches|first %}
+<div class="qr-admin-shell">
+    <header class="qr-admin-hero">
+        <div>
+            <span class="qr-section-eyebrow"><i class="bi bi-qr-code-scan"></i>QR Registration</span>
+            <h1 class="qr-admin-title">Batch QR Registration</h1>
+            <p class="qr-admin-copy">Create batch-based registration QR codes, share the public registration link instantly, and keep each intake year organized under its own saved QR entry.</p>
         </div>
 
-        <form method="post" class="flex flex-col gap-4 md:flex-row md:items-end">
-            <input type="hidden" name="_token" value="{{ csrf_token('create_qr_batch') }}">
-            <div class="md:w-72">
-                <label for="batchYear" class="block text-sm font-semibold text-gray-700 mb-2">Batch Year</label>
-                <input id="batchYear"
-                       name="batchYear"
-                       type="number"
-                       min="1950"
-                       max="{{ maxBatchYear }}"
-                       value="{{ defaultBatchYear }}"
-                       class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300">
+        <div class="qr-admin-summary">
+            <div class="qr-admin-summary-card">
+                <span class="qr-admin-summary-label">Saved Batches</span>
+                <span class="qr-admin-summary-value">{{ batches|length }}</span>
             </div>
-            <div class="flex items-end">
-                <button type="submit" class="btn-norsu w-full md:w-auto min-w-[180px]">
-                    <i class="bi bi-qr-code mr-1"></i>Create Batch QR
-                </button>
+            <div class="qr-admin-summary-card">
+                <span class="qr-admin-summary-label">Suggested Year</span>
+                <span class="qr-admin-summary-value">{{ defaultBatchYear }}</span>
             </div>
-        </form>
-    </div>
+            <div class="qr-admin-summary-card">
+                <span class="qr-admin-summary-label">Latest Entry</span>
+                <span class="qr-admin-summary-value">{{ latestBatch ? ('Batch ' ~ latestBatch.batchYear) : 'Not yet set' }}</span>
+            </div>
+        </div>
+    </header>
+
+    <section class="qr-create-card">
+        <div class="qr-create-layout">
+            <div>
+                <span class="qr-section-eyebrow"><i class="bi bi-plus-circle"></i>Create New QR</span>
+                <h2 class="qr-section-title">Launch a new batch registration code</h2>
+                <p class="qr-section-copy">Enter the intake year for the alumni batch you want to open. Once saved, the system generates a dedicated registration URL and QR image that can be shared with students immediately.</p>
+
+                <form method="post" class="qr-create-form mt-5">
+                    <input type="hidden" name="_token" value="{{ csrf_token('create_qr_batch') }}">
+                    <div>
+                        <label for="batchYear" class="qr-field-label">Batch Year</label>
+                        <input id="batchYear"
+                               name="batchYear"
+                               type="number"
+                               min="1950"
+                               max="{{ maxBatchYear }}"
+                               value="{{ defaultBatchYear }}"
+                               class="qr-field-input">
+                    </div>
+                    <button type="submit" class="qr-btn qr-btn-primary">
+                        <i class="bi bi-qr-code"></i>
+                        Create Batch QR
+                    </button>
+                </form>
+            </div>
+
+            <aside class="qr-create-hint">
+                <p class="qr-create-hint-title"><i class="bi bi-info-circle"></i>How this works</p>
+                <p class="qr-create-hint-copy">Each saved batch creates a public registration page under its own year. Students who open that link or scan its QR code will be automatically registered under the selected batch.</p>
+            </aside>
+        </div>
+    </section>
 
     {% if batches is empty %}
-        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 text-sm text-gray-600">
-            No QR registration batches have been created yet.
-        </div>
+        <section class="qr-empty-state">
+            <div class="qr-empty-icon"><i class="bi bi-qr-code"></i></div>
+            <h2 class="qr-empty-title">No QR registration batches yet</h2>
+            <p class="qr-empty-copy">Create your first batch above to generate a shareable registration page and QR code for incoming alumni registrations.</p>
+        </section>
     {% else %}
-        <div class="grid gap-6 lg:grid-cols-2">
+        <div class="qr-batch-grid">
             {% for batch in batches %}
                 {% set qrUrl = url('app_qr_registration', { batchYear: batch.batchYear }) %}
-                <section class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 space-y-4">
-                    <div class="flex items-start justify-between gap-4">
+                <section class="qr-batch-card">
+                    <div class="qr-batch-card-header">
                         <div>
-                            <h2 class="text-lg font-semibold text-gray-900">Batch {{ batch.batchYear }}</h2>
-                            <p class="text-sm text-gray-600 mt-1">Created {{ batch.createdAt|date('M d, Y h:i A') }}</p>
+                            <span class="qr-batch-pill"><i class="bi bi-calendar4-week"></i>Batch {{ batch.batchYear }}</span>
+                            <h2 class="qr-batch-name">Batch {{ batch.batchYear }} Registration</h2>
+                            <p class="qr-batch-meta">Created {{ batch.createdAt|date('M d, Y h:i A') }}</p>
+                            <span class="qr-batch-status {{ batch.isOpen ? 'qr-batch-status-open' : 'qr-batch-status-closed' }}">
+                                <i class="bi {{ batch.isOpen ? 'bi-unlock' : 'bi-lock' }}"></i>
+                                {{ batch.isOpen ? 'Open' : 'Closed' }}
+                            </span>
                         </div>
-                        <form method="post" action="{{ path('admin_qr_registration_delete', { id: batch.id }) }}" onsubmit="return confirm('Delete QR registration for batch {{ batch.batchYear }}?');">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete_qr_batch' ~ batch.id) }}">
-                            <button type="submit" class="inline-flex items-center rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100">Delete</button>
-                        </form>
+
+                        <div class="flex flex-wrap justify-end gap-2">
+                            <form method="post" action="{{ path('admin_qr_registration_toggle', { id: batch.id }) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('toggle_qr_batch' ~ batch.id) }}">
+                                <button type="submit" class="qr-btn {{ batch.isOpen ? 'qr-btn-secondary' : 'qr-btn-primary' }}">
+                                    <i class="bi {{ batch.isOpen ? 'bi-lock' : 'bi-arrow-clockwise' }}"></i>
+                                    {{ batch.isOpen ? 'Close registration' : 'Reopen registration' }}
+                                </button>
+                            </form>
+
+                            <form method="post" action="{{ path('admin_qr_registration_delete', { id: batch.id }) }}" onsubmit="return confirm('Delete QR registration for batch {{ batch.batchYear }}?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_qr_batch' ~ batch.id) }}">
+                                <button type="submit" class="qr-btn qr-btn-danger">
+                                    <i class="bi bi-trash"></i>
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
-                    <div class="grid gap-6 md:grid-cols-[1fr_220px] md:items-start">
+                    <div class="qr-batch-layout">
                         <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Public URL</label>
+                            <div class="qr-url-card">
+                                <label class="qr-url-label">Public URL</label>
                                 <input type="text"
                                        readonly
                                        value="{{ qrUrl }}"
-                                       class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-gray-900">
+                                       class="qr-url-input">
                             </div>
 
-                            <div class="flex flex-wrap gap-3">
-                                <a href="{{ qrUrl }}" target="_blank" rel="noopener" class="inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 no-underline hover:bg-slate-50">Open registration page</a>
-                                <button type="button" data-qr-url="{{ qrUrl }}" onclick="copyBatchUrl(this)" class="inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">Copy link</button>
+                            <div class="qr-url-actions">
+                                {% if batch.isOpen %}
+                                    <a href="{{ qrUrl }}" target="_blank" rel="noopener" class="qr-btn qr-btn-primary">
+                                        <i class="bi bi-box-arrow-up-right"></i>
+                                        Open registration page
+                                    </a>
+                                {% else %}
+                                    <span class="qr-btn qr-btn-secondary opacity-60 cursor-default">
+                                        <i class="bi bi-lock"></i>
+                                        Registration closed
+                                    </span>
+                                {% endif %}
+                                <button type="button" data-qr-url="{{ qrUrl }}" onclick="copyBatchUrl(this)" class="qr-btn qr-btn-secondary">
+                                    <i class="bi bi-link-45deg"></i>
+                                    Copy link
+                                </button>
                             </div>
 
-                            <div class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-                                Students who scan this QR code will register under batch {{ batch.batchYear }} and choose their college and department on the form.
+                            <div class="qr-batch-note">
+                                <p class="qr-batch-note-title"><i class="bi {{ batch.isOpen ? 'bi-people' : 'bi-shield-lock' }}"></i>{{ batch.isOpen ? 'Registration behavior' : 'Registration closed' }}</p>
+                                <p class="qr-batch-note-copy">
+                                    {% if batch.isOpen %}
+                                        Students who scan this QR code will register under batch {{ batch.batchYear }} and choose their college and department on the form.
+                                    {% else %}
+                                        This batch is currently closed. Students can no longer submit the registration form until you reopen this batch.
+                                    {% endif %}
+                                </p>
                             </div>
                         </div>
 
-                        <div class="text-center space-y-3">
-                            <div class="batch-qr-container mx-auto flex items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50"
-                                 data-batch-year="{{ batch.batchYear }}"
-                                 style="width:220px;height:220px;">
-                                  <img src="{{ qr_code_data_uri(qrUrl, 'default', { size: 200, margin: 2 }) }}"
+                        <aside class="qr-preview-card">
+                            <p class="qr-preview-title">QR Preview</p>
+                            <div class="batch-qr-container" data-batch-year="{{ batch.batchYear }}">
+                                <img src="{{ qr_code_data_uri(qrUrl, 'default', { size: 200, margin: 2 }) }}"
                                      alt="QR code for batch {{ batch.batchYear }} registration"
-                                      width="200"
-                                      height="200"
-                                      loading="lazy"
-                                     class="h-[200px] w-[200px] rounded-xl">
+                                     width="200"
+                                     height="200"
+                                     loading="lazy">
                             </div>
-                            <button type="button" data-batch-year="{{ batch.batchYear }}" onclick="downloadBatchQr(this)" class="inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">Download QR</button>
-                        </div>
+                            <p class="qr-preview-caption">Share this QR image in posters, social posts, or printed materials for faster batch onboarding.</p>
+                            <button type="button" data-batch-year="{{ batch.batchYear }}" onclick="downloadBatchQr(this)" class="qr-btn qr-btn-secondary w-full">
+                                <i class="bi bi-download"></i>
+                                Download QR
+                            </button>
+                        </aside>
                     </div>
                 </section>
             {% endfor %}
         </div>
     {% endif %}
 </div>
-<script>
-function copyBatchUrl(button) {
-    navigator.clipboard.writeText(button.dataset.qrUrl);
-}
 
-function downloadBatchQr(button) {
-    const section = button.closest('section');
-    const qrImage = section ? section.querySelector('.batch-qr-container img') : null;
-    if (!qrImage) {
-        return;
-    }
+<div id="qrBatchToast" class="qr-admin-toast" aria-live="polite"></div>
+{% endblock %}
 
-    const link = document.createElement('a');
-    link.download = 'batch-' + button.dataset.batchYear + '-qr-registration.png';
-    link.href = qrImage.src;
-    link.click();
-}
-</script>
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let qrBatchToastTimer = null;
+
+        function showQrBatchToast(message) {
+            const toast = document.getElementById('qrBatchToast');
+            if (!toast) {
+                return;
+            }
+
+            toast.textContent = message;
+            toast.classList.add('is-visible');
+
+            if (qrBatchToastTimer !== null) {
+                window.clearTimeout(qrBatchToastTimer);
+            }
+
+            qrBatchToastTimer = window.setTimeout(() => {
+                toast.classList.remove('is-visible');
+                qrBatchToastTimer = null;
+            }, 2200);
+        }
+
+        async function copyBatchUrl(button) {
+            const qrUrl = button.dataset.qrUrl;
+            if (!qrUrl) {
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(qrUrl);
+            } catch (error) {
+                const fallbackInput = document.createElement('textarea');
+                fallbackInput.value = qrUrl;
+                fallbackInput.setAttribute('readonly', 'readonly');
+                fallbackInput.style.position = 'absolute';
+                fallbackInput.style.left = '-9999px';
+                document.body.appendChild(fallbackInput);
+                fallbackInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(fallbackInput);
+            }
+
+            const originalHtml = button.innerHTML;
+            button.innerHTML = '<i class="bi bi-check2"></i>Copied';
+            showQrBatchToast('Registration link copied to clipboard.');
+
+            window.setTimeout(() => {
+                button.innerHTML = originalHtml;
+            }, 1600);
+        }
+
+        function downloadBatchQr(button) {
+            const section = button.closest('section');
+            const qrImage = section ? section.querySelector('.batch-qr-container img') : null;
+            if (!qrImage) {
+                return;
+            }
+
+            const link = document.createElement('a');
+            link.download = 'batch-' + button.dataset.batchYear + '-qr-registration.png';
+            link.href = qrImage.src;
+            link.click();
+
+            showQrBatchToast('QR download started.');
+        }
+    </script>
 {% endblock %}

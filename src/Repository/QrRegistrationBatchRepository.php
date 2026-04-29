@@ -29,4 +29,15 @@ class QrRegistrationBatchRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['batchYear' => $batchYear]);
     }
+
+    public function findOneOpenByBatchYear(int $batchYear): ?QrRegistrationBatch
+    {
+        return $this->createQueryBuilder('b')
+            ->andWhere('b.batchYear = :batchYear')
+            ->andWhere('b.isOpen = :isOpen')
+            ->setParameter('batchYear', $batchYear)
+            ->setParameter('isOpen', true)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

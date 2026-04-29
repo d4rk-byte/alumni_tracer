@@ -96,6 +96,32 @@ class QrRegistrationController extends AbstractController
         return $this->redirectToRoute('admin_qr_registration');
     }
 
+    #[Route('/admin/qr-registration/{id}/toggle', name: 'admin_qr_registration_toggle', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function toggleBatchStatus(int $id, Request $request, QrRegistrationBatchRepository $batchRepository, EntityManagerInterface $entityManager): Response
+    {
+        $this->ensureBatchTableExists($entityManager);
+
+        $batch = $batchRepository->find($id);
+        if (!$batch instanceof QrRegistrationBatch) {
+            throw $this->createNotFoundException('QR registration batch was not found.');
+        }
+
+        if ($this->isCsrfTokenValid('toggle_qr_batch' . $batch->getId(), (string) $request->request->get('_token'))) {
+            $batch->setIsOpen(!$batch->isOpen());
+            $entityManager->flush();
+
+            $this->addFlash(
+                'success',
+                $batch->isOpen()
+                    ? sprintf('Batch %d QR registration reopened.', $batch->getBatchYear())
+                    : sprintf('Batch %d QR registration closed.', $batch->getBatchYear())
+            );
+        }
+
+        return $this->redirectToRoute('admin_qr_registration');
+    }
+
     #[Route('/register/qr/{batchYear<\d{4}>}', name: 'app_qr_registration', methods: ['GET', 'POST'])]
     public function register(
         int $batchYear,
@@ -118,8 +144,8 @@ class QrRegistrationController extends AbstractController
             throw $this->createNotFoundException('Batch year is invalid.');
         }
 
-        if ($batchRepository->findOneByBatchYear($batchYear) === null) {
-            throw $this->createNotFoundException('QR registration batch was not found.');
+        if ($batchRepository->findOneOpenByBatchYear($batchYear) === null) {
+            throw $this->createNotFoundException('QR registration batch was not found or is closed.');
         }
 
         $activeDepartments = $departmentRepository->findActiveWithActiveCollege();
@@ -231,6 +257,12 @@ class QrRegistrationController extends AbstractController
         $schemaManager = $connection->createSchemaManager();
 
         if ($schemaManager->tablesExist(['qr_registration_batch'])) {
+            $columns = $schemaManager->listTableColumns('qr_registration_batch');
+
+            if (!isset($columns['is_open'])) {
+                $connection->executeStatement('ALTER TABLE qr_registration_batch ADD is_open BOOLEAN NOT NULL DEFAULT 1');
+            }
+
             return;
         }
 
@@ -239,6 +271,7 @@ class QrRegistrationController extends AbstractController
                 id INT AUTO_INCREMENT NOT NULL,
                 batch_year SMALLINT NOT NULL,
                 created_at DATETIME NOT NULL,
+                is_open TINYINT(1) NOT NULL DEFAULT 1,
                 UNIQUE INDEX uniq_qr_registration_batch_year (batch_year),
                 PRIMARY KEY(id)
             ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB'

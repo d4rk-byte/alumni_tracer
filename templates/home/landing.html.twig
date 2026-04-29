@@ -1,54 +1,140 @@
 {% extends 'home/landing_layout.html.twig' %}
 
-{% block title %}NORSU Alumni Tracker | Home{% endblock %}
+{% set isAlumniLanding = landing_mode|default('guest') == 'alumni' %}
+{% set recentAnnouncement = recentAnnouncements|default([])|first %}
+{% set recentJob = recentJobs|default([])|first %}
+{% set latestSurvey = latestSurvey|default(null) %}
+{% set spotlightAlumnus = milestoneAlumni|default([])|first %}
+{% set hasLinkedAlumni = alumni is defined and alumni %}
+{% set surveyCompleted = hasGtsSurvey|default(false) %}
+{% set profileCompletionPercent = profileSnapshot.completionPercent|default(0) %}
+{% set profileCompletionStatus = profileSnapshot.completionStatus|default('Needs Attention') %}
+{% set accountStatusLabel = profileSnapshot.accountStatus|default('Pending') %}
+{% set tracerStatusLabel = profileSnapshot.tracerStatus|default(surveyCompleted ? 'Completed' : 'Pending') %}
+{% set profileCompletedAt = profileSnapshot.profileCompletedAt|default(null) %}
+{% set lastLoginAt = profileSnapshot.lastLogin|default(null) %}
+{% set dateRegisteredAt = profileSnapshot.dateRegistered|default(null) %}
+{% set lastTracerSubmissionAt = profileSnapshot.lastTracerSubmissionAt|default(null) %}
+{% set recentAnnouncementCategory = recentAnnouncement and recentAnnouncement.category ? recentAnnouncement.category : 'Office updates' %}
+{% set recentAnnouncementPosted = recentAnnouncement and recentAnnouncement.datePosted ? recentAnnouncement.datePosted|date('M d, Y') : 'Waiting for next post' %}
+{% set latestJobEmployer = recentJob and recentJob.companyName ? recentJob.companyName : 'Waiting for new postings' %}
+{% set latestJobDeadline = recentJob and recentJob.deadline ? recentJob.deadline|date('M d, Y') : 'Open until filled' %}
+{% set latestTracerEmployment = latestSurvey ? (latestSurvey.presentEmploymentStatus ?: latestSurvey.presentlyEmployed ?: 'Response on file') : 'Response needed' %}
+{% set latestTracerOccupation = latestSurvey ? (latestSurvey.presentOccupation ?: latestSurvey.placeOfWork ?: 'No occupation summary yet') : 'No tracer response yet' %}
+{% set profileProgram = hasLinkedAlumni ? (alumni.course ?: alumni.degreeProgram ?: 'Program not set') : 'Alumni record needed' %}
+{% set profileLinkStatus = hasLinkedAlumni ? 'Linked record ready' : 'Record not linked' %}
+{% set tracerCampaign = tracerCampaignSnapshot|default({
+    hasInvitation: false,
+    hasCampaign: false,
+    campaignName: surveyCompleted ? 'Direct tracer response' : 'No tracer campaign yet',
+    campaignStatusLabel: 'No campaign',
+    invitationStatusLabel: surveyCompleted ? 'Completed' : 'No invitation',
+    statusSummary: surveyCompleted ? 'Your latest tracer response is on file.' : 'No tracer invitation campaign is currently assigned to this account.',
+    timelineLabel: surveyCompleted ? 'Latest Response' : 'Next Tracer Step',
+    timelineValue: lastTracerSubmissionAt ? lastTracerSubmissionAt|date('M d, Y') : (surveyCompleted ? 'Response on file' : 'Waiting for invite'),
+    windowValue: surveyCompleted ? 'Completed' : 'Not scheduled',
+    audienceSummary: surveyCompleted ? 'Direct tracer submission' : 'No audience configured'
+}) %}
+{% set tracerPreviewTitle = tracerCampaign.hasInvitation ? (tracerCampaign.invitationStatusLabel ~ ' invitation') : (surveyCompleted ? 'Tracer response on file' : 'Tracer response still needed') %}
+{% set tracerPreviewMeta = tracerCampaign.hasCampaign ? (tracerCampaign.campaignName ~ ' • ' ~ tracerCampaign.campaignStatusLabel ~ ' campaign') : (latestSurvey ? latestTracerEmployment ~ ' • ' ~ latestTracerOccupation : 'Review status, invitation state, and readiness from a dedicated tracer page.') %}
+{% set tracerPreviewDetail = tracerCampaign.hasInvitation ? (tracerCampaign.timelineLabel ~ ' • ' ~ tracerCampaign.timelineValue) : (latestSurvey ? latestTracerOccupation : 'Invitation, campaign, and response details live here.') %}
+
+{% block title %}{% if isAlumniLanding %}Alumni Home | NORSU Alumni Tracker{% else %}NORSU Alumni Tracker | Home{% endif %}{% endblock %}
 
 {% block page_content %}
 <div class="bg-blue-50 pb-2 overflow-hidden" style="border-bottom-left-radius: 55% 16%; border-bottom-right-radius: 55% 16%;">
-    <div class="max-w-screen-xl px-8 mx-auto">
-        <div class="flex flex-col lg:flex-row items-start lg:items-start pt-10 lg:pt-12">
-            <div class="flex flex-col w-full lg:w-6/12 justify-center items-center lg:items-start text-center lg:text-left mb-8 lg:mb-0 lg:pr-6 lg:pt-8">
-                <h1 data-aos="fade-right" data-aos-once="true" class="my-4 text-5xl font-bold leading-tight text-darken">
-                    <span class="text-blue-600">Track</span> alumni outcomes with confidence
-                </h1>
-                <p data-aos="fade-down" data-aos-once="true" data-aos-delay="200" class="leading-normal text-2xl mb-8 text-gray-600">NORSU Alumni Tracker helps graduates, staff, and stakeholders stay connected through career insights, tracer data, and opportunities.</p>
-                <div data-aos="fade-up" data-aos-once="true" data-aos-delay="400" class="w-full flex flex-col sm:flex-row sm:items-center justify-center lg:justify-start gap-4 sm:gap-5">
-                    <a href="{{ path('app_register') }}" class="inline-block bg-blue-600 text-white text-xl font-bold rounded-full py-4 px-9 no-underline transform transition hover:scale-110 duration-300 ease-in-out">Join Now</a>
-                    <a href="{{ path('app_about') }}" class="inline-flex items-center gap-3 text-darken text-lg no-underline hover:underline">
-                        <span class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm" aria-hidden="true">
-                            <svg class="w-5 h-5 text-sky-500" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M7 5.5a1 1 0 011.53-.848l6 3.75a1 1 0 010 1.696l-6 3.75A1 1 0 017 13.999V5.5z" />
-                            </svg>
-                        </span>
-                        <span>Learn how it works</span>
-                    </a>
-                </div>
+    <div class="max-w-screen-xl px-5 sm:px-8 mx-auto">
+        <div class="flex flex-col lg:flex-row items-start lg:items-start pt-8 sm:pt-10 lg:pt-12">
+            <div class="flex flex-col w-full {{ isAlumniLanding ? 'max-w-5xl mx-auto justify-center items-center text-center lg:pt-6' : 'lg:w-6/12 justify-center items-center lg:items-start text-center lg:text-left mb-6 sm:mb-8 lg:mb-0 lg:pr-6 lg:pt-8' }}">
+                {% if isAlumniLanding %}
+                    <span data-aos="fade-right" data-aos-once="true" class="inline-flex items-center gap-2 rounded-full bg-white/85 px-3 sm:px-4 py-2 text-[0.62rem] sm:text-[0.72rem] font-bold tracking-[0.18em] sm:tracking-[0.22em] text-blue-700 shadow-sm border border-white/70">ALUMNI FEATURED HOME</span>
+                    <h1 data-aos="fade-right" data-aos-once="true" class="my-4 text-4xl sm:text-5xl font-bold leading-tight text-darken">
+                        Welcome back, <span class="text-blue-600">{{ app.user.firstName }}</span>
+                    </h1>
+                    <p data-aos="fade-down" data-aos-once="true" data-aos-delay="200" class="leading-relaxed text-base sm:text-xl lg:text-2xl mb-6 sm:mb-8 text-gray-600">Your alumni home now previews the real content inside announcements, jobs, tracer status, and profile pages so you can see what matters before opening each feature.</p>
+                    <div data-aos="fade-up" data-aos-once="true" data-aos-delay="400" class="w-full flex flex-col sm:flex-row sm:items-center justify-center gap-3 sm:gap-5">
+                        <a href="{{ path('app_alumni_feature_tracer_survey') }}" class="inline-flex w-full sm:w-auto items-center justify-center bg-blue-600 text-white text-lg sm:text-xl font-bold rounded-full py-4 px-8 sm:px-10 no-underline transform transition hover:scale-110 duration-300 ease-in-out">Open tracer page</a>
+                        <a href="{{ path('app_alumni_feature_profile') }}" class="inline-flex items-center justify-center rounded-full bg-white/90 border border-white/80 px-5 sm:px-6 py-3 text-darken text-base sm:text-lg no-underline shadow-sm transition hover:-translate-y-0.5">Open profile page</a>
+                    </div>
+                    <div data-aos="fade-up" data-aos-once="true" data-aos-delay="550" class="w-full flex flex-wrap justify-center lg:justify-start gap-2.5 sm:gap-3 mt-5 sm:mt-6">
+                        <span class="px-5 sm:px-6 py-3 rounded-full bg-white/95 border border-white/80 text-sm sm:text-base font-semibold text-gray-700 shadow-sm">{{ recentAnnouncements|default([])|length }} live notices</span>
+                        <span class="px-5 sm:px-6 py-3 rounded-full bg-white/95 border border-white/80 text-sm sm:text-base font-semibold text-gray-700 shadow-sm">{{ recentJobs|default([])|length }} hiring highlights</span>
+                        <span class="px-5 sm:px-6 py-3 rounded-full bg-white/95 border border-white/80 text-sm sm:text-base font-semibold text-gray-700 shadow-sm">Tracer {{ tracerStatusLabel|lower }}</span>
+                        <span class="px-5 sm:px-6 py-3 rounded-full bg-white/95 border border-white/80 text-sm sm:text-base font-semibold text-gray-700 shadow-sm">Profile {{ profileCompletionPercent }}% complete</span>
+                    </div>
+                    <div data-aos="fade-up" data-aos-once="true" data-aos-delay="650" class="w-full grid sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mt-5 sm:mt-6">
+                        <article data-alumni-dashboard-card data-alumni-home-hero-preview="announcements" class="rounded-2xl bg-white/92 border border-blue-100 px-4 py-4 sm:px-5 sm:py-5 text-left shadow-sm hover:shadow-md transition-shadow">
+                            <p class="text-[0.68rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">ANNOUNCEMENT DESK</p>
+                            <p class="text-sm font-semibold text-darken mb-1">{{ recentAnnouncement ? recentAnnouncement.title : 'Waiting for the next office advisory' }}</p>
+                            <p class="text-sm text-gray-500 mb-4">{{ recentAnnouncement ? recentAnnouncementCategory ~ ' • ' ~ recentAnnouncementPosted : 'Office advisories, reminders, and event posts will show here.' }}</p>
+                            <a data-alumni-dashboard-link href="{{ path('app_alumni_feature_announcements') }}" class="inline-flex items-center rounded-full bg-blue-50 text-blue-800 font-semibold px-4 py-2 border border-blue-100 no-underline">Open announcements page</a>
+                        </article>
+                        <article data-alumni-dashboard-card data-alumni-home-hero-preview="jobs" class="rounded-2xl bg-white/92 border border-blue-100 px-4 py-4 sm:px-5 sm:py-5 text-left shadow-sm hover:shadow-md transition-shadow">
+                            <p class="text-[0.68rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">CAREER BOARD</p>
+                            <p class="text-sm font-semibold text-darken mb-1">{{ recentJob ? recentJob.title : 'No current opportunity highlight' }}</p>
+                            <p class="text-sm text-gray-500 mb-4">{{ recentJob ? latestJobEmployer ~ ' • ' ~ latestJobDeadline : 'Browse partner employers, deadlines, and alumni-ready roles.' }}</p>
+                            <a data-alumni-dashboard-link href="{{ path('app_alumni_feature_jobs') }}" class="inline-flex items-center rounded-full bg-blue-50 text-blue-800 font-semibold px-4 py-2 border border-blue-100 no-underline">Open jobs page</a>
+                        </article>
+                        <article data-alumni-dashboard-card data-alumni-home-hero-preview="tracer" class="rounded-2xl bg-white/92 border border-blue-100 px-4 py-4 sm:px-5 sm:py-5 text-left shadow-sm hover:shadow-md transition-shadow">
+                            <p class="text-[0.68rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">TRACER CONTROL CENTER</p>
+                            <p class="text-sm font-semibold text-darken mb-1">{{ tracerPreviewTitle }}</p>
+                            <p class="text-sm text-gray-500 mb-2">{{ tracerPreviewMeta }}</p>
+                            <p class="text-xs text-slate-500 mb-4">{{ tracerPreviewDetail }}</p>
+                            <a data-alumni-dashboard-link href="{{ path('app_alumni_feature_tracer_survey') }}" class="inline-flex items-center rounded-full bg-blue-50 text-blue-800 font-semibold px-4 py-2 border border-blue-100 no-underline">Open tracer page</a>
+                        </article>
+                        <article data-alumni-dashboard-card data-alumni-home-hero-preview="profile" class="rounded-2xl bg-white/92 border border-blue-100 px-4 py-4 sm:px-5 sm:py-5 text-left shadow-sm hover:shadow-md transition-shadow">
+                            <p class="text-[0.68rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">PROFILE OVERVIEW</p>
+                            <p class="text-sm font-semibold text-darken mb-1">{{ hasLinkedAlumni ? 'Linked alumni record ready' : 'Profile still needs attention' }}</p>
+                            <p class="text-sm text-gray-500 mb-4">{{ hasLinkedAlumni ? profileProgram ~ ' • ' ~ accountStatusLabel ~ ' account' : 'Check identity, account, and alumni record completeness on your profile page.' }}</p>
+                            <a data-alumni-dashboard-link href="{{ path('app_alumni_feature_profile') }}" class="inline-flex items-center rounded-full bg-blue-50 text-blue-800 font-semibold px-4 py-2 border border-blue-100 no-underline">Open profile page</a>
+                        </article>
+                    </div>
+                {% else %}
+                    <h1 data-aos="fade-right" data-aos-once="true" class="my-4 text-5xl font-bold leading-tight text-darken">
+                        <span class="text-blue-600">Track</span> alumni outcomes with confidence
+                    </h1>
+                    <p data-aos="fade-down" data-aos-once="true" data-aos-delay="200" class="leading-normal text-2xl mb-8 text-gray-600">NORSU Alumni Tracker helps graduates, staff, and stakeholders stay connected through career insights, tracer data, and opportunities.</p>
+                    <div data-aos="fade-up" data-aos-once="true" data-aos-delay="400" class="w-full flex flex-col sm:flex-row sm:items-center justify-center lg:justify-start gap-4 sm:gap-5">
+                        <a href="{{ path('app_register') }}" class="inline-block bg-blue-600 text-white text-xl font-bold rounded-full py-4 px-9 no-underline transform transition hover:scale-110 duration-300 ease-in-out">Join Now</a>
+                        <a href="{{ path('app_about') }}" class="inline-flex items-center gap-3 text-darken text-lg no-underline hover:underline">
+                            <span class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm" aria-hidden="true">
+                                <svg class="w-5 h-5 text-sky-500" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M7 5.5a1 1 0 011.53-.848l6 3.75a1 1 0 010 1.696l-6 3.75A1 1 0 017 13.999V5.5z" />
+                                </svg>
+                            </span>
+                            <span>Learn how it works</span>
+                        </a>
+                    </div>
+                {% endif %}
             </div>
 
-            <div class="w-full lg:w-6/12 relative mt-6 lg:-mt-24" id="hero-image">
-                <img data-aos="fade-up" data-aos-once="true" class="w-11/12 ml-auto" src="{{ asset('skilline/img/girl.png') }}" alt="NORSU alumni community" />
-                <div data-aos="fade-up" data-aos-delay="300" data-aos-once="true" class="absolute top-12 left-1 sm:left-10 floating-4">
-                    <img class="bg-white bg-opacity-80 rounded-lg h-12 sm:h-16" src="{{ asset('skilline/img/calendar.svg') }}" alt="Calendar" />
+            {% if not isAlumniLanding %}
+            <div class="w-full lg:w-6/12 relative mt-4 sm:mt-6 lg:-mt-24" id="hero-image">
+                <img data-aos="fade-up" data-aos-once="true" class="w-full sm:w-11/12 ml-auto" src="{{ asset('skilline/img/girl.png') }}" alt="NORSU alumni community" />
+                <div data-aos="fade-up" data-aos-delay="300" data-aos-once="true" class="absolute top-10 left-1 sm:left-10 floating-4">
+                    <img class="bg-white bg-opacity-80 rounded-lg h-10 sm:h-16" src="{{ asset('skilline/img/calendar.svg') }}" alt="Calendar" />
                 </div>
-                <div data-aos="fade-up" data-aos-delay="450" data-aos-once="true" class="absolute bottom-12 left-0 sm:left-4 floating">
-                    <img class="bg-white bg-opacity-80 rounded-lg h-16 sm:h-20" src="{{ asset('skilline/img/ux-class.svg') }}" alt="Insights" />
+                <div data-aos="fade-up" data-aos-delay="450" data-aos-once="true" class="absolute bottom-10 left-0 sm:left-4 floating">
+                    <img class="bg-white bg-opacity-80 rounded-lg h-12 sm:h-20" src="{{ asset('skilline/img/ux-class.svg') }}" alt="Insights" />
                 </div>
-                <div data-aos="fade-up" data-aos-delay="600" data-aos-once="true" class="absolute bottom-20 right-1 sm:right-8 floating-4">
-                    <img class="bg-white bg-opacity-80 rounded-lg h-10 sm:h-14" src="{{ asset('skilline/img/congrat.svg') }}" alt="Success" />
+                <div data-aos="fade-up" data-aos-delay="600" data-aos-once="true" class="absolute bottom-16 right-1 sm:right-8 floating-4">
+                    <img class="bg-white bg-opacity-80 rounded-lg h-8 sm:h-14" src="{{ asset('skilline/img/congrat.svg') }}" alt="Success" />
                 </div>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<div class="pt-14 pb-8 bg-blue-100">
-    <div class="max-w-screen-xl px-8 mx-auto text-gray-700 overflow-x-hidden">
+<div class="pt-10 sm:pt-14 pb-8 bg-blue-100">
+    <div class="max-w-screen-xl px-5 sm:px-8 mx-auto text-gray-700 overflow-x-hidden">
             {% if logos is defined and logos|length > 0 %}
-                <div data-aos="fade-up" class="pt-2">
-                    <h2 class="text-center font-semibold text-darken text-2xl">Official Logos</h2>
+                <div data-aos="fade-up" class="pt-1 sm:pt-2">
+                    <h2 class="text-center font-semibold text-darken text-xl sm:text-2xl">Official Logos</h2>
                     <p class="text-center text-gray-500 mt-2">Displayed from skilline/img/logos</p>
-                    <div class="mt-6 flex items-center gap-4 overflow-x-auto pb-3">
+                    <div class="mt-6 flex flex-wrap items-center justify-center gap-4 pb-1">
                         {% for logo in logos %}
-                            <div class="shrink-0 w-44 h-24 rounded-xl bg-white border border-gray-100 shadow-sm px-4 flex items-center justify-center">
+                            <div class="w-44 h-24 rounded-xl bg-white border border-gray-100 shadow-sm px-4 flex items-center justify-center">
                                 <img src="{{ asset(logo.assetPath) }}" alt="{{ logo.name }} logo" class="max-w-full max-h-14 object-contain" loading="lazy">
                             </div>
                         {% endfor %}
@@ -56,19 +142,111 @@
                 </div>
             {% endif %}
 
-        <div data-aos="flip-up" class="max-w-3xl mx-auto text-center mt-10">
-            <h2 class="font-bold text-darken my-3 text-3xl">Everything your alumni office needs in one platform</h2>
-            <p class="leading-relaxed text-gray-500">Streamline graduate engagement, institutional reporting, and alumni services with a dedicated digital experience.</p>
+        <div data-aos="flip-up" class="max-w-3xl mx-auto text-center mt-8 sm:mt-10">
+            {% if isAlumniLanding %}
+                <h2 class="font-bold text-darken my-3 text-2xl sm:text-3xl">Your alumni feature pages</h2>
+                <p class="leading-relaxed text-gray-500">Use this dashboard as a launcher, then open each feature on its own page to avoid crowded and overlapping sections.</p>
+            {% else %}
+                <h2 class="font-bold text-darken my-3 text-2xl sm:text-3xl">Everything your alumni office needs in one platform</h2>
+                <p class="leading-relaxed text-gray-500">Streamline graduate engagement, institutional reporting, and alumni services with a dedicated digital experience.</p>
+            {% endif %}
         </div>
 
-        <div class="grid md:grid-cols-3 gap-14 md:gap-5 mt-14">
+        {% if isAlumniLanding %}
+            <section data-aos="fade-up" class="mt-8 sm:mt-10">
+                <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-4 sm:mb-5">
+                    <div>
+                        <p class="text-[0.72rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Today At A Glance</p>
+                        <h3 class="text-xl sm:text-2xl font-bold text-darken mb-0">Your alumni dashboard snapshot</h3>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-0">Quick status cards and live activity from your alumni home.</p>
+                </div>
+
+                <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+                    <article data-alumni-home-summary="announcements" class="rounded-[1.35rem] sm:rounded-[1.6rem] bg-white border border-blue-100 shadow-sm px-4 sm:px-5 py-4 sm:py-5">
+                        <p class="text-[0.65rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Announcement Desk</p>
+                        <p class="text-2xl sm:text-3xl font-black text-darken mb-1">{{ recentAnnouncements|default([])|length }}</p>
+                        <p class="text-xs sm:text-sm font-semibold text-darken mb-1">{{ recentAnnouncementCategory }}</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-0">{{ recentAnnouncementPosted }}</p>
+                    </article>
+                    <article data-alumni-home-summary="jobs" class="rounded-[1.35rem] sm:rounded-[1.6rem] bg-white border border-blue-100 shadow-sm px-4 sm:px-5 py-4 sm:py-5">
+                        <p class="text-[0.65rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Career Board</p>
+                        <p class="text-2xl sm:text-3xl font-black text-darken mb-1">{{ recentJobs|default([])|length }}</p>
+                        <p class="text-xs sm:text-sm font-semibold text-darken mb-1">{{ latestJobEmployer }}</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-0">{{ latestJobDeadline }}</p>
+                    </article>
+                    <article data-alumni-home-summary="tracer" class="rounded-[1.35rem] sm:rounded-[1.6rem] bg-white border border-blue-100 shadow-sm px-4 sm:px-5 py-4 sm:py-5">
+                        <p class="text-[0.65rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Tracer Control</p>
+                        <p class="text-lg sm:text-2xl font-black text-darken mb-1">{{ tracerCampaign.hasInvitation ? tracerCampaign.invitationStatusLabel : tracerStatusLabel }}</p>
+                        <p class="text-xs sm:text-sm font-semibold text-darken mb-1">{{ tracerCampaign.hasCampaign ? (tracerCampaign.campaignStatusLabel ~ ' campaign') : latestTracerEmployment }}</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-0">{{ tracerCampaign.timelineLabel }} • {{ tracerCampaign.timelineValue }}</p>
+                    </article>
+                    <article data-alumni-home-summary="profile" class="rounded-[1.35rem] sm:rounded-[1.6rem] bg-white border border-blue-100 shadow-sm px-4 sm:px-5 py-4 sm:py-5">
+                        <p class="text-[0.65rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Profile Overview</p>
+                        <p class="text-lg sm:text-2xl font-black text-darken mb-1">{{ profileCompletionPercent }}%</p>
+                        <p class="text-xs sm:text-sm font-semibold text-darken mb-1">{{ accountStatusLabel }} account</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-3">{{ profileLinkStatus }}{% if profileCompletedAt %} • updated {{ profileCompletedAt|date('M d, Y') }}{% endif %}</p>
+                        <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+                            <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-sky-400" style="width: {{ profileCompletionPercent }}%"></div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section data-aos="fade-up" data-aos-delay="80" class="mt-5 sm:mt-6 space-y-4 sm:space-y-5">
+                <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3">
+                    <div>
+                        <p class="text-[0.72rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Feature Pages</p>
+                        <h3 class="text-xl sm:text-2xl font-bold text-darken mb-0">Open one alumni feature at a time</h3>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-0 max-w-2xl">Each alumni tool now opens on its own page so announcements, tracer work, profile updates, and job browsing stay readable without overlapping on the dashboard.</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
+                    <article data-alumni-dashboard-card data-alumni-home-launcher="announcements" class="rounded-[1.45rem] sm:rounded-[1.7rem] bg-white border border-blue-100 shadow-[0_18px_36px_rgba(15,23,42,0.07)] px-4 sm:px-5 py-5 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(15,23,42,0.1)] transition-all">
+                        <p class="text-[0.68rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Announcements Page</p>
+                        <p class="text-lg sm:text-xl font-bold text-darken mb-2">Latest Notice Snapshot</p>
+                        <p class="text-sm text-gray-500 mb-2">{{ recentAnnouncement ? recentAnnouncement.title : 'Read alumni office reminders, notices, and event updates.' }}</p>
+                        <p class="text-xs text-slate-500 mb-4">{{ recentAnnouncement ? recentAnnouncementCategory ~ ' • ' ~ recentAnnouncementPosted : 'Office updates and event advisories' }}</p>
+                        <a data-alumni-dashboard-link href="{{ path('app_alumni_feature_announcements') }}" class="inline-flex items-center rounded-full bg-blue-50 text-blue-800 font-semibold px-4 py-2 border border-blue-100 no-underline">Open page</a>
+                    </article>
+
+                    <article data-alumni-dashboard-card data-alumni-home-launcher="tracer" class="rounded-[1.45rem] sm:rounded-[1.7rem] bg-white border border-blue-100 shadow-[0_18px_36px_rgba(15,23,42,0.07)] px-4 sm:px-5 py-5 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(15,23,42,0.1)] transition-all">
+                        <p class="text-[0.68rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Tracer Page</p>
+                        <p class="text-lg sm:text-xl font-bold text-darken mb-2">Tracer Snapshot</p>
+                        <p class="text-sm text-gray-500 mb-2">{{ tracerCampaign.hasCampaign ? tracerCampaign.campaignName : (surveyCompleted ? 'Direct tracer response' : 'No tracer campaign yet') }}</p>
+                        <p class="text-xs text-slate-500 mb-4">{{ tracerCampaign.hasInvitation ? (tracerCampaign.invitationStatusLabel ~ ' invitation • ' ~ tracerCampaign.windowValue) : (latestSurvey ? latestTracerOccupation : 'Invitation, campaign, and response details live here.') }}</p>
+                        <a data-alumni-dashboard-link href="{{ path('app_alumni_feature_tracer_survey') }}" class="inline-flex items-center rounded-full bg-blue-50 text-blue-800 font-semibold px-4 py-2 border border-blue-100 no-underline">Open page</a>
+                    </article>
+
+                    <article data-alumni-dashboard-card data-alumni-home-launcher="jobs" class="rounded-[1.45rem] sm:rounded-[1.7rem] bg-white border border-blue-100 shadow-[0_18px_36px_rgba(15,23,42,0.07)] px-4 sm:px-5 py-5 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(15,23,42,0.1)] transition-all">
+                        <p class="text-[0.68rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Jobs Page</p>
+                        <p class="text-lg sm:text-xl font-bold text-darken mb-2">Opportunity Snapshot</p>
+                        <p class="text-sm text-gray-500 mb-2">{{ recentJob ? recentJob.title : 'Browse openings, internships, and partner opportunities.' }}</p>
+                        <p class="text-xs text-slate-500 mb-4">{{ recentJob ? latestJobEmployer ~ ' • ' ~ latestJobDeadline : 'Employers, deadlines, and role fit' }}</p>
+                        <a data-alumni-dashboard-link href="{{ path('app_alumni_feature_jobs') }}" class="inline-flex items-center rounded-full bg-blue-50 text-blue-800 font-semibold px-4 py-2 border border-blue-100 no-underline">Open page</a>
+                    </article>
+
+                    <article data-alumni-dashboard-card data-alumni-home-launcher="profile" class="rounded-[1.45rem] sm:rounded-[1.7rem] bg-white border border-blue-100 shadow-[0_18px_36px_rgba(15,23,42,0.07)] px-4 sm:px-5 py-5 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(15,23,42,0.1)] transition-all">
+                        <p class="text-[0.68rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Profile Page</p>
+                        <p class="text-lg sm:text-xl font-bold text-darken mb-2">Identity Snapshot</p>
+                        <p class="text-sm text-gray-500 mb-2">{{ hasLinkedAlumni ? app.user.fullName : 'Profile still needs attention' }}</p>
+                        <p class="text-xs text-slate-500 mb-4">{{ hasLinkedAlumni ? profileProgram ~ ' • ' ~ profileLinkStatus : 'Identity, account, and alumni record details' }}</p>
+                        <a data-alumni-dashboard-link href="{{ path('app_alumni_feature_profile') }}" class="inline-flex items-center rounded-full bg-blue-50 text-blue-800 font-semibold px-4 py-2 border border-blue-100 no-underline">Open page</a>
+                    </article>
+                </div>
+            </section>
+        {% endif %}
+
+        {% if not isAlumniLanding %}
+        <div class="grid md:grid-cols-3 gap-8 md:gap-5 mt-10 sm:mt-14">
             <div data-aos="fade-up" class="bg-white shadow-xl p-6 text-center rounded-xl">
                 <h3 class="font-medium text-xl mb-3 text-darken">Announcements & Updates</h3>
                 <p class="px-4 text-gray-500">Share university updates, alumni events, and important reminders in one accessible feed.</p>
                 <a href="{{ path('app_feature_announcements') }}" class="inline-block mt-4 text-sm font-semibold text-blue-600 no-underline hover:underline">Learn more</a>
             </div>
             <div data-aos="fade-up" data-aos-delay="150" class="bg-white shadow-xl p-6 text-center rounded-xl">
-                <h3 class="font-medium text-xl mb-3 text-darken">Tracer Survey Insights</h3>
+                <h3 class="font-medium text-xl mb-3 text-darken">Graduate Tracer Survey</h3>
                 <p class="px-4 text-gray-500">Collect graduate outcomes and transform responses into actionable institutional insights.</p>
                 <a href="{{ path('app_feature_tracer_survey') }}" class="inline-block mt-4 text-sm font-semibold text-blue-600 no-underline hover:underline">Learn more</a>
             </div>
@@ -78,18 +256,46 @@
                 <a href="{{ path('app_feature_career_opportunities') }}" class="inline-block mt-4 text-sm font-semibold text-blue-600 no-underline hover:underline">Learn more</a>
             </div>
         </div>
+        {% endif %}
 
-        <div class="mt-16 flex flex-col md:flex-row items-center md:space-x-10">
+        <div class="mt-12 sm:mt-16 {{ isAlumniLanding ? 'max-w-5xl mx-auto' : 'flex flex-col md:flex-row items-center md:space-x-10' }}">
+            {% if not isAlumniLanding %}
             <div data-aos="fade-right" class="md:w-6/12">
                 <img class="md:w-11/12" src="{{ asset('skilline/img/teacher-explaining.png') }}" alt="Platform overview" />
             </div>
-            <div data-aos="fade-left" class="md:w-6/12 mt-8 md:mt-0">
-                <h3 class="font-semibold text-darken text-3xl">Built for <span class="text-blue-600">NORSU alumni engagement</span></h3>
-                <p class="text-gray-500 my-5">From account verification to feedback collection, the platform supports core alumni workflows with clarity and speed.</p>
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <a href="{{ path('app_contact') }}" class="px-6 py-3 text-sm text-center bg-blue-600 text-white rounded-full no-underline">Contact Support</a>
-                    <a href="{{ path('app_faq') }}" class="px-6 py-3 text-sm text-center bg-white text-gray-800 border border-gray-300 rounded-full no-underline">Read FAQ</a>
-                </div>
+            {% endif %}
+            <div data-aos="{{ isAlumniLanding ? 'fade-up' : 'fade-left' }}" class="{{ isAlumniLanding ? 'text-center' : 'md:w-6/12 mt-8 md:mt-0' }}">
+                {% if isAlumniLanding %}
+                    <h3 class="font-semibold text-darken text-2xl sm:text-3xl">Move through the <span class="text-blue-600">NORSU alumni pages</span></h3>
+                    <p class="text-gray-500 my-4 sm:my-5 text-sm sm:text-base">Use the dashboard for quick status, then open the page you need for profile updates, announcements, tracer tasks, or job browsing.</p>
+                    <div class="flex flex-col sm:flex-row justify-center gap-3">
+                        <a href="{{ path('app_alumni_feature_profile') }}" class="px-6 py-3 text-sm text-center bg-blue-600 text-white rounded-full no-underline">Open My Profile Page</a>
+                        <a href="{{ hasGtsSurvey|default(false) ? path('app_alumni_feature_announcements') : path('app_alumni_feature_tracer_survey') }}" class="px-6 py-3 text-sm text-center bg-white text-gray-800 border border-gray-300 rounded-full no-underline">{{ hasGtsSurvey|default(false) ? 'Open announcements page' : 'Open tracer page' }}</a>
+                    </div>
+                    <div class="grid gap-3 mt-5 sm:mt-6 sm:grid-cols-2 text-left">
+                        <div class="rounded-2xl bg-white border border-blue-100 shadow-sm px-4 sm:px-5 py-4">
+                            <p class="text-sm font-semibold text-darken mb-1">Alumni record</p>
+                            <p class="text-sm text-gray-500">{{ hasLinkedAlumni ? 'Your alumni record is linked and ready for updates.' : 'Submit your alumni record to unlock a fuller profile and office verification.' }}</p>
+                        </div>
+                        <div class="rounded-2xl bg-white border border-blue-100 shadow-sm px-4 sm:px-5 py-4">
+                            <p class="text-sm font-semibold text-darken mb-1">Milestone spotlight</p>
+                            {% if spotlightAlumnus %}
+                                <p class="text-base font-semibold text-darken mb-1">{{ spotlightAlumnus.fullName }}</p>
+                                <p class="text-xs uppercase tracking-[0.16em] text-blue-700 mb-2">{{ spotlightAlumnus.course ?: 'NORSU Graduate' }}{% if spotlightAlumnus.yearGraduated %} • Batch {{ spotlightAlumnus.yearGraduated }}{% endif %}</p>
+                                <p class="text-sm text-gray-500">{{ spotlightAlumnus.honorsReceived ?: (spotlightAlumnus.careerAchievements ?: (spotlightAlumnus.jobTitle ?: 'Highlighted for alumni achievements and professional progress.')) }}</p>
+                            {% else %}
+                                <p class="text-sm text-gray-500">Milestone stories will appear here once alumni achievements are added.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% else %}
+                    <h3 class="font-semibold text-darken text-3xl">Built for <span class="text-blue-600">NORSU alumni engagement</span></h3>
+                    <p class="text-gray-500 my-5">From account verification to feedback collection, the platform supports core alumni workflows with clarity and speed.</p>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <a href="{{ path('app_contact') }}" class="px-6 py-3 text-sm text-center bg-blue-600 text-white rounded-full no-underline">Contact Support</a>
+                        <a href="{{ path('app_faq') }}" class="px-6 py-3 text-sm text-center bg-white text-gray-800 border border-gray-300 rounded-full no-underline">Read FAQ</a>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>

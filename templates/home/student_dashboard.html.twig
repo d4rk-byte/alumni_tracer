@@ -4,7 +4,7 @@
 
 {% block body %}
 {# ── Welcome Banner ── #}
-<div class="welcome-banner mb-4" style="background-color:#1E3A8A;background-image:linear-gradient(118deg,rgba(6,24,63,0.84) 0%,rgba(13,65,120,0.66) 48%,rgba(5,150,105,0.54) 100%),url('{{ asset('images/home-hero-graduation.png') }}');background-size:cover;background-position:center;background-repeat:no-repeat;">
+<div class="welcome-banner mb-4" style="background-color:#1E3A8A;background-image:linear-gradient(118deg,rgba(6,24,63,0.84) 0%,rgba(13,65,120,0.68) 48%,rgba(29,78,216,0.54) 100%),url('{{ asset('images/home-hero-graduation.png') }}');background-size:cover;background-position:center;background-repeat:no-repeat;">
     <div class="banner-main py-5">
         <div class="flex justify-between items-center flex-wrap gap-3">
             <div class="flex items-center gap-3">
@@ -14,25 +14,21 @@
                     <p class="opacity-90 text-sm mt-1 mb-0">Welcome back, <strong>{{ app.user.firstName }} {{ app.user.lastName }}</strong>!</p>
                 </div>
             </div>
-            <div class="flex gap-2 mt-3 md:mt-0">
-                <a href="{{ path('job_board_index') }}" class="bg-white text-gray-700 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-semibold no-underline transition-colors inline-flex items-center gap-1"><i class="bi bi-briefcase-fill"></i>Browse Jobs</a>
-                <a href="{{ path('app_profile') }}" class="border border-white text-white hover:bg-white/10 px-3 py-1.5 rounded-lg text-xs font-semibold no-underline transition-colors inline-flex items-center gap-1"><i class="bi bi-person-gear"></i>My Profile</a>
-            </div>
         </div>
     </div>
     <div class="banner-bottom">
         <span class="opacity-85"><i class="bi bi-calendar3 mr-1"></i>{{ 'now'|date('F d, Y') }}</span>
         <span class="opacity-85"><i class="bi bi-clock mr-1"></i>{{ 'now'|date('h:i A') }}</span>
-        <span class="badge bg-white text-green-600" style="font-size:0.7rem"><i class="bi bi-book-fill mr-1"></i>Student</span>
+        <span class="badge bg-white text-blue-700" style="font-size:0.7rem"><i class="bi bi-book-fill mr-1"></i>Student</span>
     </div>
 </div>
 
 {# ── Stat Cards ── #}
 <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
     {% set stats = [
-        {bg: '#D1FAE5', fg: '#059669', icon: 'bi-briefcase-fill', value: activeJobs, label: 'Active Job Postings'},
+        {bg: '#DBEAFE', fg: '#1D4ED8', icon: 'bi-briefcase-fill', value: activeJobs, label: 'Active Job Postings'},
         {bg: '#E0F2FE', fg: '#0284C7', icon: 'bi-graph-up', value: employmentRate ~ '%', label: 'Alumni Employment Rate'},
-        {bg: '#EDE9FE', fg: '#7C3AED', icon: 'bi-mortarboard-fill', value: courseStats|length, label: 'Programs Tracked'}
+        {bg: '#DBEAFE', fg: '#1E40AF', icon: 'bi-mortarboard-fill', value: courseStats|length, label: 'Programs Tracked'}
     ] %}
     {% for s in stats %}
     <div class="stat-card">
@@ -47,31 +43,6 @@
         </div>
     </div>
     {% endfor %}
-</div>
-
-{# ── Quick Actions ── #}
-<div class="card mb-4">
-    <div class="card-header bg-white font-semibold">
-        <i class="bi bi-lightning-fill text-amber-500 mr-1"></i> Quick Actions
-    </div>
-    <div class="card-body">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {% set actions = [
-                {path: 'job_board_index', icon: 'bi-briefcase-fill', bg: '#D1FAE5', fg: '#059669', label: 'Job Board'},
-                {path: 'announcement_index', icon: 'bi-megaphone-fill', bg: '#E0F2FE', fg: '#0284C7', label: 'Announcements'},
-                {path: 'feedback_submit', icon: 'bi-chat-dots', bg: '#FEF3C7', fg: '#D97706', label: 'Submit Feedback'},
-                {path: 'app_profile', icon: 'bi-person-gear', bg: '#EDE9FE', fg: '#7C3AED', label: 'My Profile'}
-            ] %}
-            {% for a in actions %}
-            <a href="{{ path(a.path) }}" class="quick-action-card">
-                <div class="action-icon mx-auto" style="background:{{ a.bg }}">
-                    <i class="bi {{ a.icon }}" style="color:{{ a.fg }}"></i>
-                </div>
-                <div class="font-semibold mt-1 text-sm">{{ a.label }}</div>
-            </a>
-            {% endfor %}
-        </div>
-    </div>
 </div>
 
 {# ── Top Courses + Employment Rate ── #}
@@ -102,10 +73,10 @@
             <div class="relative w-[120px] h-[120px] mx-auto">
                 <svg viewBox="0 0 36 36" class="w-[120px] h-[120px]">
                     <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e5e7eb" stroke-width="3"/>
-                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#059669" stroke-width="3" stroke-dasharray="{{ employmentRate }}, 100" stroke-linecap="round"/>
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1D4ED8" stroke-width="3" stroke-dasharray="{{ employmentRate }}, 100" stroke-linecap="round"/>
                 </svg>
                 <div class="absolute inset-0 flex items-center justify-center">
-                    <span class="text-2xl font-extrabold text-emerald-600">{{ employmentRate }}%</span>
+                    <span class="text-2xl font-extrabold text-blue-700">{{ employmentRate }}%</span>
                 </div>
             </div>
             <p class="text-gray-500 mt-2 mb-0 text-sm">of NORSU alumni are employed</p>
@@ -125,14 +96,6 @@
                 <a href="#"><i class="bi bi-facebook"></i></a>
                 <a href="#"><i class="bi bi-envelope-fill"></i></a>
                 <a href="#"><i class="bi bi-globe2"></i></a>
-            </div>
-        </div>
-        <div>
-            <h6 class="text-white font-semibold mb-2 text-[0.78rem]">Quick Links</h6>
-            <div class="flex flex-col gap-1 footer-links">
-                <a href="{{ path('announcement_index') }}">Announcements</a>
-                <a href="{{ path('job_board_index') }}">Job Board</a>
-                <a href="{{ path('feedback_submit') }}">Submit Feedback</a>
             </div>
         </div>
     </div>

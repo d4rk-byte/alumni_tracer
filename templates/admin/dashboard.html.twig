@@ -11,13 +11,16 @@
 {% block body %}
 <style>
     .admin-material-page {
-        --dash-bg: hsl(60 9% 98%);
+        --dash-bg: #f8fbff;
         --dash-card: #ffffff;
-        --dash-border: hsl(20 6% 90%);
-        --dash-text: hsl(24 10% 10%);
-        --dash-muted: hsl(24 5% 45%);
-        --dash-primary: hsl(142 76% 36%);
-        --dash-primary-soft: hsl(142 60% 94%);
+        --dash-border: #dbe4f0;
+        --dash-text: #0f172a;
+        --dash-muted: #64748b;
+        --dash-primary: #1d4ed8;
+        --dash-primary-strong: #1e40af;
+        --dash-primary-soft: #eff6ff;
+        --dash-primary-border: #bfdbfe;
+        --dash-primary-soft-text: #1e3a8a;
         --dash-primary-foreground: #ffffff;
         background: var(--dash-bg);
     }
@@ -68,8 +71,8 @@
     }
 
     .admin-material-page #sidebar .sidebar-link:hover {
-        background: hsl(60 5% 96%);
-        color: var(--dash-text);
+        background: var(--dash-primary-soft);
+        color: var(--dash-primary-strong);
         transform: none;
     }
 
@@ -404,7 +407,7 @@
     }
 
     .admin-dashboard .hero-btn-soft:hover {
-        background: hsl(60 5% 96%);
+        background: var(--dash-primary-soft);
     }
 
     .admin-dashboard .hero-btn-solid {
@@ -413,7 +416,7 @@
     }
 
     .admin-dashboard .hero-btn-solid:hover {
-        background: hsl(142 76% 32%);
+        background: var(--dash-primary-strong);
     }
 
     .admin-dashboard .hero-meta {
@@ -438,11 +441,11 @@
         gap: 0.25rem;
         padding: 0.16rem 0.46rem;
         border-radius: 999px;
-        border: 1px solid hsl(142 50% 84%);
+        border: 1px solid var(--dash-primary-border);
         background: var(--dash-primary-soft);
         font-size: 0.69rem;
         font-weight: 600;
-        color: hsl(142 76% 24%);
+        color: var(--dash-primary-soft-text);
     }
 
     .admin-dashboard .metric-grid {
@@ -485,8 +488,8 @@
     }
 
     .admin-dashboard .metric-icon.primary {
-        background: hsl(142 58% 94%);
-        color: hsl(142 76% 30%);
+        background: var(--dash-primary-soft);
+        color: var(--dash-primary-strong);
     }
 
     .admin-dashboard .metric-icon.accent {
@@ -523,7 +526,7 @@
     }
 
     .admin-dashboard .metric-value.metric-success {
-        color: hsl(142 76% 30%);
+        color: var(--dash-primary-strong);
     }
 
     .admin-dashboard .metric-note {
@@ -573,11 +576,11 @@
     }
 
     .admin-dashboard .kpi-value.primary {
-        color: hsl(142 76% 30%);
+        color: var(--dash-primary-strong);
     }
 
     .admin-dashboard .kpi-value.success {
-        color: hsl(142 76% 30%);
+        color: var(--dash-primary-strong);
     }
 
     .admin-dashboard .kpi-value.warning {
@@ -599,12 +602,12 @@
 
     .admin-dashboard .kpi-badge.primary {
         background: var(--dash-primary-soft);
-        color: hsl(142 76% 24%);
+        color: var(--dash-primary-soft-text);
     }
 
     .admin-dashboard .kpi-badge.success {
-        background: hsl(142 58% 94%);
-        color: hsl(142 76% 24%);
+        background: var(--dash-primary-soft);
+        color: var(--dash-primary-soft-text);
     }
 
     .admin-dashboard .kpi-badge.warning {
@@ -756,8 +759,8 @@
     }
 
     .admin-dashboard .role-count.alumni {
-        background: hsl(142 60% 94%);
-        color: hsl(142 76% 24%);
+        background: var(--dash-primary-soft);
+        color: var(--dash-primary-soft-text);
     }
 
     .admin-dashboard .progress-track {
@@ -935,8 +938,8 @@
     }
 
     .admin-dashboard .inline-action-btn:hover {
-        background: hsl(142 76% 32%);
-        border-color: hsl(142 76% 32%);
+        background: var(--dash-primary-strong);
+        border-color: var(--dash-primary-strong);
         color: #fff;
     }
 
@@ -1274,7 +1277,7 @@
         {% set registrationCards = [
             {key: 'unregistered', label: 'Unregistered Alumni', count: registrationStates.unregistered, note: 'Known alumni without an account yet', accent: 'border-slate-200 bg-slate-50 text-slate-800', link: path('alumni_index', {registration_state: 'unregistered'})},
             {key: 'pending', label: 'Pending Approval', count: registrationStates.pending, note: 'Accounts waiting for verification', accent: 'border-amber-200 bg-amber-50 text-amber-900', link: path('alumni_index', {registration_state: 'pending'})},
-            {key: 'active', label: 'Active Accounts', count: registrationStates.active, note: 'Linked alumni already approved', accent: 'border-emerald-200 bg-emerald-50 text-emerald-900', link: path('alumni_index', {registration_state: 'active'})},
+            {key: 'active', label: 'Active Accounts', count: registrationStates.active, note: 'Linked alumni already approved', accent: 'border-blue-200 bg-blue-50 text-blue-900', link: path('alumni_index', {registration_state: 'active'})},
             {key: 'inactive', label: 'Inactive Accounts', count: registrationStates.inactive, note: 'Denied or restricted alumni accounts', accent: 'border-rose-200 bg-rose-50 text-rose-900', link: path('alumni_index', {registration_state: 'inactive'})}
         ] %}
         <div class="panel-card card-enter dashboard-order-operational">
@@ -1392,7 +1395,7 @@
                         <div class="employment-ring">
                             <svg viewBox="0 0 36 36" class="w-full h-full">
                                 <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="hsl(20 6% 90%)" stroke-width="2.8"></path>
-                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="hsl(142 76% 36%)" stroke-width="2.8" stroke-dasharray="{{ employmentRate }}, 100" stroke-linecap="round"></path>
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1d4ed8" stroke-width="2.8" stroke-dasharray="{{ employmentRate }}, 100" stroke-linecap="round"></path>
                             </svg>
                             <div class="employment-score">{{ employmentRate }}%</div>
                         </div>
@@ -1427,7 +1430,7 @@
                         {% set roles = [
                             {icon: 'bi-shield-fill', iconCls: 'text-red-600', countCls: 'admin', fillCls: 'admin', label: 'Admins', count: adminCount},
                             {icon: 'bi-person-badge-fill', iconCls: 'text-cyan-600', countCls: 'staff', fillCls: 'staff', label: 'Staff', count: staffCount},
-                            {icon: 'bi-mortarboard-fill', iconCls: 'text-green-600', countCls: 'alumni', fillCls: 'alumni', label: 'Alumni', count: studentCount}
+                            {icon: 'bi-mortarboard-fill', iconCls: 'text-blue-600', countCls: 'alumni', fillCls: 'alumni', label: 'Alumni', count: studentCount}
                         ] %}
                         {% for role in roles %}
                         <div class="role-row">
@@ -1448,7 +1451,7 @@
                             </div>
                             <div class="user-summary-row">
                                 <span class="text-gray-500">Active</span>
-                                <span class="font-bold text-green-700">{{ activeUsers }}</span>
+                                <span class="font-bold text-blue-700">{{ activeUsers }}</span>
                             </div>
                         </div>
 
@@ -1549,7 +1552,7 @@
                     {% endif %}
                     {% else %}
                     <div class="empty-block">
-                        <i class="bi bi-check-circle text-green-600 text-3xl block mb-2"></i>
+                        <i class="bi bi-check-circle text-blue-600 text-3xl block mb-2"></i>
                         <p class="mb-0 text-sm font-medium">No pending approvals</p>
                     </div>
                     {% endif %}
@@ -1759,10 +1762,10 @@
                 datasets: [{
                     data: values,
                     backgroundColor: [
-                        '#16A34A',
-                        '#22C55E',
-                        '#10B981',
-                        '#14B8A6',
+                        '#1D4ED8',
+                        '#2563EB',
+                        '#3B82F6',
+                        '#60A5FA',
                         '#F59E0B',
                         '#78716C',
                         '#EF4444'

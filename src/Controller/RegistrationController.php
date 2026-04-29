@@ -4,8 +4,8 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\RegistrationFormType;
-use App\Service\AlumniRegistrationService;
 use App\Service\NotificationService;
+use App\Service\RegistrationDraftService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,7 +17,7 @@ class RegistrationController extends AbstractController
     #[Route('/register', name: 'app_register')]
     public function register(
         Request $request,
-        AlumniRegistrationService $registrationService,
+        RegistrationDraftService $draftService,
         NotificationService $notifier,
     ): Response {
         // If already logged in, redirect to home
@@ -31,7 +31,7 @@ class RegistrationController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $registeredUser = $registrationService->register([
+                $draftResult = $draftService->createManualDraft([
                     'email' => (string) $user->getEmail(),
                     'studentId' => (string) $user->getSchoolId(),
                     'firstName' => (string) $user->getFirstName(),
@@ -39,17 +39,18 @@ class RegistrationController extends AbstractController
                     'plainPassword' => (string) $form->get('plainPassword')->getData(),
                     'yearGraduated' => $form->get('yearGraduated')->getData(),
                     'dpaConsent' => (bool) $form->get('dataPrivacyConsent')->getData(),
-                ], 'pending');
+                ]);
+
+                $request->getSession()->set(RegistrationDraftService::SESSION_KEY, $draftResult['draft']->getId());
 
                 try {
-                    $notifier->notifyNewRegistration($registeredUser);
+                    $notifier->sendRegistrationOtp($draftResult['draft'], $draftResult['otpCode']);
+                    $this->addFlash('success', 'We sent a verification code to your email. Enter it below to continue.');
                 } catch (\Throwable) {
-                    // Email delivery failure should not block registration
+                    $this->addFlash('warning', 'We saved your registration draft, but the verification code could not be sent yet. Use resend on the next screen.');
                 }
 
-                $this->addFlash('success', 'Registration submitted successfully. Your account is awaiting approval. You can sign in after an administrator activates it.');
-
-                return $this->redirectToRoute('app_login');
+                return $this->redirectToRoute('app_register_verify_email');
             } catch (\App\Service\RegistrationValidationException $exception) {
                 foreach ($exception->getFieldErrors() as $field => $message) {
                     if ($field === 'form' || !$form->has($field)) {
@@ -65,6 +66,8 @@ class RegistrationController extends AbstractController
 
         return $this->render('registration/register.html.twig', [
             'registrationForm' => $form,
-        ]);
+        ], new Response(status: $form->isSubmitted() && !$form->isValid()
+            ? Response::HTTP_UNPROCESSABLE_ENTITY
+            : Response::HTTP_OK));
     }
 }

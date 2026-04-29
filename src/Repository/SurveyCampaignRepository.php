@@ -24,4 +24,18 @@ class SurveyCampaignRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /** @return SurveyCampaign[] */
+    public function findDueScheduled(\DateTimeImmutable $dueAt): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.status = :scheduledStatus')
+            ->andWhere('c.scheduledSendAt IS NOT NULL')
+            ->andWhere('c.scheduledSendAt <= :dueAt')
+            ->setParameter('scheduledStatus', 'scheduled')
+            ->setParameter('dueAt', $dueAt)
+            ->orderBy('c.scheduledSendAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

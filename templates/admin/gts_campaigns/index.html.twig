@@ -49,9 +49,10 @@
                             </div>
                             <h2 class="text-lg font-bold text-gray-800">{{ campaign.name }}</h2>
                             <p class="text-sm text-gray-500">
-                                Target Years: {{ campaign.targetGraduationYears|join(', ') }}
+                                Target Batch: {{ campaign.targetBatchYear ?? 'Not set' }}
                                 {% if campaign.targetCollege %} | College: {{ campaign.targetCollege }}{% endif %}
                                 {% if campaign.targetCourse %} | Course: {{ campaign.targetCourse }}{% endif %}
+                                {% if campaign.scheduledSendAt %} | Send On: {{ campaign.scheduledSendAt|date('M d, Y h:i A') }}{% endif %}
                             </p>
                         </div>
 

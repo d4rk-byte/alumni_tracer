@@ -15,7 +15,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:sync-alumni-users',
-    description: 'Creates Alumni records for Users with ROLE_ALUMNI that don\'t have one yet',
+    description: 'Creates Alumni records for alumni-role users that do not have one yet',
 )]
 class SyncAlumniUsersCommand extends Command
 {
@@ -32,12 +32,13 @@ class SyncAlumniUsersCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         // Find all Alumni users without an Alumni record
-        $orphanedUsers = $this->userRepository
+        $orphanedUsersQb = $this->userRepository
             ->createQueryBuilder('u')
-            ->leftJoin('u.alumni', 'a')
-            ->where('u.roles LIKE :alumni_role')
+            ->leftJoin('u.alumni', 'a');
+
+        $orphanedUsers = $orphanedUsersQb
+            ->where($this->userRepository->createRoleMatchExpression($orphanedUsersQb, 'u', User::ROLE_CODE_USER, 'alumni_role'))
             ->andWhere('a.id IS NULL')
-            ->setParameter('alumni_role', '%"' . User::ROLE_ALUMNI . '"%')
             ->getQuery()
             ->getResult();
 

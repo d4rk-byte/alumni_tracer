@@ -5,6 +5,7 @@ namespace App\Tests\Controller;
 use App\Entity\Alumni;
 use App\Entity\GtsSurvey;
 use App\Entity\GtsSurveyQuestion;
+use App\Entity\GtsSurveyTemplate;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -53,8 +54,17 @@ class GtsSurveyBuilderFlowTest extends WebTestCase
         $alumniUser = $this->createActiveAlumniUser('builder-render@example.com', '2022-0001', '2022-render');
         $entityManager->persist($alumniUser);
         $entityManager->persist($alumniUser->getAlumni());
+        $template = (new GtsSurveyTemplate())
+            ->setTitle('Invitation Template')
+            ->setDescription('Template-scoped question set')
+            ->setIsActive(true);
+        $entityManager->persist($template);
         $entityManager->persist(
             $this->createQuestion('Custom Section', 'Custom builder question', 'text', 10)
+        );
+        $entityManager->persist(
+            $this->createQuestion('Template Section', 'Template-scoped question', 'text', 20)
+                ->setSurveyTemplate($template)
         );
         $entityManager->flush();
         $userId = $alumniUser->getId();
@@ -69,6 +79,7 @@ class GtsSurveyBuilderFlowTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'Custom builder question');
+        self::assertSelectorTextNotContains('body', 'Template-scoped question');
         self::assertSelectorTextNotContains('body', '2. Permanent Address');
     }
 

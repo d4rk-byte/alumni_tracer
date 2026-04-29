@@ -81,12 +81,12 @@ class AdminEmailController extends AbstractController
         $registrationLink = $selectedYear !== null
             ? $this->generateUrl('app_qr_registration', ['batchYear' => $selectedYear], UrlGeneratorInterface::ABSOLUTE_URL)
             : $this->generateUrl('app_register', [], UrlGeneratorInterface::ABSOLUTE_URL);
-        $registrationLinkReady = $selectedYear === null || $batchRepository->findOneByBatchYear((int) $selectedYear) !== null;
+        $registrationLinkReady = $selectedYear === null || $batchRepository->findOneOpenByBatchYear((int) $selectedYear) !== null;
         $registrationLinkLabel = $selectedYear !== null
             ? sprintf('Batch %d QR registration link', $selectedYear)
             : 'General registration link';
         $registrationLinkWarning = $selectedYear !== null && !$registrationLinkReady
-            ? sprintf('Batch %d does not have an active QR registration page yet. Create the batch in QR Registration before sharing this draft.', $selectedYear)
+            ? sprintf('Batch %d does not have an active QR registration page yet. Create or reopen the batch in QR Registration before sharing this draft.', $selectedYear)
             : null;
 
         if ($request->isMethod('POST') && $request->request->has('subject')) {

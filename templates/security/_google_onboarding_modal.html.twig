@@ -1,0 +1,130 @@
+<section class="google-onboarding-dialog" role="dialog" aria-modal="true" aria-labelledby="google-onboarding-title">
+    <div class="google-onboarding-shell">
+        <div class="google-onboarding-header">
+            <div class="google-onboarding-header-copy">
+                <span class="google-onboarding-kicker">
+                    <i class="bi bi-google"></i>
+                    Required Setup
+                </span>
+                <h1 id="google-onboarding-title" class="google-onboarding-title">Complete your alumni profile</h1>
+                <p class="google-onboarding-subtitle">Your Google sign-in is verified. We just need your school and academic details so the system can match your alumni account correctly.</p>
+            </div>
+
+            <div class="google-onboarding-meta">
+                <div class="google-onboarding-chip">
+                    <span class="google-onboarding-chip-label">Signed in as</span>
+                    <span class="google-onboarding-chip-value">{{ app.user.email }}</span>
+                </div>
+                <div class="google-onboarding-chip">
+                    <span class="google-onboarding-chip-label">Next step</span>
+                    <span class="google-onboarding-chip-value">Save this profile to continue</span>
+                </div>
+            </div>
+        </div>
+
+        {{ form_start(onboardingForm, {'attr': {'class': 'google-onboarding-form'}}) }}
+            <div class="google-onboarding-body">
+                <div class="google-onboarding-banner">
+                    <i class="bi bi-shield-check"></i>
+                    <div>
+                        <strong>Verified Google email detected.</strong>
+                        Finish these required details once, then you can update the rest of your profile after entering the system.
+                    </div>
+                </div>
+
+                {% if onboardingForm.vars.errors|length > 0 %}
+                    <div class="google-onboarding-form-errors">
+                        {{ form_errors(onboardingForm) }}
+                    </div>
+                {% endif %}
+
+                <section class="google-onboarding-section">
+                    <div class="google-onboarding-section-head">
+                        <div>
+                            <h2 class="google-onboarding-section-title">Identity</h2>
+                            <p class="google-onboarding-section-copy">Confirm the basic details that will be used to create or link your alumni profile.</p>
+                        </div>
+                        <span class="google-onboarding-pill">
+                            <i class="bi bi-person-badge"></i>
+                            Required
+                        </span>
+                    </div>
+
+                    <div class="google-onboarding-grid identity">
+                        <div class="google-onboarding-field">
+                            <label class="google-onboarding-label" for="google_onboarding_schoolId">School ID</label>
+                            {{ form_widget(onboardingForm.schoolId, {'attr': {'class': 'google-onboarding-input'}}) }}
+                            <p class="google-onboarding-help">Use the same school ID you used while studying at NORSU.</p>
+                            <div class="google-onboarding-error">{{ form_errors(onboardingForm.schoolId) }}</div>
+                        </div>
+
+                        <div class="google-onboarding-field">
+                            <label class="google-onboarding-label" for="google_onboarding_yearGraduated">Batch Year</label>
+                            {{ form_widget(onboardingForm.yearGraduated, {'attr': {'class': 'google-onboarding-select'}}) }}
+                            <p class="google-onboarding-help">Batch choices come from the QR registration batches configured in the system.</p>
+                            <div class="google-onboarding-error">{{ form_errors(onboardingForm.yearGraduated) }}</div>
+                        </div>
+                    </div>
+
+                    <div class="google-onboarding-grid names">
+                        <div class="google-onboarding-field">
+                            <label class="google-onboarding-label" for="google_onboarding_firstName">First Name</label>
+                            {{ form_widget(onboardingForm.firstName, {'attr': {'class': 'google-onboarding-input'}}) }}
+                            <div class="google-onboarding-error">{{ form_errors(onboardingForm.firstName) }}</div>
+                        </div>
+
+                        <div class="google-onboarding-field">
+                            <label class="google-onboarding-label" for="google_onboarding_middleName">Middle Name</label>
+                            {{ form_widget(onboardingForm.middleName, {'attr': {'class': 'google-onboarding-input'}}) }}
+                            <div class="google-onboarding-error">{{ form_errors(onboardingForm.middleName) }}</div>
+                        </div>
+
+                        <div class="google-onboarding-field">
+                            <label class="google-onboarding-label" for="google_onboarding_lastName">Last Name</label>
+                            {{ form_widget(onboardingForm.lastName, {'attr': {'class': 'google-onboarding-input'}}) }}
+                            <div class="google-onboarding-error">{{ form_errors(onboardingForm.lastName) }}</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="google-onboarding-section">
+                    <div class="google-onboarding-section-head">
+                        <div>
+                            <h2 class="google-onboarding-section-title">Academic Record</h2>
+                            <p class="google-onboarding-section-copy">Choose your managed college and department so your profile aligns with the system’s academic setup.</p>
+                        </div>
+                        <span class="google-onboarding-pill">
+                            <i class="bi bi-mortarboard"></i>
+                            Managed Data
+                        </span>
+                    </div>
+
+                    <div class="google-onboarding-grid academics">
+                        <div class="google-onboarding-field">
+                            <label class="google-onboarding-label" for="google_onboarding_college">College</label>
+                            {{ form_widget(onboardingForm.college, {'attr': {'class': 'google-onboarding-select', 'data-google-college': 'true'}}) }}
+                            <p class="google-onboarding-help">Only active colleges configured by admins are shown here.</p>
+                            <div class="google-onboarding-error">{{ form_errors(onboardingForm.college) }}</div>
+                        </div>
+
+                        <div class="google-onboarding-field">
+                            <label class="google-onboarding-label" for="google_onboarding_department">Department</label>
+                            {{ form_widget(onboardingForm.department, {'attr': {'class': 'google-onboarding-select', 'data-google-department': 'true'}}) }}
+                            <p class="google-onboarding-help">Departments are linked to the selected college and saved into your alumni record.</p>
+                            <div class="google-onboarding-error">{{ form_errors(onboardingForm.department) }}</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="google-onboarding-footer">
+                <p class="google-onboarding-footer-copy">After saving, you will be redirected into the system. If you signed in with the wrong Google account, sign out and try again with the correct one.</p>
+
+                <div class="google-onboarding-footer-actions">
+                    <a href="{{ path('app_logout') }}" class="google-onboarding-link">Sign out</a>
+                    <button type="submit" class="google-onboarding-submit">Save and Continue</button>
+                </div>
+            </div>
+        {{ form_end(onboardingForm) }}
+    </div>
+</section>

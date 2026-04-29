@@ -33,6 +33,7 @@ class GtsController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         GtsSurveyRepository $surveyRepository,
+        SurveyInvitationRepository $invitationRepository,
         GtsSurveyQuestionRepository $questionRepository,
         GtsSurveyQuestionBank $questionBank,
     ): Response
@@ -52,15 +53,23 @@ class GtsController extends AbstractController
             throw $this->createAccessDeniedException('Login required.');
         }
 
+        $useAlumniLandingUi = $this->shouldUseAlumniLandingUi();
+        $pendingInvitation = $invitationRepository->findPendingForUser($currentUser)[0] ?? null;
+        if ($pendingInvitation instanceof SurveyInvitation) {
+            return $this->redirectToRoute('gts_invitation_entry', [
+                'token' => $pendingInvitation->getToken(),
+            ]);
+        }
+
         // Access should be based on verified account status, not on whether an Alumni row is already linked.
         if ($currentUser->getAccountStatus() !== 'active') {
             $this->addFlash('danger', 'Only verified alumni accounts can submit the tracer survey.');
-            return $this->redirectToRoute('app_profile');
+            return $this->redirectToRoute($useAlumniLandingUi ? 'app_alumni_feature_profile' : 'app_profile');
         }
 
         if ($surveyRepository->hasUserSubmittedLegacy($currentUser)) {
             $this->addFlash('warning', 'You have already completed this survey.');
-            return $this->redirectToRoute('app_dashboard');
+            return $this->redirectToRoute($useAlumniLandingUi ? 'app_alumni_feature_tracer_survey' : 'app_dashboard');
         }
 
         $survey = new GtsSurvey();
@@ -84,10 +93,11 @@ class GtsController extends AbstractController
             $this->audit->log('GTS Survey submitted', 'GtsSurvey', $survey->getId());
 
             $this->addFlash('success', 'Success: Your Graduate Tracer Survey was saved and your profile tracer status is now TRACED.');
-            return $this->redirectToRoute('app_profile');
+            return $this->redirectToRoute($useAlumniLandingUi ? 'app_alumni_feature_tracer_survey' : 'app_profile');
         }
 
         return $this->render('gts/new.html.twig', [
+            'baseTemplate' => $useAlumniLandingUi ? 'home/landing_layout.html.twig' : 'base.html.twig',
             'form' => $form,
             'survey' => $survey,
             'institutionCode' => $survey->getInstitutionCode(),
@@ -95,6 +105,13 @@ class GtsController extends AbstractController
             'questionSections' => $questionBank->groupBySection($runtimeQuestions),
             'dynamicAnswers' => $request->request->all('dynamic_answers'),
             'hasAlreadyResponded' => false,
+            'useLandingShell' => $useAlumniLandingUi,
+            'landing_mode' => $useAlumniLandingUi ? 'alumni' : 'guest',
+            'cancelRoute' => $useAlumniLandingUi ? 'app_alumni_feature_tracer_survey' : 'app_home',
+            'profileSnapshot' => [
+                'completionPercent' => 0,
+                'accountStatus' => ucfirst($currentUser->getAccountStatus()),
+            ],
         ]);
     }
 
@@ -114,6 +131,8 @@ class GtsController extends AbstractController
             throw $this->createNotFoundException('Invitation not found.');
         }
 
+        $useAlumniLandingUi = $this->shouldUseAlumniLandingUi();
+
         $currentUser = $this->getUser();
         if (!$currentUser instanceof User) {
             return $this->redirectToRoute('app_login', [
@@ -121,17 +140,22 @@ class GtsController extends AbstractController
             ]);
         }
 
-        if ($this->isGranted('ROLE_ADMIN') || $this->isGranted('ROLE_STAFF')) {
-            throw $this->createAccessDeniedException('Survey invitations are for alumni accounts only.');
-        }
+        if (
+            $this->isGranted('ROLE_ADMIN')
+            || $this->isGranted('ROLE_STAFF')
+            || $invitation->getUser()->getId() !== $currentUser->getId()
+        ) {
+            $this->addFlash('warning', 'Please sign in with the alumni account that received this survey invitation.');
 
-        if ($invitation->getUser()->getId() !== $currentUser->getId()) {
-            throw $this->createAccessDeniedException('This survey invitation does not belong to your account.');
+            return $this->redirectToRoute('app_login', [
+                'switch_account' => 1,
+                '_target_path' => $request->getPathInfo(),
+            ]);
         }
 
         if ($currentUser->getAccountStatus() !== 'active') {
             $this->addFlash('danger', 'Only verified alumni accounts can submit the tracer survey.');
-            return $this->redirectToRoute('app_profile');
+            return $this->redirectToRoute($useAlumniLandingUi ? 'app_alumni_feature_profile' : 'app_profile');
         }
 
         if ($invitation->isExpired() || $invitation->getStatus() === SurveyInvitation::STATUS_EXPIRED) {
@@ -141,7 +165,7 @@ class GtsController extends AbstractController
                 $em->flush();
             }
             $this->addFlash('warning', 'This survey invitation has expired.');
-            return $this->redirectToRoute('app_dashboard');
+            return $this->redirectToRoute($useAlumniLandingUi ? 'app_alumni_feature_tracer_survey' : 'app_dashboard');
         }
 
         if (
@@ -149,14 +173,14 @@ class GtsController extends AbstractController
             || $surveyRepository->hasUserSubmittedForInvitation($currentUser, $invitation)
         ) {
             $this->addFlash('info', 'You have already completed this survey invitation.');
-            return $this->redirectToRoute('app_dashboard');
+            return $this->redirectToRoute($useAlumniLandingUi ? 'app_alumni_feature_tracer_survey' : 'app_dashboard');
         }
 
         $template = $invitation->getCampaign()->getSurveyTemplate();
         $runtimeQuestions = $questionBank->createRuntimeQuestions($questionRepository->findActiveOrderedByTemplate($template));
         if (count($runtimeQuestions) === 0) {
             $this->addFlash('warning', 'This survey template has no active questions yet.');
-            return $this->redirectToRoute('app_dashboard');
+            return $this->redirectToRoute($useAlumniLandingUi ? 'app_alumni_feature_tracer_survey' : 'app_dashboard');
         }
 
         if ($invitation->getOpenedAt() === null) {
@@ -189,10 +213,11 @@ class GtsController extends AbstractController
             $this->audit->log('GTS Survey invitation submitted', 'GtsSurvey', $survey->getId());
             $this->addFlash('success', 'Success: Your Graduate Tracer Survey was submitted.');
 
-            return $this->redirectToRoute('app_profile');
+            return $this->redirectToRoute($useAlumniLandingUi ? 'app_alumni_feature_tracer_survey' : 'app_profile');
         }
 
         return $this->render('gts/new.html.twig', [
+            'baseTemplate' => $useAlumniLandingUi ? 'home/landing_layout.html.twig' : 'base.html.twig',
             'form' => $form,
             'survey' => $survey,
             'institutionCode' => $survey->getInstitutionCode(),
@@ -200,6 +225,13 @@ class GtsController extends AbstractController
             'questionSections' => $questionBank->groupBySection($runtimeQuestions),
             'dynamicAnswers' => $request->request->all('dynamic_answers'),
             'hasAlreadyResponded' => false,
+            'useLandingShell' => $useAlumniLandingUi,
+            'landing_mode' => $useAlumniLandingUi ? 'alumni' : 'guest',
+            'cancelRoute' => $useAlumniLandingUi ? 'app_alumni_feature_tracer_survey' : 'app_home',
+            'profileSnapshot' => [
+                'completionPercent' => 0,
+                'accountStatus' => ucfirst($currentUser->getAccountStatus()),
+            ],
         ]);
     }
 
@@ -315,6 +347,13 @@ class GtsController extends AbstractController
         $prefix = trim($prefix) !== '' ? trim($prefix) : 'GTS';
 
         return sprintf('%s-%s-%d-%s', $prefix, date('Ymd'), (int) $user->getId(), strtoupper(substr(bin2hex(random_bytes(3)), 0, 6)));
+    }
+
+    private function shouldUseAlumniLandingUi(): bool
+    {
+        return $this->isGranted(User::ROLE_ALUMNI)
+            && !$this->isGranted('ROLE_STAFF')
+            && !$this->isGranted('ROLE_ADMIN');
     }
 
 }

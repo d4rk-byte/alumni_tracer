@@ -7,6 +7,33 @@ import './styles/app.css';
 import './styles/landing-shell.css';
 
 const ADMIN_SIDEBAR_COMPACT_KEY = 'norsu.adminSidebarCompact';
+let routeLoadingClearTimer = null;
+
+function startRouteLoadingState() {
+    const root = document.documentElement;
+    if (!root) return;
+
+    if (routeLoadingClearTimer !== null) {
+        window.clearTimeout(routeLoadingClearTimer);
+        routeLoadingClearTimer = null;
+    }
+
+    root.classList.add('ui-route-loading');
+}
+
+function stopRouteLoadingState() {
+    const root = document.documentElement;
+    if (!root) return;
+
+    if (routeLoadingClearTimer !== null) {
+        window.clearTimeout(routeLoadingClearTimer);
+    }
+
+    routeLoadingClearTimer = window.setTimeout(() => {
+        root.classList.remove('ui-route-loading');
+        routeLoadingClearTimer = null;
+    }, 120);
+}
 
 function isDesktopViewport() {
     return window.innerWidth >= 1024;
@@ -76,8 +103,10 @@ function updateActiveLink() {
     document.querySelectorAll('#sidebar .sidebar-link').forEach(link => {
         const href = link.getAttribute('href');
         if (!href) return;
-        const isActive = href === currentPath
+        const serverMarkedActive = link.classList.contains('active');
+        const isPathMatch = href === currentPath
             || (href !== '/' && currentPath.startsWith(href));
+        const isActive = serverMarkedActive || isPathMatch;
         link.classList.toggle('active', isActive);
     });
 }
@@ -316,6 +345,7 @@ document.addEventListener('turbo:before-cache', () => {
     if (root) {
         root.classList.remove('ui-preload');
         root.classList.remove('ui-ready');
+        root.classList.remove('ui-route-loading');
     }
     const mobileNav = document.getElementById('guestNavMobile');
     if (mobileNav) mobileNav.classList.remove('show');
@@ -328,9 +358,19 @@ document.addEventListener('turbo:before-cache', () => {
 
 document.addEventListener('turbo:before-visit', () => {
     closeSidebar();
+    startRouteLoadingState();
+});
+
+document.addEventListener('turbo:before-fetch-request', () => {
+    startRouteLoadingState();
+});
+
+document.addEventListener('turbo:render', () => {
+    stopRouteLoadingState();
 });
 
 document.addEventListener('turbo:load', () => {
+    stopRouteLoadingState();
     triggerUiOpenAnimation();
     applyAdminSidebarCompactState();
     syncAdminSidebarCompactToggle();

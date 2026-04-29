@@ -52,6 +52,7 @@ class GtsSurveyQuestionRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('q')
             ->andWhere('q.isActive = :active')
+            ->andWhere('q.surveyTemplate IS NULL')
             ->setParameter('active', true)
             ->orderBy('q.section', 'ASC')
             ->addOrderBy('q.sortOrder', 'ASC')

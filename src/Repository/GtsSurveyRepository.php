@@ -81,6 +81,18 @@ class GtsSurveyRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('s')
             ->andWhere('s.user = :user')
             ->setParameter('user', $user)
+            ->orderBy('s.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findLatestByUser(User $user): ?GtsSurvey
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('s.createdAt', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();

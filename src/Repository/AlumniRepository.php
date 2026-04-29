@@ -181,4 +181,15 @@ class AlumniRepository extends ServiceEntityRepository
 
         return $qb->orderBy('a.lastName', 'ASC');
     }
+
+    public function searchEligibleSurveyRecipients(?int $batchYear, ?string $campus, ?string $course): QueryBuilder
+    {
+        return $this->searchByBatchCampusCourse($batchYear, $campus, $course)
+            ->leftJoin('a.user', 'u')
+            ->andWhere('u.id IS NOT NULL')
+            ->andWhere('u.accountStatus = :activeStatus')
+            ->andWhere('u.email IS NOT NULL')
+            ->andWhere("TRIM(u.email) <> ''")
+            ->setParameter('activeStatus', 'active');
+    }
 }

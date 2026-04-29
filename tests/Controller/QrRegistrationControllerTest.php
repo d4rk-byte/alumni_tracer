@@ -111,6 +111,25 @@ class QrRegistrationControllerTest extends WebTestCase
         self::assertSame('Reyes', $user->getAlumni()?->getMiddleName());
     }
 
+    public function testClosedBatchQrRegistrationIsNotAccessible(): void
+    {
+        $entityManager = $this->bootEntityManager();
+
+        $batch = (new QrRegistrationBatch())
+            ->setBatchYear(2022)
+            ->setIsOpen(false);
+
+        $entityManager->persist($batch);
+        $entityManager->flush();
+
+        self::ensureKernelShutdown();
+
+        $client = static::createClient();
+        $client->request('GET', '/register/qr/2022');
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
     private function bootEntityManager(): EntityManagerInterface
     {
         self::ensureKernelShutdown();

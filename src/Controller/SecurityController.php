@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
@@ -10,10 +11,13 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 class SecurityController extends AbstractController
 {
     #[Route(path: '/login', name: 'app_login')]
-    public function login(AuthenticationUtils $authenticationUtils): Response
+    public function login(Request $request, AuthenticationUtils $authenticationUtils): Response
     {
+        $switchAccount = $request->query->getBoolean('switch_account');
+        $targetPath = trim((string) $request->query->get('_target_path', ''));
+
         // If already logged in, redirect to dashboard
-        if ($this->getUser()) {
+        if ($this->getUser() && !$switchAccount) {
             return $this->redirectToRoute('app_home');
         }
 
@@ -25,6 +29,9 @@ class SecurityController extends AbstractController
         return $this->render('security/login.html.twig', [
             'last_username' => $lastUsername,
             'error' => $error,
+            'switch_account' => $switchAccount,
+            'target_path' => $targetPath,
+            'landing_mode' => 'guest',
         ]);
     }
 

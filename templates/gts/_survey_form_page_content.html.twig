@@ -1,0 +1,438 @@
+{% set isPreviewMode = isPreviewMode|default(false) %}
+{% set useLandingShell = useLandingShell|default(false) %}
+{% set cancelRoute = cancelRoute|default('app_home') %}
+{% set exitPreviewRoute = exitPreviewRoute|default('app_dashboard') %}
+{% set totalSections = questionSections|default([])|length %}
+{% set totalQuestions = 0 %}
+{% for section in questionSections|default([]) %}
+    {% set totalQuestions = totalQuestions + (section.items|length) %}
+{% endfor %}
+
+<style>
+    .gts-form-surface {
+        position: relative;
+        overflow: hidden;
+        border-radius: 2rem;
+        border: 1px solid rgba(191, 219, 254, 0.8);
+        background: linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(239,246,255,0.95) 56%, rgba(219,234,254,0.88) 100%);
+        box-shadow: 0 24px 52px rgba(15, 23, 42, 0.08);
+    }
+
+    .gts-form-surface::before {
+        content: '';
+        position: absolute;
+        inset: -20% auto auto -10%;
+        width: 220px;
+        height: 220px;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(37, 99, 235, 0.16) 0%, rgba(37, 99, 235, 0) 72%);
+        pointer-events: none;
+    }
+
+    .gts-hero-panel {
+        border-radius: 1.5rem;
+        border: 1px solid rgba(191, 219, 254, 0.9);
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
+    }
+
+    .gts-metric-card {
+        border-radius: 1.15rem;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .gts-section-card {
+        border-radius: 1.7rem;
+        border: 1px solid rgba(191, 219, 254, 0.72);
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 18px 38px rgba(15, 23, 42, 0.06);
+    }
+
+    .gts-section-heading {
+        border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+        background: linear-gradient(180deg, rgba(248,250,252,0.95) 0%, rgba(255,255,255,0.98) 100%);
+    }
+
+    .gts-question-card {
+        border-radius: 1.35rem;
+        border: 1px solid rgba(226, 232, 240, 0.92);
+        background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
+    }
+
+    .gts-question-index {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2.35rem;
+        height: 2.35rem;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+        color: #ffffff;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+    }
+
+    .gts-question-type {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0.35rem 0.7rem;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    [data-alumni-tracer-form] .gts-field-control,
+    [data-alumni-tracer-form] .form-input,
+    [data-alumni-tracer-form] .form-select {
+        width: 100%;
+        border-radius: 1rem;
+        border: 1px solid #cbd5e1;
+        background: #f8fafc;
+        box-shadow: inset 0 1px 1px rgba(15, 23, 42, 0.03);
+        transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+    }
+
+    [data-alumni-tracer-form] .gts-field-control:focus,
+    [data-alumni-tracer-form] .form-input:focus,
+    [data-alumni-tracer-form] .form-select:focus {
+        border-color: #60a5fa;
+        background: #ffffff;
+        box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.15);
+        outline: none;
+    }
+
+    .gts-choice-grid {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .gts-choice-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.85rem;
+        border-radius: 1rem;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        background: #f8fafc;
+        padding: 0.95rem 1rem;
+        transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+        cursor: pointer;
+    }
+
+    .gts-choice-card:hover {
+        border-color: rgba(96, 165, 250, 0.8);
+        background: #ffffff;
+        box-shadow: 0 10px 22px rgba(37, 99, 235, 0.08);
+        transform: translateY(-1px);
+    }
+
+    .gts-choice-card input {
+        margin-top: 0.15rem;
+        flex-shrink: 0;
+    }
+
+    .gts-choice-card span {
+        color: #334155;
+        line-height: 1.5;
+    }
+
+    .gts-repeater-row {
+        border-radius: 1.15rem;
+        border: 1px solid rgba(203, 213, 225, 0.95);
+        background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .gts-action-bar {
+        border-radius: 1.4rem;
+        border: 1px solid rgba(191, 219, 254, 0.88);
+        background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(239,246,255,0.95) 100%);
+        box-shadow: 0 16px 34px rgba(15, 23, 42, 0.07);
+    }
+
+    @media (max-width: 767px) {
+        .gts-form-surface {
+            border-radius: 1.5rem;
+        }
+
+        .gts-form-surface::before {
+            inset: -12% auto auto -18%;
+            width: 160px;
+            height: 160px;
+        }
+
+        .gts-hero-panel,
+        .gts-section-card,
+        .gts-question-card,
+        .gts-action-bar {
+            border-radius: 1.2rem;
+        }
+
+        .gts-question-index {
+            min-width: 2rem;
+            height: 2rem;
+            font-size: 0.72rem;
+        }
+
+        .gts-question-type {
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        .gts-choice-card {
+            padding: 0.85rem 0.9rem;
+        }
+    }
+
+    @media (min-width: 768px) {
+        .gts-choice-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+</style>
+
+{% if useLandingShell %}
+<div data-alumni-tracer-form-shell class="pb-12 sm:pb-16" style="background: linear-gradient(180deg, #ecfffb 0%, #e1f7f2 100%);">
+    <div class="max-w-screen-xl px-5 sm:px-8 mx-auto pt-10 sm:pt-14">
+        <div class="max-w-5xl mx-auto">
+{% endif %}
+
+<div data-alumni-tracer-form class="max-w-5xl mx-auto">
+    <section class="gts-form-surface px-5 sm:px-8 py-6 sm:py-8 mb-6">
+        <div class="grid lg:grid-cols-[1.06fr_0.94fr] gap-4 sm:gap-6 items-start relative z-[1]">
+            <div>
+                <p class="text-[0.72rem] font-bold tracking-[0.24em] uppercase text-blue-700 mb-3">Tracer Survey</p>
+                <h2 class="text-3xl sm:text-4xl font-bold text-darken leading-tight">Graduate Tracer Survey (GTS)</h2>
+                <p class="mt-4 text-sm sm:text-base leading-relaxed text-gray-600 max-w-3xl">
+                    Complete your tracer response with a cleaner guided layout designed for accurate, professional data submission.
+                    {% if useLandingShell %}You can finish this without leaving the alumni landing experience.{% endif %}
+                </p>
+
+                <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div class="gts-metric-card px-4 py-4">
+                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-blue-700 mb-1">Sections</p>
+                        <p class="text-2xl font-bold text-darken mb-0">{{ totalSections }}</p>
+                    </div>
+                    <div class="gts-metric-card px-4 py-4">
+                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-blue-700 mb-1">Questions</p>
+                        <p class="text-2xl font-bold text-darken mb-0">{{ totalQuestions }}</p>
+                    </div>
+                    <div class="gts-metric-card col-span-2 sm:col-span-1 px-4 py-4">
+                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-blue-700 mb-1">Response Mode</p>
+                        <p class="text-sm font-semibold text-darken mb-0">{{ isPreviewMode ? 'Preview only' : 'Live submission' }}</p>
+                    </div>
+                </div>
+
+                <div class="mt-5 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-3 text-sm">
+                    <div class="rounded-2xl border border-white/90 bg-white/80 px-4 py-3 shadow-sm">
+                        <p class="font-semibold text-darken mb-1">Answer accurately</p>
+                        <p class="text-gray-500 mb-0">Use your latest employment and study outcomes for better tracer reporting.</p>
+                    </div>
+                    <div class="rounded-2xl border border-white/90 bg-white/80 px-4 py-3 shadow-sm">
+                        <p class="font-semibold text-darken mb-1">Review by section</p>
+                        <p class="text-gray-500 mb-0">Each block groups related questions so the form is easier to scan and complete.</p>
+                    </div>
+                    <div class="rounded-2xl border border-white/90 bg-white/80 px-4 py-3 shadow-sm">
+                        <p class="font-semibold text-darken mb-1">Protected response</p>
+                        <p class="text-gray-500 mb-0">Submitted answers are used for institutional reporting and handled confidentially.</p>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="gts-hero-panel px-4 sm:px-5 py-4 sm:py-5">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-700 mb-4 shadow-sm">
+                    <i class="bi bi-clipboard2-check text-3xl"></i>
+                </div>
+                <div class="space-y-3 text-sm">
+                    <div class="gts-metric-card px-4 py-4">
+                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Institution Code</p>
+                        <p class="font-semibold text-darken mb-0">{{ institutionCode|default('NORSU-GTS') }}</p>
+                    </div>
+                    <div class="gts-metric-card px-4 py-4">
+                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Control Code</p>
+                        <p class="font-semibold text-darken mb-0 break-all">{{ controlCode|default('Auto-generated') }}</p>
+                    </div>
+                    <div class="gts-metric-card px-4 py-4">
+                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500 mb-1">Respondent</p>
+                        <p class="font-semibold text-darken mb-1">{{ survey.name }}</p>
+                        <p class="text-gray-500 mb-0 break-all">{{ survey.emailAddress ?: 'No email on file' }}</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    {% if isPreviewMode %}
+        <div class="mb-6 rounded-xl border-2 border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-900">
+            <i class="bi bi-shield-exclamation mr-2"></i>
+            ADMIN PREVIEW MODE - This survey is not submittable.
+        </div>
+    {% endif %}
+
+    <div class="mb-6 rounded-[1.6rem] border border-blue-100 bg-white px-6 sm:px-8 py-5 sm:py-6 text-sm leading-6 text-gray-700 shadow-[0_14px_30px_rgba(15,23,42,0.05)]">
+        <p class="font-semibold text-gray-900">Dear Graduate:</p>
+        <p class="mt-2">
+            Good day! Please complete this GTS questionnaire as accurately and frankly as possible by checking (/)
+            the box corresponding to your response.
+        </p>
+        <p class="mt-2">
+            Your answer will be used for research purposes in order to assess graduate employability and eventually,
+            improve course offerings to your alma mater and other universities/colleges in the Philippines.
+        </p>
+        <p class="mt-2">
+            Your answers to this survey will be treated with strictest confidentiality.
+        </p>
+    </div>
+
+    {{ form_start(form, {'attr': {'id': 'gtsForm', 'novalidate': 'novalidate'}}) }}
+
+    <fieldset {% if isPreviewMode %}disabled{% endif %} class="space-y-4 sm:space-y-5">
+        {% for section in questionSections|default([]) %}
+            {% set sectionNumber = loop.index < 10 ? '0' ~ loop.index : loop.index %}
+            <section class="gts-section-card overflow-hidden">
+                <div class="gts-section-heading px-4 sm:px-6 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div class="flex items-center gap-3 sm:gap-4">
+                        <span class="gts-question-index">{{ sectionNumber }}</span>
+                        <div>
+                            <p class="text-[0.68rem] font-bold tracking-[0.18em] uppercase text-blue-700 mb-1">Survey Section</p>
+                            <h3 class="text-lg sm:text-xl font-bold text-darken mb-0">{{ section.title }}</h3>
+                        </div>
+                    </div>
+                    <div class="inline-flex items-center rounded-full bg-blue-50 text-blue-800 text-xs sm:text-sm font-semibold px-3.5 py-2 border border-blue-100">
+                        {{ section.items|length }} question{{ section.items|length == 1 ? '' : 's' }}
+                    </div>
+                </div>
+                <div class="px-4 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-5">
+                    {% for question in section.items %}
+                        {% set inputType = question.inputType|default('text') %}
+                        {% set typeLabel = inputType == 'textarea' ? 'Long Answer' : inputType|replace({'_': ' '})|title %}
+                        {% set questionGuides = {
+                            text: 'Provide a concise answer.',
+                            date: 'Choose the most accurate date.',
+                            textarea: 'Provide a clear detailed response.',
+                            select: 'Choose the option that best matches your answer.',
+                            radio: 'Select one answer only.',
+                            checkbox: 'You may select more than one answer.',
+                            repeater: 'Add one or more entries as needed.'
+                        } %}
+                        {% set answer = dynamicAnswers[question.key]|default(question.inputType in ['checkbox', 'repeater'] ? [] : '') %}
+                        {% set questionNumber = loop.index < 10 ? '0' ~ loop.index : loop.index %}
+                        <article class="gts-question-card px-3 sm:px-5 py-4 sm:py-5">
+                            <div class="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 mb-4">
+                                <span class="gts-question-index">{{ questionNumber }}</span>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                                        <label class="text-base font-semibold text-darken mb-0">{{ question.questionText }}</label>
+                                        <span class="gts-question-type">{{ typeLabel }}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-500 mb-0">{{ questionGuides[inputType]|default('Provide the requested information.') }}</p>
+                                </div>
+                            </div>
+                            {% include 'gts/_question_input.html.twig' with {
+                                question: question,
+                                answer: answer,
+                                isPreviewMode: isPreviewMode
+                            } only %}
+                        </article>
+                    {% endfor %}
+                </div>
+            </section>
+        {% else %}
+            <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                No active survey questions are configured yet. Open the Survey Builder to import or create the questionnaire.
+            </div>
+        {% endfor %}
+    </fieldset>
+
+    <div class="gts-action-bar mt-6 mb-8 px-5 sm:px-6 py-4 sm:py-5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+            <p class="text-[0.72rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Final Review</p>
+            <p class="text-sm text-gray-500 mb-0">Check each section before submitting so your tracer response is complete and institution-ready.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
+        <a href="{{ path(cancelRoute) }}" class="btn-secondary inline-flex items-center justify-center w-full sm:w-auto"><i class="bi bi-x-lg mr-1"></i>Cancel</a>
+        {% if isPreviewMode %}
+            <a href="{{ path(exitPreviewRoute) }}" class="btn-norsu text-base px-8 py-3 inline-flex items-center justify-center w-full sm:w-auto">
+                <i class="bi bi-box-arrow-left mr-1"></i>Exit Preview
+            </a>
+        {% elseif hasAlreadyResponded|default(false) %}
+            <span class="inline-flex items-center justify-center rounded-lg bg-amber-50 text-amber-800 px-4 py-2 text-sm w-full sm:w-auto">
+                <i class="bi bi-info-circle mr-2"></i>
+                You have already completed this survey.
+            </span>
+        {% else %}
+            <button type="submit" class="btn-norsu text-base px-8 py-3 inline-flex items-center justify-center w-full sm:w-auto"><i class="bi bi-send mr-1"></i>Submit Survey</button>
+        {% endif %}
+        </div>
+    </div>
+
+    {{ form_end(form) }}
+</div>
+
+{% if useLandingShell %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+const isPreviewMode = {{ isPreviewMode ? 'true' : 'false' }};
+
+document.addEventListener('click', function (e) {
+    if (isPreviewMode) {
+        return;
+    }
+
+    const addButton = e.target.closest('[data-add-repeater-row]');
+    if (addButton) {
+        const key = addButton.getAttribute('data-add-repeater-row');
+        if (!key) {
+            return;
+        }
+
+        const container = document.querySelector(`[data-repeater-container="${key}"]`);
+        const template = document.querySelector(`[data-repeater-template="${key}"]`);
+        if (!container || !template) {
+            return;
+        }
+
+        const nextIndex = Number(container.getAttribute('data-next-index') || '0');
+        container.insertAdjacentHTML('beforeend', template.innerHTML.replace(/__name__/g, String(nextIndex)));
+        container.setAttribute('data-next-index', String(nextIndex + 1));
+        return;
+    }
+
+    const removeButton = e.target.closest('[data-remove-repeater-row]');
+    if (removeButton) {
+        const row = removeButton.closest('[data-repeater-row]');
+        const container = removeButton.closest('[data-repeater-container]');
+        if (!row) {
+            return;
+        }
+
+        if (container && container.querySelectorAll('[data-repeater-row]').length > 1) {
+            row.remove();
+            return;
+        }
+
+        row.querySelectorAll('input, textarea, select').forEach((field) => {
+            if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+                field.value = '';
+                return;
+            }
+
+            if (field instanceof HTMLSelectElement) {
+                field.selectedIndex = 0;
+            }
+        });
+    }
+});
+</script>

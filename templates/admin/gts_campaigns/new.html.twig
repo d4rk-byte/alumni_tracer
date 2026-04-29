@@ -4,7 +4,7 @@
 
 {% block body %}
 {% set surveysIndexRoute = is_granted('ROLE_ADMIN') ? 'admin_gts_surveys_index' : 'staff_gts_surveys_index' %}
-<div class="mx-auto max-w-6xl space-y-6">
+<div class="mx-auto max-w-6xl space-y-6" data-live-preview-root data-preview-endpoint="{{ previewEndpoint }}">
     <div class="flex items-start justify-between gap-4">
         <div class="space-y-1">
             <h1 class="text-2xl font-bold text-gray-800">Launch Survey Campaign</h1>
@@ -13,47 +13,73 @@
         <a href="{{ path(surveysIndexRoute) }}" class="btn-secondary">Back to Survey Builder</a>
     </div>
 
+    {% if not hasBatchOptions %}
+        <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            No configured batch year is available yet. Add a QR registration batch first, then launch a survey campaign for that batch.
+        </div>
+    {% endif %}
+
     <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             {{ form_start(form, { attr: { class: 'space-y-5' } }) }}
-            <div class="grid gap-4 sm:grid-cols-2">
-                <div class="sm:col-span-2">
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-12">
+                <div class="sm:col-span-2 xl:col-span-12">
                     {{ form_label(form.name, null, { label_attr: { class: 'mb-1.5 block text-sm font-semibold text-gray-700' } }) }}
                     {{ form_widget(form.name, { attr: { class: 'h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200' } }) }}
                     <div class="mt-1 text-sm text-red-600">{{ form_errors(form.name) }}</div>
                 </div>
 
-                <div>
-                    {{ form_label(form.targetYear, null, { label_attr: { class: 'mb-1.5 block text-sm font-semibold text-gray-700' } }) }}
-                    {{ form_widget(form.targetYear, { attr: { class: 'h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200' } }) }}
-                    <div class="mt-1 text-sm text-red-600">{{ form_errors(form.targetYear) }}</div>
+                <div class="xl:col-span-4">
+                    {{ form_label(form.targetBatchYear, null, { label_attr: { class: 'mb-1.5 block text-sm font-semibold text-gray-700' } }) }}
+                    <div class="max-w-sm">
+                        {{ form_widget(form.targetBatchYear, { attr: { class: 'h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200', 'data-live-preview-batch': 'true' } }) }}
+                    </div>
+                    <div class="mt-1 text-sm text-red-600">{{ form_errors(form.targetBatchYear) }}</div>
                 </div>
 
-                <div>
+                <div class="xl:col-span-2">
                     {{ form_label(form.expiryDays, null, { label_attr: { class: 'mb-1.5 block text-sm font-semibold text-gray-700' } }) }}
-                    {{ form_widget(form.expiryDays, { attr: { class: 'h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200' } }) }}
+                    <div class="max-w-[11rem]">
+                        {{ form_widget(form.expiryDays, { attr: { class: 'h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200' } }) }}
+                    </div>
                     <div class="mt-1 text-sm text-red-600">{{ form_errors(form.expiryDays) }}</div>
                 </div>
 
-                <div>
+                <div class="sm:col-span-2 xl:col-span-6">
+                    {{ form_label(form.scheduledSendAt, null, { label_attr: { class: 'mb-1.5 block text-sm font-semibold text-gray-700' } }) }}
+                    <div class="max-w-lg">
+                        {{ form_widget(form.scheduledSendAt, { attr: { class: 'h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200' } }) }}
+                    </div>
+                    <div class="max-w-lg">
+                        <p class="mt-1 text-xs text-gray-500">Choose a future date and click Schedule Campaign, or leave this blank and use Send Now.</p>
+                        <p class="mt-1 text-xs text-gray-500">Scheduled campaigns will check eligible recipients again when the send time arrives.</p>
+                    </div>
+                    <div class="mt-1 text-sm text-red-600">{{ form_errors(form.scheduledSendAt) }}</div>
+                </div>
+
+                <div class="xl:col-span-3">
                     {{ form_label(form.targetCollege, null, { label_attr: { class: 'mb-1.5 block text-sm font-semibold text-gray-700' } }) }}
-                    {{ form_widget(form.targetCollege, { attr: { class: 'h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200' } }) }}
+                    <div class="max-w-sm">
+                        {{ form_widget(form.targetCollege, { attr: { class: 'h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200', 'data-live-preview-college': 'true' } }) }}
+                    </div>
                     <div class="mt-1 text-sm text-red-600">{{ form_errors(form.targetCollege) }}</div>
                 </div>
 
-                <div>
+                <div class="xl:col-span-3">
                     {{ form_label(form.targetCourse, null, { label_attr: { class: 'mb-1.5 block text-sm font-semibold text-gray-700' } }) }}
-                    {{ form_widget(form.targetCourse, { attr: { class: 'h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200' } }) }}
+                    <div class="max-w-sm">
+                        {{ form_widget(form.targetCourse, { attr: { class: 'h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200', 'data-live-preview-course': 'true' } }) }}
+                    </div>
                     <div class="mt-1 text-sm text-red-600">{{ form_errors(form.targetCourse) }}</div>
                 </div>
 
-                <div class="sm:col-span-2">
+                <div class="sm:col-span-2 xl:col-span-12">
                     {{ form_label(form.emailSubject, null, { label_attr: { class: 'mb-1.5 block text-sm font-semibold text-gray-700' } }) }}
                     {{ form_widget(form.emailSubject, { attr: { class: 'h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200' } }) }}
                     <div class="mt-1 text-sm text-red-600">{{ form_errors(form.emailSubject) }}</div>
                 </div>
 
-                <div class="sm:col-span-2">
+                <div class="sm:col-span-2 xl:col-span-12">
                     {{ form_label(form.emailBody, null, { label_attr: { class: 'mb-1.5 block text-sm font-semibold text-gray-700' } }) }}
                     {{ form_widget(form.emailBody, { attr: { class: 'min-h-[220px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200' } }) }}
                     <div class="mt-1 text-sm text-red-600">{{ form_errors(form.emailBody) }}</div>
@@ -62,33 +88,266 @@
 
             <div class="flex flex-col-reverse gap-2 border-t border-gray-100 pt-4 sm:flex-row sm:justify-end">
                 {{ form_widget(form.preview, {'attr': {'class': 'btn-outline-norsu inline-flex h-11 items-center justify-center px-5'}}) }}
+                {{ form_widget(form.schedule, {'attr': {'class': 'btn-outline-norsu inline-flex h-11 items-center justify-center px-5'}}) }}
                 {{ form_widget(form.send, {'attr': {'class': 'btn-norsu inline-flex h-11 items-center justify-center px-5'}}) }}
             </div>
-            {{ form_end(form, { render_rest: false }) }}
+            {{ form_end(form) }}
         </div>
 
         <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 shadow-sm">
             <h2 class="text-lg font-bold text-gray-800">Recipient Preview</h2>
-            <p class="mt-1 text-sm text-gray-600">Only alumni with linked active user accounts and valid emails are included.</p>
+            <p class="mt-1 text-sm text-gray-600">Only alumni in the selected batch with linked active user accounts and valid emails are included.</p>
 
             <div class="mt-4 rounded-lg bg-white p-4">
                 <div class="text-xs uppercase tracking-wide text-gray-500">Eligible recipients</div>
-                <div class="mt-1 text-3xl font-bold text-norsu">{{ recipientCount }}</div>
+                <div class="mt-1 text-3xl font-bold text-norsu" data-live-preview-count>{{ recipientCount }}</div>
+                <div class="mt-2 hidden text-xs text-gray-500" data-live-preview-loading>Loading recipient preview...</div>
             </div>
 
-            <div class="mt-4 space-y-2">
-                {% for alumni in recipientSample %}
-                    <div class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
-                        <div class="font-semibold text-gray-800">{{ alumni.lastName }}, {{ alumni.firstName }}</div>
-                        <div class="text-xs text-gray-500">{{ alumni.emailAddress }} • {{ alumni.course ?: 'No course' }} • {{ alumni.college ?: 'No college' }}</div>
+            <div class="mt-4 rounded-lg border border-gray-200 bg-white">
+                <div class="border-b border-gray-200 p-3">
+                    <div class="relative">
+                        <i class="bi bi-search pointer-events-none absolute top-1/2 -translate-y-1/2 text-sm text-gray-400" style="left: 0.95rem;"></i>
+                        <input
+                            type="search"
+                            data-live-preview-search
+                            class="h-10 w-full rounded-lg border border-gray-300 bg-white pr-4 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                            style="padding-left: 2.75rem;"
+                            placeholder="Search recipients (name, email, student number, course, college)"
+                        >
                     </div>
-                {% else %}
-                    <div class="rounded-lg border border-dashed border-gray-300 bg-white px-3 py-5 text-center text-sm text-gray-500">
-                        Submit Preview Recipients to see a sample list.
+                    <div class="mt-2 text-xs text-gray-500">
+                        Showing <span data-live-preview-visible-count>{{ recipientSample|length }}</span> recipient(s)
                     </div>
-                {% endfor %}
+                </div>
+
+                <div class="max-h-80 overflow-auto">
+                    <table class="w-full text-sm">
+                        <thead class="sticky top-0 z-10 bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                            <tr>
+                                <th class="px-3 py-2 text-left">Name</th>
+                                <th class="px-3 py-2 text-left">Email</th>
+                                <th class="px-3 py-2 text-left">Student #</th>
+                                <th class="px-3 py-2 text-left">Course</th>
+                                <th class="px-3 py-2 text-left">College</th>
+                            </tr>
+                        </thead>
+                        <tbody data-live-preview-body>
+                            {% for alumni in recipientSample %}
+                                {% set recipientEmail = alumni.user and alumni.user.email ? alumni.user.email : alumni.emailAddress %}
+                                <tr
+                                    class="border-t border-gray-100"
+                                    data-recipient-row
+                                    data-name="{{ alumni.lastName }}, {{ alumni.firstName }}"
+                                    data-email="{{ recipientEmail }}"
+                                    data-student-number="{{ alumni.studentNumber }}"
+                                    data-course="{{ alumni.course ?: 'No course' }}"
+                                    data-college="{{ alumni.college ?: 'No college' }}"
+                                >
+                                    <td class="px-3 py-2.5 font-medium text-gray-800">{{ alumni.lastName }}, {{ alumni.firstName }}</td>
+                                    <td class="px-3 py-2.5 text-gray-600">{{ recipientEmail }}</td>
+                                    <td class="px-3 py-2.5 text-gray-600">{{ alumni.studentNumber }}</td>
+                                    <td class="px-3 py-2.5 text-gray-600">{{ alumni.course ?: 'No course' }}</td>
+                                    <td class="px-3 py-2.5 text-gray-600">{{ alumni.college ?: 'No college' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="{{ recipientSample is empty ? '' : 'hidden' }} border-t border-dashed border-gray-200 px-3 py-4 text-center text-sm text-gray-500" data-live-preview-empty>
+                    Select a batch year to load recipients.
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+function initLiveRecipientPreview() {
+    document.querySelectorAll('[data-live-preview-root]').forEach((root) => {
+        if (root.dataset.livePreviewInit === '1') {
+            return;
+        }
+        root.dataset.livePreviewInit = '1';
+
+        const endpoint = root.dataset.previewEndpoint || '';
+        const batchSelect = root.querySelector('select[data-live-preview-batch="true"]');
+        const collegeSelect = root.querySelector('select[data-live-preview-college="true"]');
+        const courseSelect = root.querySelector('select[data-live-preview-course="true"]');
+        const countElement = root.querySelector('[data-live-preview-count]');
+        const loadingElement = root.querySelector('[data-live-preview-loading]');
+        const searchInput = root.querySelector('[data-live-preview-search]');
+        const visibleCountElement = root.querySelector('[data-live-preview-visible-count]');
+        const tableBody = root.querySelector('[data-live-preview-body]');
+        const emptyState = root.querySelector('[data-live-preview-empty]');
+
+        if (!endpoint || !batchSelect || !countElement || !tableBody || !emptyState) {
+            return;
+        }
+
+        let recipients = Array.from(tableBody.querySelectorAll('tr[data-recipient-row]')).map((row) => {
+            return {
+                name: row.dataset.name || '',
+                email: row.dataset.email || '',
+                studentNumber: row.dataset.studentNumber || '',
+                course: row.dataset.course || '',
+                college: row.dataset.college || '',
+            };
+        });
+        let fallbackEmptyMessage = batchSelect.value
+            ? 'No eligible recipients found for the selected filters.'
+            : 'Select a batch year to load recipients.';
+        let pendingRequestId = 0;
+
+        function escapeHtml(value) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            };
+
+            return String(value ?? '').replace(/[&<>"']/g, (character) => map[character]);
+        }
+
+        function renderRows(rows, emptyMessage) {
+            if (rows.length === 0) {
+                tableBody.innerHTML = '';
+                emptyState.textContent = emptyMessage;
+                emptyState.classList.remove('hidden');
+                if (visibleCountElement) {
+                    visibleCountElement.textContent = '0';
+                }
+
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            tableBody.innerHTML = rows.map((row) => {
+                return `
+                    <tr
+                        class="border-t border-gray-100"
+                        data-recipient-row
+                        data-name="${escapeHtml(row.name)}"
+                        data-email="${escapeHtml(row.email)}"
+                        data-student-number="${escapeHtml(row.studentNumber)}"
+                        data-course="${escapeHtml(row.course)}"
+                        data-college="${escapeHtml(row.college)}"
+                    >
+                        <td class="px-3 py-2.5 font-medium text-gray-800">${escapeHtml(row.name)}</td>
+                        <td class="px-3 py-2.5 text-gray-600">${escapeHtml(row.email)}</td>
+                        <td class="px-3 py-2.5 text-gray-600">${escapeHtml(row.studentNumber)}</td>
+                        <td class="px-3 py-2.5 text-gray-600">${escapeHtml(row.course)}</td>
+                        <td class="px-3 py-2.5 text-gray-600">${escapeHtml(row.college)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            if (visibleCountElement) {
+                visibleCountElement.textContent = String(rows.length);
+            }
+        }
+
+        function applySearch() {
+            const keyword = (searchInput?.value || '').trim().toLowerCase();
+
+            if (keyword === '') {
+                renderRows(recipients, fallbackEmptyMessage);
+                return;
+            }
+
+            const filtered = recipients.filter((row) => {
+                const haystack = `${row.name} ${row.email} ${row.studentNumber} ${row.course} ${row.college}`.toLowerCase();
+
+                return haystack.includes(keyword);
+            });
+
+            const emptyMessage = recipients.length === 0
+                ? fallbackEmptyMessage
+                : 'No recipients match your search.';
+            renderRows(filtered, emptyMessage);
+        }
+
+        async function fetchPreview() {
+            const selectedBatchYear = batchSelect.value;
+            if (!selectedBatchYear) {
+                recipients = [];
+                fallbackEmptyMessage = 'Select a batch year to load recipients.';
+                countElement.textContent = '0';
+                applySearch();
+                return;
+            }
+
+            const requestId = ++pendingRequestId;
+            loadingElement?.classList.remove('hidden');
+
+            const params = new URLSearchParams();
+            params.set('targetBatchYear', selectedBatchYear);
+
+            if (collegeSelect?.value) {
+                params.set('targetCollege', collegeSelect.value);
+            }
+
+            if (courseSelect?.value) {
+                params.set('targetCourse', courseSelect.value);
+            }
+
+            try {
+                const response = await fetch(`${endpoint}?${params.toString()}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load recipient preview');
+                }
+
+                const payload = await response.json();
+                if (requestId !== pendingRequestId) {
+                    return;
+                }
+
+                recipients = Array.isArray(payload.rows) ? payload.rows : [];
+                countElement.textContent = String(Number(payload.count) || 0);
+                fallbackEmptyMessage = 'No eligible recipients found for the selected filters.';
+                applySearch();
+            } catch (error) {
+                if (requestId !== pendingRequestId) {
+                    return;
+                }
+
+                recipients = [];
+                countElement.textContent = '0';
+                fallbackEmptyMessage = 'Unable to load recipient preview right now.';
+                applySearch();
+            } finally {
+                if (requestId === pendingRequestId) {
+                    loadingElement?.classList.add('hidden');
+                }
+            }
+        }
+
+        searchInput?.addEventListener('input', applySearch);
+        batchSelect.addEventListener('change', fetchPreview);
+        collegeSelect?.addEventListener('change', fetchPreview);
+        courseSelect?.addEventListener('change', fetchPreview);
+
+        if (batchSelect.value) {
+            fetchPreview();
+        } else {
+            applySearch();
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initLiveRecipientPreview);
+document.addEventListener('turbo:load', initLiveRecipientPreview);
+</script>
 {% endblock %}

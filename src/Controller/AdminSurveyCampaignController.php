@@ -9,10 +9,13 @@ use App\Entity\SurveyInvitation;
 use App\Form\Admin\SurveyCampaignLaunchType;
 use App\Message\SendSurveyInvitationBatchMessage;
 use App\Repository\AlumniRepository;
+use App\Repository\QrRegistrationBatchRepository;
 use App\Repository\SurveyCampaignRepository;
 use App\Repository\SurveyInvitationRepository;
+use App\Service\SurveyCampaignDispatchService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -40,12 +43,19 @@ class AdminSurveyCampaignController extends AbstractController
         GtsSurveyTemplate $surveyTemplate,
         Request $request,
         AlumniRepository $alumniRepository,
+        QrRegistrationBatchRepository $batchRepository,
         EntityManagerInterface $entityManager,
-        MessageBusInterface $messageBus,
+        SurveyCampaignDispatchService $campaignDispatchService,
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_STAFF');
 
-        $yearOptions = array_map(
+        $batchYearOptions = array_values(array_unique(array_map(
+            static fn ($batch): int => $batch->getBatchYear(),
+            $batchRepository->findAllOrdered()
+        )));
+        rsort($batchYearOptions);
+
+        $alumniYearOptions = array_map(
             static fn ($value): int => (int) $value,
             $alumniRepository->createQueryBuilder('a')
                 ->select('DISTINCT a.yearGraduated')
@@ -55,7 +65,11 @@ class AdminSurveyCampaignController extends AbstractController
                 ->getQuery()
                 ->getSingleColumnResult()
         );
-        rsort($yearOptions);
+        rsort($alumniYearOptions);
+
+        if ($batchYearOptions === []) {
+            $batchYearOptions = $alumniYearOptions;
+        }
 
         $collegeOptions = array_values(array_filter(array_map(
             static fn ($value): string => trim((string) $value),
@@ -89,7 +103,7 @@ class AdminSurveyCampaignController extends AbstractController
             ->setExpiryDays(30);
 
         $form = $this->createForm(SurveyCampaignLaunchType::class, $campaign, [
-            'years' => $yearOptions,
+            'batch_years' => $batchYearOptions,
             'colleges' => $collegeOptions,
             'courses' => $courseOptions,
         ]);
@@ -97,20 +111,15 @@ class AdminSurveyCampaignController extends AbstractController
 
         $recipientCount = 0;
         $recipientSample = [];
+        $hasBatchOptions = $batchYearOptions !== [];
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $targetYear = $form->get('targetYear')->getData();
-            $targetYear = is_numeric((string) $targetYear) ? (int) $targetYear : null;
+            $targetBatchYear = $form->get('targetBatchYear')->getData();
+            $targetBatchYear = is_numeric((string) $targetBatchYear) ? (int) $targetBatchYear : null;
             $targetCollege = $campaign->getTargetCollege();
             $targetCourse = $campaign->getTargetCourse();
 
-            $recipientsQb = $alumniRepository->searchByBatchCampusCourse($targetYear, $targetCollege, $targetCourse)
-                ->leftJoin('a.user', 'u')
-                ->andWhere('u.id IS NOT NULL')
-                ->andWhere('u.accountStatus = :activeStatus')
-                ->andWhere('u.email IS NOT NULL')
-                ->andWhere("TRIM(u.email) <> ''")
-                ->setParameter('activeStatus', 'active');
+            $recipientsQb = $alumniRepository->searchEligibleSurveyRecipients($targetBatchYear, $targetCollege, $targetCourse);
 
             $recipientCount = (int) (clone $recipientsQb)
                 ->select('COUNT(a.id)')
@@ -123,52 +132,51 @@ class AdminSurveyCampaignController extends AbstractController
                 ->getResult();
 
             if ($form->get('send')->isClicked()) {
-                if ($targetYear === null) {
-                    $this->addFlash('warning', 'Please choose a graduation year.');
+                if ($targetBatchYear === null) {
+                    $this->addFlash('warning', 'Please choose a target batch year.');
                 } elseif ($recipientCount === 0) {
                     $this->addFlash('warning', 'No eligible recipients found for the selected filters.');
                 } else {
-                    $campaign->setTargetGraduationYears([(string) $targetYear]);
-                    $campaign->setStatus('sending');
-                    $campaign->setSentAt(new \DateTimeImmutable());
-                    $campaign->setCreatedBy(method_exists($this->getUser(), 'getEmail') ? $this->getUser()?->getEmail() : null);
+                    $campaign
+                        ->setTargetBatchYear($targetBatchYear)
+                        ->setCreatedBy(method_exists($this->getUser(), 'getEmail') ? $this->getUser()?->getEmail() : null)
+                        ->setScheduledSendAt(null);
 
-                    $entityManager->persist($campaign);
-
-                    $expiresAt = (new \DateTimeImmutable())->modify(sprintf('+%d days', max(1, $campaign->getExpiryDays())));
-                    $invitations = [];
-
-                    foreach ((clone $recipientsQb)->getQuery()->toIterable() as $alumni) {
-                        if (!$alumni instanceof Alumni || $alumni->getUser() === null) {
-                            continue;
-                        }
-
-                        $invitation = (new SurveyInvitation())
-                            ->setCampaign($campaign)
-                            ->setUser($alumni->getUser())
-                            ->setStatus(SurveyInvitation::STATUS_QUEUED)
-                            ->setExpiresAt($expiresAt);
-
-                        $entityManager->persist($invitation);
-                        $invitations[] = $invitation;
-                    }
-
-                    $entityManager->flush();
-
-                    $invitationIds = array_values(array_filter(array_map(
-                        static fn (SurveyInvitation $invitation): ?int => $invitation->getId(),
-                        $invitations,
-                    )));
-                    $baseUrl = $request->getSchemeAndHttpHost();
-
-                    foreach (array_chunk($invitationIds, 100) as $chunk) {
-                        $messageBus->dispatch(new SendSurveyInvitationBatchMessage($campaign->getId(), $chunk, $baseUrl));
-                    }
+                    $campaignDispatchService->dispatchCampaign($campaign, $request->getSchemeAndHttpHost());
 
                     $this->addFlash('success', sprintf('Campaign queued with %d invitation email(s). Sending will continue in the background.', $recipientCount));
 
                     return $this->redirectToRoute(
                         $this->isGranted('ROLE_ADMIN') ? 'admin_gts_surveys_index' : 'staff_gts_surveys_index'
+                    );
+                }
+            } elseif ($form->get('schedule')->isClicked()) {
+                $scheduledSendAt = $campaign->getScheduledSendAt();
+
+                if ($targetBatchYear === null) {
+                    $this->addFlash('warning', 'Please choose a target batch year.');
+                } elseif (!$scheduledSendAt instanceof \DateTimeImmutable) {
+                    $this->addFlash('warning', 'Please choose when the campaign should be sent.');
+                } elseif ($scheduledSendAt <= new \DateTimeImmutable()) {
+                    $this->addFlash('warning', 'Please choose a future send date, or use Send Now to dispatch the campaign immediately.');
+                } else {
+                    $campaign
+                        ->setTargetBatchYear($targetBatchYear)
+                        ->setStatus('scheduled')
+                        ->setSentAt(null)
+                        ->setCreatedBy(method_exists($this->getUser(), 'getEmail') ? $this->getUser()?->getEmail() : null);
+
+                    $entityManager->persist($campaign);
+                    $entityManager->flush();
+
+                    $this->addFlash('success', sprintf(
+                        'Campaign scheduled for %s. Eligible recipients will be checked again when it is time to send.',
+                        $scheduledSendAt->format('M d, Y h:i A')
+                    ));
+
+                    return $this->redirectToRoute(
+                        $this->isGranted('ROLE_ADMIN') ? 'admin_gts_campaign_show' : 'staff_gts_campaign_show',
+                        ['id' => $campaign->getId()]
                     );
                 }
             }
@@ -179,6 +187,69 @@ class AdminSurveyCampaignController extends AbstractController
             'form' => $form->createView(),
             'recipientCount' => $recipientCount,
             'recipientSample' => $recipientSample,
+            'hasBatchOptions' => $hasBatchOptions,
+            'previewEndpoint' => $this->generateUrl(
+                $this->isGranted('ROLE_ADMIN') ? 'admin_gts_campaign_preview' : 'staff_gts_campaign_preview',
+                ['id' => $surveyTemplate->getId()]
+            ),
+        ]);
+    }
+
+    #[Route('/admin/gts/surveys/{id}/campaigns/preview', name: 'admin_gts_campaign_preview', methods: ['GET'])]
+    #[Route('/staff/gts/surveys/{id}/campaigns/preview', name: 'staff_gts_campaign_preview', methods: ['GET'])]
+    public function previewRecipients(
+        GtsSurveyTemplate $surveyTemplate,
+        Request $request,
+        AlumniRepository $alumniRepository,
+    ): JsonResponse {
+        $this->denyAccessUnlessGranted('ROLE_STAFF');
+
+        $targetBatchYearRaw = $request->query->get('targetBatchYear');
+        $targetBatchYear = is_numeric((string) $targetBatchYearRaw) ? (int) $targetBatchYearRaw : null;
+        $targetCollege = trim((string) $request->query->get('targetCollege', ''));
+        $targetCourse = trim((string) $request->query->get('targetCourse', ''));
+
+        if ($targetBatchYear === null) {
+            return $this->json([
+                'count' => 0,
+                'rows' => [],
+                'surveyTemplateId' => $surveyTemplate->getId(),
+            ]);
+        }
+
+        $recipientsQb = $alumniRepository->searchEligibleSurveyRecipients(
+            $targetBatchYear,
+            $targetCollege !== '' ? $targetCollege : null,
+            $targetCourse !== '' ? $targetCourse : null,
+        );
+
+        $recipientCount = (int) (clone $recipientsQb)
+            ->select('COUNT(a.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $recipients = (clone $recipientsQb)
+            ->setMaxResults(100)
+            ->getQuery()
+            ->getResult();
+
+        $rows = array_map(static function (Alumni $alumni): array {
+            $currentEmail = trim((string) ($alumni->getUser()?->getEmail() ?? ''));
+
+            return [
+                'id' => $alumni->getId(),
+                'name' => sprintf('%s, %s', $alumni->getLastName(), $alumni->getFirstName()),
+                'studentNumber' => $alumni->getStudentNumber(),
+                'email' => $currentEmail !== '' ? $currentEmail : $alumni->getEmailAddress(),
+                'course' => $alumni->getCourse() ?: 'No course',
+                'college' => $alumni->getCollege() ?: 'No college',
+            ];
+        }, $recipients);
+
+        return $this->json([
+            'count' => $recipientCount,
+            'rows' => $rows,
+            'surveyTemplateId' => $surveyTemplate->getId(),
         ]);
     }
 

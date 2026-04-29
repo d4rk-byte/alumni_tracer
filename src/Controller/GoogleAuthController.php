@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
-use App\Service\NotificationService;
+use App\Service\GoogleOnboardingService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -23,7 +23,7 @@ class GoogleAuthController extends AbstractController
         private readonly UserRepository $userRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly UserPasswordHasherInterface $passwordHasher,
-        private readonly NotificationService $notifier,
+        private readonly GoogleOnboardingService $googleOnboardingService,
         private readonly Security $security,
         #[Autowire('%env(string:GOOGLE_CLIENT_ID)%')]
         private readonly string $googleClientId,
@@ -114,7 +114,16 @@ class GoogleAuthController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $user = $this->userRepository->findOneBy(['email' => $email]);
+        $googleSubject = trim((string) ($profile['sub'] ?? ''));
+        $user = null;
+
+        if ($googleSubject !== '') {
+            $user = $this->userRepository->findOneBy(['googleSubject' => $googleSubject]);
+        }
+
+        if (!$user instanceof User) {
+            $user = $this->userRepository->findOneBy(['email' => $email]);
+        }
 
         if (!$user instanceof User) {
             [$firstName, $lastName] = $this->resolveNames($profile, $email);
@@ -126,24 +135,50 @@ class GoogleAuthController extends AbstractController
             $user->setRoles([User::ROLE_ALUMNI]);
             $user->setAccountStatus('active');
             $user->setSchoolId(null);
+            $user->setGoogleSubject($googleSubject !== '' ? $googleSubject : null);
+            $user->setEmailVerifiedAt(new \DateTimeImmutable());
+            $user->setRequiresOnboarding(true);
+            $user->setDpaConsent(true);
+            $user->setDpaConsentDate(new \DateTime());
             $user->setPassword(
                 $this->passwordHasher->hashPassword($user, bin2hex(random_bytes(32)))
             );
 
             $this->entityManager->persist($user);
-            $this->entityManager->flush();
-
-            try {
-                $this->notifier->notifyNewRegistration($user);
-            } catch (\Throwable) {
-                // Email sending issues must not block signup.
+        } else {
+            if ($googleSubject !== '' && $user->getGoogleSubject() !== $googleSubject) {
+                $user->setGoogleSubject($googleSubject);
             }
 
-            $this->addFlash('success', 'Google sign-in successful. Welcome to the Alumni Tracker.');
+            if ($user->getAccountStatus() !== 'active') {
+                $user->setAccountStatus('active');
+            }
+
+            if ($user->getEmailVerifiedAt() === null) {
+                $user->setEmailVerifiedAt(new \DateTimeImmutable());
+            }
+
+            if ($user->isDpaConsent() !== true) {
+                $user->setDpaConsent(true);
+                $user->setDpaConsentDate(new \DateTime());
+            }
         }
+
+        $needsOnboarding = $this->googleOnboardingService->needsOnboarding($user);
+        $user->setRequiresOnboarding($needsOnboarding);
+
+        if (!$needsOnboarding && $user->getProfileCompletedAt() === null) {
+            $user->setProfileCompletedAt(new \DateTimeImmutable());
+        }
+
+        $this->entityManager->flush();
 
         try {
             $response = $this->security->login($user, 'form_login', 'main');
+
+            if ($needsOnboarding) {
+                return $this->redirectToRoute('app_google_onboarding');
+            }
 
             if ($response instanceof Response) {
                 return $response;
@@ -151,6 +186,10 @@ class GoogleAuthController extends AbstractController
         } catch (\Throwable $e) {
             $this->addFlash('error', $e->getMessage() !== '' ? $e->getMessage() : 'Unable to sign in with Google.');
             return $this->redirectToRoute('app_login');
+        }
+
+        if ($needsOnboarding) {
+            return $this->redirectToRoute('app_google_onboarding');
         }
 
         return $this->redirectToRoute('app_home');

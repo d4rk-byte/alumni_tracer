@@ -9,35 +9,442 @@
     <link rel="stylesheet" href="{{ asset('skilline/vendor/aos.css') }}" />
     <link rel="stylesheet" href="{{ asset('skilline/vendor/poppins.css') }}" />
     <link rel="stylesheet" href="{{ asset('skilline/css/skilline.css') }}" />
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
+        .landing-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            transition: background-color 180ms ease, box-shadow 180ms ease;
+        }
+
+        .landing-topbar[data-mode="guest"] {
+            background: rgba(239, 246, 255, 0.9);
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.08);
+        }
+
+        .landing-topbar[data-mode="alumni"] {
+            background: linear-gradient(135deg, rgba(219, 234, 254, 0.96) 0%, rgba(239, 246, 255, 0.92) 42%, rgba(255, 255, 255, 0.92) 100%);
+            box-shadow: 0 12px 34px rgba(30, 64, 175, 0.12);
+        }
+
+        .landing-brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.45rem;
+            padding: 0.28rem 0.65rem;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.12);
+            color: #1d4ed8;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+        }
+
+        .landing-brand-card {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 0.8rem 1rem;
+            border-radius: 1.2rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+            min-width: 142px;
+        }
+
+        .landing-brand-link {
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            color: #0f172a;
+            text-decoration: none;
+        }
+
+        .landing-brand-link:hover {
+            color: #0f172a;
+        }
+
+        .landing-menu-panel {
+            transition: max-height 220ms ease, opacity 180ms ease, transform 220ms ease;
+        }
+
+        .landing-nav-shell {
+            width: 100%;
+        }
+
+        .landing-nav-shell-alumni {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(248, 250, 252, 0.72) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .landing-alumni-nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.35rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.68);
+            border: 1px solid rgba(255, 255, 255, 0.86);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+        }
+
+        .landing-pill-link-alumni {
+            color: #1e3a8a;
+            padding: 0.82rem 1.15rem;
+            font-weight: 700;
+        }
+
+        .landing-pill-link-alumni:hover {
+            background: rgba(255, 255, 255, 0.9);
+            color: #1d4ed8;
+            box-shadow: 0 10px 22px rgba(59, 130, 246, 0.12);
+        }
+
+        .landing-pill-link-alumni.landing-pill-link-active {
+            background: #ffffff;
+            color: #1d4ed8;
+            box-shadow: 0 12px 26px rgba(37, 99, 235, 0.14);
+        }
+
+        .landing-primary-link-nav {
+            padding: 0.82rem 1.45rem;
+            font-size: 0.88rem;
+            box-shadow: 0 14px 28px rgba(37, 99, 235, 0.22);
+            white-space: nowrap;
+        }
+
+        .landing-pill-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 0.75rem 1rem;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #334155;
+            text-decoration: none;
+            transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+        }
+
+        .landing-pill-link:hover {
+            background: rgba(255, 255, 255, 0.7);
+            color: #0f172a;
+            transform: translateY(-1px);
+        }
+
+        .landing-pill-link-active {
+            background: rgba(255, 255, 255, 0.92);
+            color: #0f172a;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        .landing-pill-link-alumni {
+            color: #1e3a8a;
+        }
+
+        .landing-primary-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 0.85rem 1.35rem;
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+        }
+
+        .landing-primary-link:hover {
+            transform: translateY(-1px);
+        }
+
+        .landing-primary-link-guest {
+            background: #ffffff;
+            color: #1f2937;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        .landing-primary-link-accent {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff;
+            box-shadow: 0 14px 30px rgba(37, 99, 235, 0.22);
+        }
+
+        .landing-header-grid {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .landing-header-side {
+            display: none;
+        }
+
+        .landing-topbar-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0.9rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+            text-decoration: none;
+        }
+
+        .landing-topbar-meta-label {
+            display: block;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #2563eb;
+            line-height: 1.1;
+        }
+
+        .landing-topbar-meta-value {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+
+        .landing-topbar-meta-note {
+            display: block;
+            font-size: 0.74rem;
+            color: #64748b;
+            line-height: 1.2;
+        }
+
+        .landing-side-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 0.95rem 1.45rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+        }
+
+        .landing-mobile-only {
+            display: inline-flex;
+        }
+
+        .landing-side-action:hover {
+            transform: translateY(-1px);
+        }
+
+        .landing-side-action-alumni {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff;
+            box-shadow: 0 14px 30px rgba(37, 99, 235, 0.22);
+        }
+
+        .landing-side-action-guest {
+            background: rgba(255, 255, 255, 0.82);
+            color: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+        }
+
+        .landing-footer-shell {
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+        }
+
+        .landing-footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .landing-footer-links a {
+            color: #94a3b8;
+            text-decoration: none;
+        }
+
+        .landing-footer-links a:hover {
+            color: #ffffff;
+        }
+
+        @media (min-width: 768px) {
+            .landing-header-grid {
+                display: grid;
+                grid-template-columns: auto 1fr auto;
+                align-items: center;
+                column-gap: 1.25rem;
+            }
+
+            .landing-header-grid-alumni {
+                grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            }
+
+            .landing-header-brand {
+                justify-self: start;
+            }
+
+            .landing-header-nav {
+                justify-self: center;
+                width: 100%;
+                max-width: 980px;
+            }
+
+            .landing-header-nav-alumni {
+                width: auto;
+                max-width: none;
+            }
+
+            .landing-header-side {
+                display: flex;
+                justify-self: end;
+                justify-content: flex-end;
+                min-width: 190px;
+            }
+
+            .landing-nav-shell-alumni {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0;
+                width: auto;
+                padding-left: 0.9rem;
+                padding-right: 0.9rem;
+            }
+
+            .landing-alumni-nav-links {
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                gap: 0.1rem;
+                width: auto;
+                flex: 0 1 auto;
+            }
+
+            .landing-header-side-alumni {
+                display: none !important;
+            }
+
+            .landing-mobile-only {
+                display: none !important;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .landing-topbar {
+                top: 0;
+            }
+
+            .landing-brand-card {
+                min-width: 126px;
+                padding: 0.72rem 0.9rem;
+            }
+
+            .landing-brand-link {
+                font-size: 0.98rem;
+            }
+
+            .landing-brand-badge {
+                font-size: 0.6rem;
+                letter-spacing: 0.16em;
+            }
+
+            .landing-menu-panel {
+                padding-bottom: 0.25rem;
+            }
+
+            .landing-primary-link,
+            .landing-pill-link {
+                width: 100%;
+            }
+
+            .landing-primary-link-nav {
+                width: 100%;
+                margin-top: 0.2rem;
+            }
+        }
+    </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
     {% set currentRoute = app.request.attributes.get('_route')|default('') %}
+    {% set isLoggedInAlumni = app.user and is_granted('ROLE_ALUMNI') and not is_granted('ROLE_STAFF') and not is_granted('ROLE_ADMIN') %}
+    {% set landingMode = landing_mode is defined ? landing_mode : (isLoggedInAlumni ? 'alumni' : 'guest') %}
+    {% set isAlumniLanding = landingMode == 'alumni' %}
+    {% set surveyCompleted = hasGtsSurvey|default(false) %}
+    {% set profileCompletionPercent = profileSnapshot.completionPercent|default(0) %}
+    {% set accountStatus = profileSnapshot.accountStatus|default('Guest') %}
 
-    <div x-data="{ open: false }" class="w-full text-gray-700 bg-blue-50">
-        <div class="flex flex-col max-w-screen-xl px-8 mx-auto md:items-center md:justify-between md:flex-row">
-            <div class="flex flex-row items-center justify-between py-6">
-                <div class="relative md:mt-8">
-                    <a href="{{ path('app_home') }}" class="text-lg relative z-50 font-bold tracking-widest text-gray-900 rounded-lg focus:outline-none focus:shadow-outline">NORSU</a>
+    <div x-data="{ open: false }" @keydown.escape.window="open = false" class="landing-topbar w-full text-gray-700" data-mode="{{ landingMode }}">
+        <div class="landing-header-grid {{ isAlumniLanding ? 'landing-header-grid-alumni' : '' }} max-w-[1520px] px-5 sm:px-8 lg:px-10 mx-auto md:gap-5">
+            <div class="landing-header-brand flex flex-row items-center justify-between py-4 md:py-5">
+                <div class="relative {{ isAlumniLanding ? 'md:mt-4' : 'md:mt-8' }}">
+                    <div class="landing-brand-card relative z-50">
+                        <a href="{{ path('app_home') }}" class="landing-brand-link rounded-lg focus:outline-none focus:shadow-outline">NORSU</a>
+                        {% if isAlumniLanding %}
+                            <span class="landing-brand-badge">ALUMNI FEATURES</span>
+                        {% endif %}
+                    </div>
                     <svg class="h-11 z-40 absolute -top-2 -left-3" viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M35.2574 2.24264C37.6005 -0.100501 41.3995 -0.100505 43.7426 2.24264L76.7574 35.2574C79.1005 37.6005 79.1005 41.3995 76.7574 43.7426L43.7426 76.7574C41.3995 79.1005 37.6005 79.1005 35.2574 76.7574L2.24264 43.7426C-0.100501 41.3995 -0.100505 37.6005 2.24264 35.2574L35.2574 2.24264Z" fill="#65DAFF"/>
                     </svg>
                 </div>
-                <button class="rounded-lg md:hidden focus:outline-none focus:shadow-outline" @click="open = !open" aria-label="Toggle navigation">
+                <button class="rounded-full md:hidden px-4 py-2 text-sm font-semibold text-blue-900 bg-white/80 shadow-sm border border-white/70 focus:outline-none focus:shadow-outline" @click="open = !open" :aria-expanded="open ? 'true' : 'false'" aria-label="Toggle navigation">
                     <svg fill="currentColor" viewBox="0 0 20 20" class="w-6 h-6">
                         <path x-show="!open" fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM9 15a1 1 0 011-1h6a1 1 0 110 2h-6a1 1 0 01-1-1z" clip-rule="evenodd"></path>
                         <path x-show="open" fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                     </svg>
                 </button>
             </div>
-            <nav :class="{ 'transform md:transform-none': !open, 'h-full': open }" class="h-0 md:h-auto flex flex-col flex-grow md:items-center pb-4 md:pb-0 md:flex md:justify-end md:flex-row origin-top duration-300 scale-y-0">
-                <a class="px-4 py-2 mt-2 text-sm rounded-lg md:mt-8 md:ml-4 {{ currentRoute == 'app_home' or currentRoute starts with 'app_feature_' ? 'font-bold text-gray-900' : 'bg-transparent hover:text-gray-900' }} focus:outline-none focus:shadow-outline" href="{{ path('app_home') }}">Home</a>
-                <a class="px-4 py-2 mt-2 text-sm rounded-lg md:mt-8 md:ml-4 {{ currentRoute == 'app_about' ? 'font-bold text-gray-900' : 'bg-transparent hover:text-gray-900' }} focus:outline-none focus:shadow-outline" href="{{ path('app_about') }}">About</a>
-                <a class="px-4 py-2 mt-2 text-sm rounded-lg md:mt-8 md:ml-4 {{ currentRoute == 'app_contact' ? 'font-bold text-gray-900' : 'bg-transparent hover:text-gray-900' }} focus:outline-none focus:shadow-outline" href="{{ path('app_contact') }}">Contact</a>
-                <a class="px-4 py-2 mt-2 text-sm rounded-lg md:mt-8 md:ml-4 {{ currentRoute starts with 'job_board_' ? 'font-bold text-gray-900' : 'bg-transparent hover:text-gray-900' }} focus:outline-none focus:shadow-outline" href="{{ path('job_board_index') }}">Job Opportunities</a>
-                <a class="px-4 py-2 mt-2 text-sm rounded-lg md:mt-8 md:ml-4 {{ currentRoute == 'app_faq' ? 'font-bold text-gray-900' : 'bg-transparent hover:text-gray-900' }} focus:outline-none focus:shadow-outline" href="{{ path('app_faq') }}">FAQ</a>
-                <a class="px-10 py-3 mt-2 text-sm text-center bg-white text-gray-800 rounded-full md:mt-8 md:ml-4" href="{{ path('app_login') }}">Login</a>
-                <a class="px-10 py-3 mt-2 text-sm text-center bg-blue-600 text-white rounded-full md:mt-8 md:ml-4" href="{{ path('app_register') }}">Sign Up</a>
+            <nav x-cloak :class="open ? 'max-h-[34rem] opacity-100 translate-y-0 pb-5' : 'max-h-0 opacity-0 -translate-y-2 pb-0 md:max-h-none md:opacity-100 md:translate-y-0 md:pb-0'" class="landing-menu-panel landing-header-nav {{ isAlumniLanding ? 'landing-header-nav-alumni' : '' }} w-full overflow-hidden md:overflow-visible md:pb-0 md:w-auto md:max-h-none md:opacity-100 md:translate-y-0">
+                <div @click="if (window.innerWidth < 768) open = false" @click.outside="if (window.innerWidth < 768) open = false" class="landing-nav-shell {{ isAlumniLanding ? 'landing-nav-shell-alumni rounded-[2.1rem] p-3 sm:p-3.5 md:mt-4' : 'flex flex-col gap-2 rounded-[2rem] bg-white/72 border border-white/70 p-3 shadow-[0_14px_32px_rgba(15,23,42,0.08)] md:flex-row md:items-center md:gap-1 md:bg-white/55 md:px-2 md:py-2 md:mt-5' }}">
+                {% if isAlumniLanding %}
+                    <div class="landing-alumni-nav-links">
+                        <a class="landing-pill-link landing-pill-link-alumni {{ currentRoute == 'app_home' ? 'landing-pill-link-active' : '' }}" href="{{ path('app_home') }}">Alumni Home</a>
+                        <a class="landing-pill-link landing-pill-link-alumni {{ currentRoute == 'app_alumni_feature_announcements' or currentRoute starts with 'announcement_' ? 'landing-pill-link-active' : '' }}" href="{{ path('app_alumni_feature_announcements') }}">Announcements</a>
+                        <a class="landing-pill-link landing-pill-link-alumni {{ currentRoute == 'app_alumni_feature_jobs' or currentRoute starts with 'job_board_' ? 'landing-pill-link-active' : '' }}" href="{{ path('app_alumni_feature_jobs') }}">Jobs</a>
+                        <a class="landing-pill-link landing-pill-link-alumni {{ currentRoute == 'app_alumni_feature_tracer_survey' or currentRoute starts with 'gts_' ? 'landing-pill-link-active' : '' }}" href="{{ path('app_alumni_feature_tracer_survey') }}">Tracer Survey</a>
+                        <a class="landing-pill-link landing-pill-link-alumni {{ currentRoute in ['app_alumni_feature_profile', 'app_profile', 'app_profile_edit'] ? 'landing-pill-link-active' : '' }}" href="{{ path('app_alumni_feature_profile') }}">My Profile</a>
+                        <a class="landing-primary-link landing-primary-link-accent landing-primary-link-nav" href="{{ path('app_logout') }}">Logout</a>
+                    </div>
+                {% else %}
+                    <a class="landing-pill-link {{ currentRoute == 'app_home' or currentRoute starts with 'app_feature_' ? 'landing-pill-link-active' : '' }}" href="{{ path('app_home') }}">Home</a>
+                    <a class="landing-pill-link {{ currentRoute == 'app_about' ? 'landing-pill-link-active' : '' }}" href="{{ path('app_about') }}">About</a>
+                    <a class="landing-pill-link {{ currentRoute == 'app_contact' ? 'landing-pill-link-active' : '' }}" href="{{ path('app_contact') }}">Contact</a>
+                    <a class="landing-pill-link {{ currentRoute starts with 'job_board_' ? 'landing-pill-link-active' : '' }}" href="{{ path('job_board_index') }}">Job Opportunities</a>
+                    <a class="landing-pill-link {{ currentRoute == 'app_faq' ? 'landing-pill-link-active' : '' }}" href="{{ path('app_faq') }}">FAQ</a>
+                    <a class="landing-primary-link landing-primary-link-guest md:ml-2" href="{{ path('app_login') }}">Login</a>
+                    <a class="landing-primary-link landing-primary-link-accent" href="{{ path('app_register') }}">Sign Up</a>
+                {% endif %}
+                </div>
             </nav>
+            <div class="landing-header-side {{ isAlumniLanding ? 'landing-header-side-alumni' : '' }}">
+                {% if isAlumniLanding %}
+                    <a href="{{ path('app_logout') }}" class="landing-side-action landing-side-action-alumni" aria-label="Log out alumni account">Logout</a>
+                {% else %}
+                    <a href="{{ path('app_faq') }}" class="landing-side-action landing-side-action-guest" aria-label="Help and FAQ">
+                        <div>
+                            <span class="landing-topbar-meta-label">Need Help</span>
+                            <span class="landing-topbar-meta-value">Read FAQ</span>
+                            <span class="landing-topbar-meta-note">Answers for alumni and guests</span>
+                        </div>
+                    </a>
+                {% endif %}
+            </div>
         </div>
     </div>
 
@@ -45,31 +452,31 @@
         {% block page_content %}{% endblock %}
     </main>
 
-    <footer class="mt-16 overflow-hidden" style="background-color: #1e3a8a;">
-        <div class="max-w-lg mx-auto">
-            <div class="flex py-12 justify-center text-white items-center px-20 sm:px-36">
+    <footer class="mt-12 sm:mt-16 overflow-hidden" style="background-color: #1e3a8a;">
+        <div class="max-w-3xl mx-auto landing-footer-shell">
+            <div class="flex flex-col sm:flex-row py-9 sm:py-12 justify-center gap-3 text-white items-center px-2 sm:px-12">
                 <div class="relative">
                     <h1 class="font-bold text-xl pr-5 relative z-50">NORSU</h1>
                     <svg class="w-11 h-11 absolute -top-2 -left-3 z-40" viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M35.9645 2.94975C37.9171 0.997129 41.0829 0.997127 43.0355 2.94975L76.0502 35.9645C78.0029 37.9171 78.0029 41.0829 76.0503 43.0355L43.0355 76.0502C41.0829 78.0029 37.9171 78.0029 35.9645 76.0503L2.94975 43.0355C0.997129 41.0829 0.997127 37.9171 2.94975 35.9645L35.9645 2.94975Z" stroke="#26C1F2" stroke-width="2"/>
                     </svg>
                 </div>
-                <span class="border-l border-gray-500 text-sm pl-5 py-2 font-semibold">Alumni Tracker Platform</span>
+                <span class="sm:border-l border-gray-500 text-sm sm:pl-5 py-2 font-semibold text-center">Alumni Tracker Platform</span>
             </div>
-            <div class="text-center pb-16 pt-5">
-                <label class="text-gray-300 font-semibold">Subscribe to get our Newsletter</label>
-                <div class="px-5 sm:px-0 flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0 justify-center mt-3">
-                    <input type="email" placeholder="Your Email" class="rounded-full py-2 pl-5 bg-transparent border border-gray-400">
-                    <button type="submit" class="text-white w-40 sm:w-auto mx-auto sm:mx-0 font-semibold px-5 py-2 rounded-full" style="background: linear-gradient(105.5deg, #2563eb 19.57%, #1d4ed8 78.85%);">Subscribe</button>
+            <div class="text-center pb-12 sm:pb-16 pt-2 sm:pt-5">
+                <label class="text-gray-300 font-semibold text-sm sm:text-base">Subscribe to get our Newsletter</label>
+                <div class="px-0 flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0 justify-center mt-3 max-w-xl mx-auto">
+                    <input type="email" placeholder="Your Email" class="rounded-full py-3 pl-5 bg-transparent border border-gray-400 text-white placeholder:text-gray-400">
+                    <button type="submit" class="text-white w-full sm:w-auto mx-auto sm:mx-0 font-semibold px-5 py-3 rounded-full" style="background: linear-gradient(105.5deg, #2563eb 19.57%, #1d4ed8 78.85%);">Subscribe</button>
                 </div>
             </div>
-            <div class="flex items-center text-gray-400 text-sm justify-center">
-                <a href="{{ path('job_board_index') }}" class="pr-3">Careers</a>
-                <a href="{{ path('app_privacy') }}" class="border-l border-gray-400 px-3">Privacy</a>
-                <a href="{{ path('app_terms') }}" class="border-l border-gray-400 pl-3">Terms &amp; Conditions</a>
+            <div class="landing-footer-links text-sm">
+                <a href="{{ isAlumniLanding ? path('app_alumni_feature_jobs') : path('job_board_index') }}">Careers</a>
+                <a href="{{ path('app_privacy') }}">Privacy</a>
+                <a href="{{ path('app_terms') }}">Terms &amp; Conditions</a>
             </div>
             <div class="text-center text-white">
-                <p class="mt-3 mb-0 text-gray-400 text-sm">&copy; {{ "now"|date("Y") }} Negros Oriental State University Alumni Tracker</p>
+                <p class="mt-4 mb-0 text-gray-400 text-sm">&copy; {{ "now"|date("Y") }} Negros Oriental State University Alumni Tracker</p>
             </div>
         </div>
     </footer>

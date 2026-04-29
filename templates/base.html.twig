@@ -65,15 +65,18 @@
         {% endblock %}
     </head>
     <body class="{% block body_class %}{% endblock %}">
+        {% set showWorkspaceSidebar = app.user and (is_granted('ROLE_STAFF') or is_granted('ROLE_ADMIN')) %}
         {# ── TOP NAVBAR ── #}
         <nav class="fixed top-0 left-0 right-0 z-[1030] shadow-[0_3px_16px_rgba(30,64,175,0.3)] min-h-[64px] py-1.5 norsu-topbar"
              id="mainNavbar">
             <div class="w-full px-3 flex items-center min-h-[56px]">
                 {% if app.user %}
                     {# ─ Logged-in: sidebar toggle + brand + user initials ─ #}
-                    <button class="text-white lg:hidden mr-2 p-0 bg-transparent border-0 cursor-pointer" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
-                        <i class="bi bi-list text-2xl"></i>
-                    </button>
+                    {% if showWorkspaceSidebar %}
+                        <button class="text-white lg:hidden mr-2 p-0 bg-transparent border-0 cursor-pointer" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
+                            <i class="bi bi-list text-2xl"></i>
+                        </button>
+                    {% endif %}
                     <a class="norsu-brand flex items-center gap-2.5 text-white no-underline font-extrabold text-lg hover:text-white mr-auto" href="{{ path('app_home') }}">
                         <span class="norsu-brand-logo-wrap flex items-center justify-center flex-shrink-0">
                             <img src="{{ asset('images/norsu-navbar-logo.webp') }}" alt="NORSU Logo" class="norsu-brand-logo object-contain shadow-sm">
@@ -141,7 +144,7 @@
             </div>
         </nav>
 
-        {% if app.user %}
+        {% if showWorkspaceSidebar %}
         {# ── SIDEBAR (logged-in only) ── #}
         <div class="hidden fixed inset-0 bg-black/30 z-[1019]" id="sidebarBackdrop"></div>
         <aside class="norsu-sidebar fixed left-0 top-[84px] w-[220px] xl:w-[248px] h-[calc(100vh-84px)] bg-white border-r border-gray-200 z-[1020] overflow-y-auto shadow-[2px_0_8px_rgba(0,0,0,0.04)] transition-transform duration-300 -translate-x-full lg:translate-x-0" id="sidebar">
@@ -236,7 +239,7 @@
                 </a>
                 <a class="sidebar-link {% if currentRoute starts with 'admin_verification' or (currentRoute == 'admin_users' and app.request.query.get('role') != 'staff') %}active{% endif %}"
                    href="{{ path('admin_users') }}">
-                    <i class="bi bi-patch-check-fill sidebar-icon"></i> Profile Verification
+                    <i class="bi bi-patch-check-fill sidebar-icon"></i> User Management
                 </a>
                 <a class="sidebar-link {% if currentRoute == 'report_import' or currentRoute == 'report_export' %}active{% endif %}"
                    href="{{ path('report_import') }}">
@@ -288,11 +291,6 @@
                     <i class="bi bi-diagram-3 sidebar-icon"></i> Departments
                 </a>
 
-                <div class="sidebar-section-title pt-3 pb-2 px-4 text-[0.7rem] uppercase tracking-[1.5px] text-gray-400 font-bold select-none">Administration</div>
-                <a class="sidebar-link {% if currentRoute == 'admin_users' and app.request.query.get('role') == 'staff' %}active{% endif %}" href="{{ path('admin_users', { role: 'staff' }) }}">
-                    <i class="bi bi-people-fill sidebar-icon"></i> Staff Accounts
-                </a>
-
                 <a class="sidebar-link {% if app.request.attributes.get('_route') starts with 'admin_audit' %}active{% endif %}" href="{{ path('admin_audit_log') }}">
                     <i class="bi bi-journal-text sidebar-icon"></i> Audit Log
                 </a>
@@ -302,7 +300,7 @@
         {% endif %}
 
         {# ── MAIN CONTENT ── #}
-        <div class="norsu-main-content {% if app.user %}lg:ml-[220px] xl:ml-[248px] pt-[84px] px-4 pb-4 xl:px-6 xl:pb-6{% else %}pt-[64px]{% endif %} min-h-screen transition-[margin-left] duration-300">
+        <div class="norsu-main-content {% if showWorkspaceSidebar %}lg:ml-[220px] xl:ml-[248px] pt-[84px] px-4 pb-4 xl:px-6 xl:pb-6{% elseif app.user %}pt-[84px] px-4 pb-4 xl:px-6 xl:pb-6{% else %}pt-[64px]{% endif %} min-h-screen transition-[margin-left] duration-300">
             {% for label, messages in app.flashes %}
                 {% for message in messages %}
                     <div class="{% if app.user %}{% else %}max-w-7xl mx-auto px-4{% endif %} mt-3">

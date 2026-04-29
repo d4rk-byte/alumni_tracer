@@ -1,0 +1,411 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Complete Your Google Profile — NORSU Alumni Tracker{% endblock %}
+{% block body_class %}no-navbar{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .google-onboarding-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1105;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            overflow-y: auto;
+            background:
+                radial-gradient(circle at top left, rgba(59, 130, 246, 0.22), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.16), transparent 32%),
+                rgba(15, 23, 42, 0.68);
+            backdrop-filter: blur(12px);
+        }
+
+        .google-onboarding-dialog {
+            width: min(980px, 100%);
+        }
+
+        .google-onboarding-shell {
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 48px);
+            overflow: hidden;
+            border-radius: 28px;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            background: #ffffff;
+            box-shadow: 0 30px 80px rgba(15, 23, 42, 0.25);
+        }
+
+        .google-onboarding-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 28px 32px 24px;
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 55%, #0f172a 100%);
+            color: #ffffff;
+        }
+
+        .google-onboarding-header-copy {
+            max-width: 580px;
+        }
+
+        .google-onboarding-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.14);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .google-onboarding-title {
+            margin: 16px 0 10px;
+            font-size: 2rem;
+            line-height: 1.08;
+            font-weight: 700;
+        }
+
+        .google-onboarding-subtitle {
+            margin: 0;
+            color: rgba(219, 234, 254, 0.94);
+            font-size: 0.98rem;
+            line-height: 1.65;
+        }
+
+        .google-onboarding-meta {
+            min-width: 220px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .google-onboarding-chip {
+            border-radius: 18px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .google-onboarding-chip-label {
+            display: block;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(219, 234, 254, 0.82);
+            margin-bottom: 4px;
+        }
+
+        .google-onboarding-chip-value {
+            display: block;
+            font-weight: 600;
+            font-size: 0.96rem;
+            color: #ffffff;
+            word-break: break-word;
+        }
+
+        .google-onboarding-form {
+            display: flex;
+            flex: 1 1 auto;
+            min-height: 0;
+            flex-direction: column;
+        }
+
+        .google-onboarding-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 28px 32px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        }
+
+        .google-onboarding-banner {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            padding: 16px 18px;
+            border-radius: 22px;
+            border: 1px solid #c7ddff;
+            background: #eef5ff;
+            color: #1e3a8a;
+            margin-bottom: 22px;
+        }
+
+        .google-onboarding-banner i {
+            font-size: 1rem;
+            line-height: 1;
+            margin-top: 2px;
+        }
+
+        .google-onboarding-banner strong {
+            color: #0f172a;
+        }
+
+        .google-onboarding-form-errors {
+            margin-bottom: 22px;
+            padding: 14px 16px;
+            border-radius: 18px;
+            border: 1px solid #fecaca;
+            background: #fef2f2;
+            color: #b91c1c;
+            font-size: 0.92rem;
+        }
+
+        .google-onboarding-form-errors ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .google-onboarding-section {
+            border-radius: 24px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            padding: 22px;
+            box-shadow: 0 18px 40px rgba(148, 163, 184, 0.12);
+        }
+
+        .google-onboarding-section + .google-onboarding-section {
+            margin-top: 18px;
+        }
+
+        .google-onboarding-section-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            align-items: flex-start;
+            margin-bottom: 18px;
+        }
+
+        .google-onboarding-section-title {
+            margin: 0;
+            color: #0f172a;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .google-onboarding-section-copy {
+            margin: 5px 0 0;
+            color: #64748b;
+            font-size: 0.92rem;
+            line-height: 1.6;
+        }
+
+        .google-onboarding-pill {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .google-onboarding-grid {
+            display: grid;
+            gap: 18px 16px;
+        }
+
+        .google-onboarding-grid.identity {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .google-onboarding-grid.names {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-top: 18px;
+        }
+
+        .google-onboarding-grid.academics {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .google-onboarding-field {
+            min-width: 0;
+        }
+
+        .google-onboarding-label {
+            display: block;
+            margin-bottom: 9px;
+            color: #334155;
+            font-size: 0.93rem;
+            font-weight: 700;
+        }
+
+        .google-onboarding-help {
+            margin-top: 8px;
+            color: #64748b;
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .google-onboarding-input,
+        .google-onboarding-select {
+            width: 100%;
+            min-height: 56px;
+            border-radius: 18px;
+            border: 1px solid #d7e0ea;
+            background: #f8fafc;
+            padding: 15px 16px;
+            color: #0f172a;
+            font-size: 1rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        .google-onboarding-input:focus,
+        .google-onboarding-select:focus {
+            outline: none;
+            border-color: #60a5fa;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.18);
+        }
+
+        .google-onboarding-error {
+            margin-top: 8px;
+            color: #dc2626;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .google-onboarding-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            padding: 18px 32px 22px;
+            border-top: 1px solid #e2e8f0;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 -10px 25px rgba(15, 23, 42, 0.04);
+        }
+
+        .google-onboarding-footer-copy {
+            color: #64748b;
+            font-size: 0.9rem;
+            line-height: 1.55;
+            max-width: 420px;
+        }
+
+        .google-onboarding-footer-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .google-onboarding-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 52px;
+            padding: 0 18px;
+            border-radius: 16px;
+            border: 1px solid #d7e0ea;
+            background: #ffffff;
+            color: #475569;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .google-onboarding-link:hover {
+            background: #f8fafc;
+            color: #0f172a;
+            border-color: #cbd5e1;
+        }
+
+        .google-onboarding-submit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 52px;
+            min-width: 240px;
+            padding: 0 24px;
+            border: 0;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #1d4ed8 0%, #4338ca 100%);
+            color: #ffffff;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 16px 26px rgba(37, 99, 235, 0.28);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+
+        .google-onboarding-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 18px 30px rgba(37, 99, 235, 0.32);
+            filter: saturate(1.05);
+        }
+
+        @media (max-width: 900px) {
+            .google-onboarding-header {
+                flex-direction: column;
+            }
+
+            .google-onboarding-meta {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                min-width: 0;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .google-onboarding-overlay {
+                align-items: flex-start;
+                padding: 12px;
+            }
+
+            .google-onboarding-shell {
+                max-height: calc(100vh - 24px);
+                border-radius: 24px;
+            }
+
+            .google-onboarding-header,
+            .google-onboarding-body,
+            .google-onboarding-footer {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            .google-onboarding-title {
+                font-size: 1.6rem;
+            }
+
+            .google-onboarding-meta,
+            .google-onboarding-grid.identity,
+            .google-onboarding-grid.names,
+            .google-onboarding-grid.academics {
+                grid-template-columns: 1fr;
+            }
+
+            .google-onboarding-footer {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .google-onboarding-footer-copy {
+                max-width: none;
+            }
+
+            .google-onboarding-footer-actions {
+                flex-direction: column-reverse;
+                align-items: stretch;
+            }
+
+            .google-onboarding-submit,
+            .google-onboarding-link {
+                width: 100%;
+                min-width: 0;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="google-onboarding-overlay">
+    {% include 'security/_google_onboarding_modal.html.twig' %}
+</div>
+{% endblock %}

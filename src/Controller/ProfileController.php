@@ -23,6 +23,10 @@ class ProfileController extends AbstractController
     {
         $user = $this->getUser();
 
+        if ($this->shouldUseAlumniLandingProfileUi()) {
+            return $this->redirectToRoute('app_alumni_feature_profile');
+        }
+
         return $this->render('profile/index.html.twig', [
             'user' => $user,
         ]);
@@ -33,6 +37,7 @@ class ProfileController extends AbstractController
     {
         $user = $this->getUser();
         assert($user instanceof User);
+        $useAlumniLandingProfileUi = $this->shouldUseAlumniLandingProfileUi();
 
         if ($request->isMethod('POST')) {
             // Validate CSRF token
@@ -130,12 +135,31 @@ class ProfileController extends AbstractController
 
             $em->flush();
             $this->addFlash('success', 'Profile updated successfully.');
-            return $this->redirectToRoute('app_profile');
+            return $this->redirectToRoute($useAlumniLandingProfileUi ? 'app_alumni_feature_profile' : 'app_profile');
+        }
+
+        if ($useAlumniLandingProfileUi) {
+            return $this->render('home/alumni_profile_edit_page.html.twig', [
+                'user' => $user,
+                'alumni' => $user->getAlumni(),
+                'landing_mode' => 'alumni',
+                'profileSnapshot' => [
+                    'completionPercent' => 0,
+                    'accountStatus' => ucfirst($user->getAccountStatus()),
+                ],
+            ]);
         }
 
         return $this->render('profile/edit.html.twig', [
             'user' => $user,
         ]);
+    }
+
+    private function shouldUseAlumniLandingProfileUi(): bool
+    {
+        return $this->isGranted(User::ROLE_ALUMNI)
+            && !$this->isGranted('ROLE_STAFF')
+            && !$this->isGranted('ROLE_ADMIN');
     }
 
     #[Route('/profile/erase', name: 'app_profile_erase', methods: ['POST'])]

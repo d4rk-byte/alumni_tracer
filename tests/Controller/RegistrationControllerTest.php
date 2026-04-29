@@ -3,10 +3,13 @@
 namespace App\Tests\Controller;
 
 use App\Entity\Alumni;
+use App\Entity\RegistrationDraft;
 use App\Entity\User;
+use App\Service\RegistrationDraftService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class RegistrationControllerTest extends WebTestCase
@@ -45,7 +48,7 @@ class RegistrationControllerTest extends WebTestCase
         parent::tearDown();
     }
 
-    public function testRegisterCreatesPendingUserLinkedToNewAlumni(): void
+    public function testRegisterCreatesDraftAndRedirectsToOtpVerification(): void
     {
         $client = static::createClient();
 
@@ -58,21 +61,58 @@ class RegistrationControllerTest extends WebTestCase
             'registration_form[email]' => 'ana@example.com',
         ]));
 
+        self::assertResponseRedirects('/register/verify-email');
+
+        $entityManager = $this->bootEntityManager();
+        $user = $entityManager->getRepository(User::class)->findOneBy(['email' => 'ana@example.com']);
+        $draft = $entityManager->getRepository(RegistrationDraft::class)->findOneBy(['email' => 'ana@example.com']);
+
+        self::assertNull($user);
+        self::assertNotNull($draft);
+        self::assertSame('2022-00123', $draft->getStudentId());
+        self::assertSame(2022, $draft->getYearGraduated());
+        self::assertNull($draft->getVerifiedAt());
+    }
+
+    public function testVerifyEmailOtpCreatesPendingUserLinkedToNewAlumni(): void
+    {
+        $client = static::createClient();
+
+        ['draft' => $draft, 'otpCode' => $otpCode] = $this->createDraft([
+            'email' => 'ana@example.com',
+            'studentId' => '2022-00123',
+            'firstName' => 'Ana',
+            'lastName' => 'Lopez',
+            'plainPassword' => 'Password1!',
+            'yearGraduated' => 2022,
+            'dpaConsent' => true,
+        ]);
+
+        $this->seedDraftSession($client, $draft->getId());
+
+        $client->request('GET', '/register/verify-email');
+        $client->submitForm('Verify Email', [
+            'registration_otp_verification[otpCode]' => $otpCode,
+        ]);
+
         self::assertResponseRedirects('/login');
 
         $entityManager = $this->bootEntityManager();
         $user = $entityManager->getRepository(User::class)->findOneBy(['email' => 'ana@example.com']);
+        $storedDraft = $entityManager->getRepository(RegistrationDraft::class)->findOneBy(['email' => 'ana@example.com']);
 
         self::assertNotNull($user);
         self::assertSame('pending', $user->getAccountStatus());
         self::assertContains(User::ROLE_ALUMNI, $user->getRoles());
         self::assertSame('2022-00123', $user->getSchoolId());
+        self::assertNotNull($user->getEmailVerifiedAt());
         self::assertNotNull($user->getAlumni());
         self::assertSame(2022, $user->getAlumni()?->getYearGraduated());
         self::assertSame($user->getId(), $user->getAlumni()?->getUser()?->getId());
+        self::assertNull($storedDraft);
     }
 
-    public function testRegisterLinksExistingAlumniWhenIdentifiersMatchSameRecord(): void
+    public function testVerifyEmailOtpLinksExistingAlumniWhenIdentifiersMatchSameRecord(): void
     {
         $entityManager = $this->bootEntityManager();
         $existingAlumni = (new Alumni())
@@ -90,14 +130,22 @@ class RegistrationControllerTest extends WebTestCase
 
         $client = static::createClient();
 
-        $client->request('GET', '/register');
-        $client->submitForm('Register', $this->registrationPayload([
-            'registration_form[schoolId]' => '2022-00456',
-            'registration_form[firstName]' => 'Ben',
-            'registration_form[lastName]' => 'Santos',
-            'registration_form[yearGraduated]' => '2022',
-            'registration_form[email]' => 'ben@example.com',
-        ]));
+        ['draft' => $draft, 'otpCode' => $otpCode] = $this->createDraft([
+            'email' => 'ben@example.com',
+            'studentId' => '2022-00456',
+            'firstName' => 'Ben',
+            'lastName' => 'Santos',
+            'plainPassword' => 'Password1!',
+            'yearGraduated' => 2022,
+            'dpaConsent' => true,
+        ]);
+
+        $this->seedDraftSession($client, $draft->getId());
+
+        $client->request('GET', '/register/verify-email');
+        $client->submitForm('Verify Email', [
+            'registration_otp_verification[otpCode]' => $otpCode,
+        ]);
 
         self::assertResponseRedirects('/login');
 
@@ -151,6 +199,39 @@ class RegistrationControllerTest extends WebTestCase
 
         $entityManager = $this->bootEntityManager();
         self::assertNull($entityManager->getRepository(User::class)->findOneBy(['email' => 'split@example.com']));
+        self::assertNull($entityManager->getRepository(RegistrationDraft::class)->findOneBy(['email' => 'split@example.com']));
+    }
+
+    public function testVerifyEmailOtpRejectsWrongCode(): void
+    {
+        $client = static::createClient();
+
+        ['draft' => $draft] = $this->createDraft([
+            'email' => 'wrong@example.com',
+            'studentId' => '2022-00888',
+            'firstName' => 'Wrong',
+            'lastName' => 'Code',
+            'plainPassword' => 'Password1!',
+            'yearGraduated' => 2022,
+            'dpaConsent' => true,
+        ]);
+
+        $this->seedDraftSession($client, $draft->getId());
+
+        $client->request('GET', '/register/verify-email');
+        $client->submitForm('Verify Email', [
+            'registration_otp_verification[otpCode]' => '000000',
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('form', 'The verification code is incorrect');
+
+        $entityManager = $this->bootEntityManager();
+        $storedDraft = $entityManager->getRepository(RegistrationDraft::class)->findOneBy(['email' => 'wrong@example.com']);
+
+        self::assertNotNull($storedDraft);
+        self::assertSame(1, $storedDraft->getVerifyAttempts());
+        self::assertNull($entityManager->getRepository(User::class)->findOneBy(['email' => 'wrong@example.com']));
     }
 
     /**
@@ -178,5 +259,44 @@ class RegistrationControllerTest extends WebTestCase
         self::bootKernel();
 
         return static::getContainer()->get(ManagerRegistry::class)->getManager();
+    }
+
+    /**
+     * @param array{
+     *     email: string,
+     *     studentId: string,
+     *     firstName: string,
+     *     lastName: string,
+     *     plainPassword: string,
+     *     yearGraduated: int,
+     *     dpaConsent: bool
+     * } $registration
+     *
+     * @return array{draft: RegistrationDraft, otpCode: string}
+     */
+    private function createDraft(array $registration): array
+    {
+        $entityManager = $this->bootEntityManager();
+        $draftService = static::getContainer()->get(RegistrationDraftService::class);
+
+        $result = $draftService->createManualDraft($registration);
+        $entityManager->clear();
+
+        /** @var RegistrationDraft $draft */
+        $draft = $this->bootEntityManager()->getRepository(RegistrationDraft::class)->find($result['draft']->getId());
+
+        return [
+            'draft' => $draft,
+            'otpCode' => $result['otpCode'],
+        ];
+    }
+
+    private function seedDraftSession($client, int $draftId): void
+    {
+        $session = static::getContainer()->get('session.factory')->createSession();
+        $session->set(RegistrationDraftService::SESSION_KEY, $draftId);
+        $session->save();
+
+        $client->getCookieJar()->set(new Cookie($session->getName(), $session->getId()));
     }
 }

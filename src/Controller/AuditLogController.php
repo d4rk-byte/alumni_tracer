@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Entity\AuditLog;
 use App\Repository\AuditLogRepository;
 use App\Repository\UserRepository;
@@ -34,10 +35,12 @@ class AuditLogController extends AbstractController
             ->orderBy('a.action', 'ASC')
             ->getQuery()->getSingleColumnResult();
 
-        $staffUsers = $userRepo->createQueryBuilder('u')
-            ->where('u.roles LIKE :admin OR u.roles LIKE :staff')
-            ->setParameter('admin', '%ROLE_ADMIN%')
-            ->setParameter('staff', '%ROLE_STAFF%')
+        $staffUsersQb = $userRepo->createQueryBuilder('u');
+        $adminRoleExpression = $userRepo->createRoleMatchExpression($staffUsersQb, 'u', User::ROLE_CODE_ADMIN, 'admin_role');
+        $staffRoleExpression = $userRepo->createRoleMatchExpression($staffUsersQb, 'u', User::ROLE_CODE_STAFF, 'staff_role');
+
+        $staffUsers = $staffUsersQb
+            ->where(sprintf('(%s OR %s)', $adminRoleExpression, $staffRoleExpression))
             ->orderBy('u.lastName', 'ASC')
             ->getQuery()->getResult();
 

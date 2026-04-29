@@ -48,6 +48,7 @@ class DocumentController extends AbstractController
                     'image/jpeg',
                     'image/png',
                     'image/webp',
+                
                 ];
                 if (!in_array($file->getMimeType(), $allowedMimes, true)) {
                     $this->addFlash('danger', 'Invalid file type. Allowed: PDF, DOC, DOCX, JPG, PNG, WEBP.');

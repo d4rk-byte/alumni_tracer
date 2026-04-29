@@ -3,21 +3,46 @@
 {% block title %}Edit Profile{% endblock %}
 
 {% block body %}
-<div class="flex justify-between items-center mb-4">
-    <h4 class="font-bold mb-0"><i class="bi bi-pencil-square mr-2"></i>Edit Profile</h4>
-    <a href="{{ path('app_profile') }}" class="btn-outline-norsu"><i class="bi bi-arrow-left mr-1"></i>Back to Profile</a>
-</div>
+{% set isAdmin = 'ROLE_ADMIN' in user.roles %}
+{% set isStaff = 'ROLE_STAFF' in user.roles %}
+{% set roleLabel = isAdmin ? 'Administrator' : (isStaff ? 'Staff' : 'Alumni') %}
+{% set roleBadgeClass = isAdmin ? 'badge-danger' : (isStaff ? 'badge-info' : 'badge-success') %}
 
-<div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-    {# ── Edit Personal Info ── #}
-    <div class="md:col-span-8">
-        <form method="post" action="{{ path('app_profile_edit') }}" enctype="multipart/form-data">
-            <input type="hidden" name="_token" value="{{ csrf_token('profile_edit') }}">
+<div class="space-y-4">
+    <section class="card overflow-hidden">
+        <div class="card-body px-4 sm:px-5 py-4">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div class="flex items-center gap-4 min-w-0">
+                    {% if user.profileImage %}
+                        <img src="{{ asset('uploads/profile/' ~ user.profileImage) }}" alt="Profile photo" class="rounded-full object-cover border border-gray-200 shadow-sm flex-shrink-0" style="width:80px;height:80px;">
+                    {% else %}
+                        <div class="rounded-full inline-flex items-center justify-center text-2xl font-bold text-white shadow-sm flex-shrink-0" style="width:80px;height:80px;background:linear-gradient(135deg,#1E40AF,#059669)">
+                            {{ user.firstName|first|upper }}{{ user.lastName|first|upper }}
+                        </div>
+                    {% endif %}
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-700 mb-1">Edit Profile</p>
+                        <h4 class="font-bold mb-1 text-darken">{{ user.fullName }}</h4>
+                        <p class="text-gray-500 mb-2 break-all">{{ user.email }}</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="badge {{ roleBadgeClass }}">{{ roleLabel }}</span>
+                            <span class="badge badge-secondary">Update details and security</span>
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ path('app_profile') }}" class="btn-outline-norsu"><i class="bi bi-arrow-left mr-1"></i>Back to Profile</a>
+            </div>
+        </div>
+    </section>
 
-            <div class="card">
-                <div class="card-header bg-white font-semibold"><i class="bi bi-person mr-1"></i> Personal Information</div>
-                <div class="card-body">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <form method="post" action="{{ path('app_profile_edit') }}" enctype="multipart/form-data" class="space-y-4">
+        <input type="hidden" name="_token" value="{{ csrf_token('profile_edit') }}">
+
+        <section class="card">
+            <div class="card-header bg-white font-semibold"><i class="bi bi-person mr-1"></i> Account Details</div>
+            <div class="card-body">
+                <div class="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-4 items-start">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="form-label font-semibold">First Name <span class="text-red-500">*</span></label>
                             <input type="text" name="firstName" class="form-input" value="{{ user.firstName }}" required>
@@ -26,19 +51,40 @@
                             <label class="form-label font-semibold">Last Name <span class="text-red-500">*</span></label>
                             <input type="text" name="lastName" class="form-input" value="{{ user.lastName }}" required>
                         </div>
-                        <div class="md:col-span-2">
+                        <div class="sm:col-span-2">
                             <label class="form-label font-semibold">Email Address <span class="text-red-500">*</span></label>
                             <input type="email" name="email" class="form-input" value="{{ user.email }}" required>
                         </div>
                     </div>
+
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 h-full">
+                        <p class="font-semibold text-darken mb-3"><i class="bi bi-camera mr-1"></i> Profile Photo</p>
+                        <div class="flex items-center gap-3 mb-3">
+                            {% if user.profileImage %}
+                                <img src="{{ asset('uploads/profile/' ~ user.profileImage) }}" alt="Current profile photo" class="w-16 h-16 rounded-full object-cover border border-gray-200">
+                            {% else %}
+                                <div class="w-16 h-16 rounded-full inline-flex items-center justify-center text-xl font-bold text-white" style="background:linear-gradient(135deg,#1E40AF,#059669)">
+                                    {{ user.firstName|first|upper }}{{ user.lastName|first|upper }}
+                                </div>
+                            {% endif %}
+                            <div class="text-sm text-gray-500">
+                                Upload a clear headshot so your account stays easy to identify.
+                            </div>
+                        </div>
+                        <input type="file" name="profileImage" accept=".jpg,.jpeg,.png,.webp" class="form-input">
+                        <p class="text-xs text-gray-500 mt-2 mb-0">Allowed: JPG, PNG, WEBP. Maximum size: 2MB.</p>
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <div class="card mt-3">
-                <div class="card-header bg-white font-semibold"><i class="bi bi-lock mr-1"></i> Change Password <span class="text-gray-400 font-normal text-sm">(optional)</span></div>
-                <div class="card-body">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div class="md:col-span-2">
+        <section id="password-panel" class="card">
+            <div class="card-header bg-white font-semibold"><i class="bi bi-lock mr-1"></i> Password Update <span class="text-gray-400 font-normal text-sm">(optional)</span></div>
+            <div class="card-body">
+                <p class="text-sm text-gray-500 mb-4">Only fill in these fields if you want to change your password during this edit session.</p>
+                <div class="grid grid-cols-1 xl:grid-cols-[1.05fr_0.95fr] gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="sm:col-span-2">
                             <label class="form-label font-semibold">Current Password <span class="text-red-500">*</span></label>
                             <input type="password" name="currentPassword" id="currentPassword" class="form-input" placeholder="Enter your current password">
                         </div>
@@ -58,78 +104,33 @@
                             <span id="matchText" class="text-xs mt-1 block hidden"></span>
                         </div>
                     </div>
-                    <div class="mt-3 text-sm text-gray-500 space-y-1" id="passwordRules">
-                        <p class="font-semibold text-gray-700 mb-1"><i class="bi bi-shield-check mr-1"></i>Password Requirements:</p>
-                        <p id="rule-length" class="flex items-center gap-1"><i class="bi bi-x-circle text-gray-400"></i> At least 8 characters</p>
-                        <p id="rule-upper" class="flex items-center gap-1"><i class="bi bi-x-circle text-gray-400"></i> At least one uppercase letter (A–Z)</p>
-                        <p id="rule-lower" class="flex items-center gap-1"><i class="bi bi-x-circle text-gray-400"></i> At least one lowercase letter (a–z)</p>
-                        <p id="rule-number" class="flex items-center gap-1"><i class="bi bi-x-circle text-gray-400"></i> At least one number (0–9)</p>
-                        <p id="rule-special" class="flex items-center gap-1"><i class="bi bi-x-circle text-gray-400"></i> At least one special character (!@#$%^&* etc.)</p>
-                    </div>
-                </div>
-            </div>
 
-            <div class="card mt-3">
-                <div class="card-header bg-white font-semibold"><i class="bi bi-camera mr-1"></i> Profile Photo <span class="text-gray-400 font-normal text-sm">(optional)</span></div>
-                <div class="card-body">
-                    <div class="flex items-center gap-3 mb-3">
-                        {% if user.profileImage %}
-                            <img src="{{ asset('uploads/profile/' ~ user.profileImage) }}" alt="Current profile photo" class="w-16 h-16 rounded-full object-cover border border-gray-200">
-                        {% else %}
-                            <div class="w-16 h-16 rounded-full inline-flex items-center justify-center text-xl font-bold text-white" style="background:linear-gradient(135deg,#1E40AF,#059669)">
-                                {{ user.firstName|first|upper }}{{ user.lastName|first|upper }}
-                            </div>
-                        {% endif %}
-                        <div class="text-sm text-gray-500">
-                            Upload a clear headshot so your account is easy to identify.<br>
-                            Allowed: JPG, PNG, WEBP. Max size: 2MB.
+                    <div id="passwordRules" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-gray-500">
+                        <p class="font-semibold text-gray-700 mb-3"><i class="bi bi-shield-check mr-1"></i>Password Requirements</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <p id="rule-length" class="flex items-center gap-1 mb-0"><i class="bi bi-x-circle text-gray-400"></i> At least 8 characters</p>
+                            <p id="rule-upper" class="flex items-center gap-1 mb-0"><i class="bi bi-x-circle text-gray-400"></i> One uppercase letter</p>
+                            <p id="rule-lower" class="flex items-center gap-1 mb-0"><i class="bi bi-x-circle text-gray-400"></i> One lowercase letter</p>
+                            <p id="rule-number" class="flex items-center gap-1 mb-0"><i class="bi bi-x-circle text-gray-400"></i> One number</p>
+                            <p id="rule-special" class="flex items-center gap-1 mb-0 sm:col-span-2"><i class="bi bi-x-circle text-gray-400"></i> One special character</p>
                         </div>
                     </div>
-                    <input type="file" name="profileImage" accept=".jpg,.jpeg,.png,.webp" class="form-input">
                 </div>
             </div>
+        </section>
 
-            <div class="mt-4 flex gap-2">
-                <button type="submit" class="btn-norsu"><i class="bi bi-check-lg mr-1"></i>Save Changes</button>
-                <a href="{{ path('app_profile') }}" class="btn-secondary">Cancel</a>
-            </div>
-        </form>
-    </div>
-
-    {# ── Side Info ── #}
-    <div class="md:col-span-4">
-        <div class="card text-center">
-            <div class="card-body py-4">
-                {% if user.profileImage %}
-                    <img src="{{ asset('uploads/profile/' ~ user.profileImage) }}" alt="Profile photo" class="mx-auto mb-3 rounded-full object-cover" style="width:80px;height:80px;">
-                {% else %}
-                    <div class="mx-auto mb-3 rounded-full inline-flex items-center justify-center text-3xl font-bold text-white" style="width:80px;height:80px;background:linear-gradient(135deg,#1E40AF,#059669)">
-                        {{ user.firstName|first|upper }}{{ user.lastName|first|upper }}
+        <section class="card">
+            <div class="card-body px-4 sm:px-5 py-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <p class="text-sm text-gray-500 mb-0">Save only when your basic details and password changes are ready.</p>
+                    <div class="flex flex-wrap gap-2">
+                        <a href="{{ path('app_profile') }}" class="btn-secondary">Cancel</a>
+                        <button type="submit" class="btn-norsu"><i class="bi bi-check-lg mr-1"></i>Save Changes</button>
                     </div>
-                {% endif %}
-                <h5 class="font-bold mb-1">{{ user.fullName }}</h5>
-                <p class="text-gray-500 text-sm mb-2">{{ user.email }}</p>
-                {% if 'ROLE_ADMIN' in user.roles %}
-                    <span class="badge badge-success"><i class="bi bi-shield-check mr-1"></i>Administrator</span>
-                {% elseif 'ROLE_STAFF' in user.roles %}
-                    <span class="badge badge-info"><i class="bi bi-person-badge mr-1"></i>Staff</span>
-                {% else %}
-                    <span class="badge badge-primary"><i class="bi bi-mortarboard mr-1"></i>Alumni</span>
-                {% endif %}
+                </div>
             </div>
-        </div>
-
-        <div class="card mt-3">
-            <div class="card-body">
-                <h6 class="font-semibold mb-3"><i class="bi bi-lightbulb mr-1"></i> Tips</h6>
-                <ul class="list-none text-sm text-gray-500 mb-0 space-y-2">
-                    <li><i class="bi bi-check2 text-green-600 mr-1"></i> Use a strong, unique password</li>
-                    <li><i class="bi bi-check2 text-green-600 mr-1"></i> Keep your email address up to date</li>
-                    <li><i class="bi bi-check2 text-green-600 mr-1"></i> Never share your login credentials</li>
-                </ul>
-            </div>
-        </div>
-    </div>
+        </section>
+    </form>
 </div>
 {% endblock %}
 

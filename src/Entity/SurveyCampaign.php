@@ -55,6 +55,9 @@ class SurveyCampaign
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $sentAt = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $scheduledSendAt = null;
+
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $createdBy = null;
 
@@ -126,6 +129,28 @@ class SurveyCampaign
         return $this->targetGraduationYears;
     }
 
+    public function getTargetBatchYear(): ?int
+    {
+        $rawValue = $this->targetGraduationYears[0] ?? null;
+        if ($rawValue === null) {
+            return null;
+        }
+
+        $normalizedValue = trim((string) $rawValue);
+        if ($normalizedValue === '' || !is_numeric($normalizedValue)) {
+            return null;
+        }
+
+        return (int) $normalizedValue;
+    }
+
+    public function setTargetBatchYear(?int $targetBatchYear): static
+    {
+        $this->targetGraduationYears = $targetBatchYear !== null ? [(string) $targetBatchYear] : [];
+
+        return $this;
+    }
+
     public function setTargetGraduationYears(array $targetGraduationYears): static
     {
         $this->targetGraduationYears = $targetGraduationYears;
@@ -194,6 +219,18 @@ class SurveyCampaign
     public function setSentAt(?\DateTimeImmutable $sentAt): static
     {
         $this->sentAt = $sentAt;
+
+        return $this;
+    }
+
+    public function getScheduledSendAt(): ?\DateTimeImmutable
+    {
+        return $this->scheduledSendAt;
+    }
+
+    public function setScheduledSendAt(?\DateTimeImmutable $scheduledSendAt): static
+    {
+        $this->scheduledSendAt = $scheduledSendAt;
 
         return $this;
     }

@@ -11,6 +11,18 @@
         </div>
 
         <section data-aos="fade-up" data-aos-delay="100" class="max-w-xl mx-auto bg-white shadow-xl rounded-xl p-8" aria-label="Sign up form">
+            {% for message in app.flashes('success') %}
+                <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ message }}</div>
+            {% endfor %}
+
+            {% for message in app.flashes('warning') %}
+                <div class="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{{ message }}</div>
+            {% endfor %}
+
+            {% for message in app.flashes('danger') %}
+                <div class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{{ message }}</div>
+            {% endfor %}
+
             <div class="grid grid-cols-2 gap-2 bg-slate-100 rounded-xl p-1 mb-6" role="tablist" aria-label="Authentication options">
                 <a href="{{ path('app_login') }}" class="text-center font-semibold text-gray-600 rounded-lg py-2 no-underline hover:text-gray-900" role="tab" aria-selected="false">Login</a>
                 <span class="text-center font-semibold text-gray-900 bg-white rounded-lg py-2" role="tab" aria-selected="true">Sign Up</span>
