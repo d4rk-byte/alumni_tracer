@@ -33,6 +33,13 @@
                 </div>
                 <h5 class="font-bold mb-1">{{ a.title }}</h5>
                 <p class="text-gray-500 text-sm">{{ a.description|length > 200 ? a.description|slice(0,200) ~ '…' : a.description }}</p>
+                {% if a.eventStartAt or a.location %}
+                    <div class="text-xs text-gray-500 space-y-1 mt-3">
+                        <p class="mb-0"><span class="font-medium text-gray-700">Date:</span> {{ a.eventStartAt ? a.eventStartAt|date('M d, Y') : 'Date TBA' }}</p>
+                        <p class="mb-0"><span class="font-medium text-gray-700">Time:</span> {{ a.eventStartAt ? a.eventStartAt|date('h:i A') : 'Time TBA' }}</p>
+                        <p class="mb-0"><span class="font-medium text-gray-700">Location:</span> {{ a.location ?: 'Location TBA' }}</p>
+                    </div>
+                {% endif %}
             </div>
             <div class="card-footer bg-white flex justify-between items-center">
                 <span class="text-gray-500 text-xs">

@@ -21,8 +21,13 @@ class SurveyCampaignDispatchService
 
     public function dispatchCampaign(SurveyCampaign $campaign, string $baseUrl): int
     {
+        $targetBatchYear = $campaign->getTargetBatchYear();
+        if ($targetBatchYear === null) {
+            throw new \InvalidArgumentException('Survey campaigns must target a batch year before dispatch.');
+        }
+
         $recipientsQb = $this->alumniRepository->searchEligibleSurveyRecipients(
-            $campaign->getTargetBatchYear(),
+            $targetBatchYear,
             $campaign->getTargetCollege(),
             $campaign->getTargetCourse(),
         );

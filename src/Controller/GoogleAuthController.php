@@ -2,13 +2,17 @@
 
 namespace App\Controller;
 
+use App\Entity\Alumni;
 use App\Entity\User;
+use App\Repository\AlumniRepository;
 use App\Repository\UserRepository;
 use App\Service\GoogleOnboardingService;
 use Doctrine\ORM\EntityManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -21,21 +25,44 @@ class GoogleAuthController extends AbstractController
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly UserRepository $userRepository,
+        private readonly AlumniRepository $alumniRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly GoogleOnboardingService $googleOnboardingService,
+        private readonly JWTTokenManagerInterface $jwtManager,
         private readonly Security $security,
         #[Autowire('%env(string:GOOGLE_CLIENT_ID)%')]
         private readonly string $googleClientId,
         #[Autowire('%env(string:GOOGLE_CLIENT_SECRET)%')]
         private readonly string $googleClientSecret,
+        #[Autowire('%env(string:GOOGLE_REDIRECT_URI)%')]
+        private readonly string $googleRedirectUri,
     ) {
     }
 
     #[Route('/connect/google', name: 'app_google_start', methods: ['GET'])]
     public function start(Request $request): Response
     {
-        if ($this->getUser()) {
+        $frontendRedirect = $this->resolveFrontendRedirect($request);
+        $currentUser = $this->getUser();
+
+        if ($currentUser instanceof User && $frontendRedirect !== null) {
+            $guardResponse = $this->guardFrontendGoogleUser($currentUser, $frontendRedirect);
+            if ($guardResponse instanceof Response) {
+                return $guardResponse;
+            }
+
+            $needsOnboarding = $this->googleOnboardingService->needsOnboarding($currentUser);
+
+            $this->entityManager->flush();
+
+            return $this->redirectToFrontend($frontendRedirect, [
+                'token' => $this->jwtManager->create($currentUser),
+                'onboarding' => $needsOnboarding ? '1' : '0',
+            ]);
+        }
+
+        if ($currentUser) {
             return $this->redirectToRoute('app_home');
         }
 
@@ -47,7 +74,11 @@ class GoogleAuthController extends AbstractController
         $state = bin2hex(random_bytes(32));
         $request->getSession()->set('google_oauth_state', $state);
 
-        $redirectUri = $this->generateUrl('app_google_check', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        if ($frontendRedirect !== null) {
+            $request->getSession()->set('google_frontend_redirect', $frontendRedirect);
+        }
+
+        $redirectUri = $this->resolveGoogleRedirectUri();
 
         $query = http_build_query([
             'client_id' => $this->googleClientId,
@@ -73,6 +104,11 @@ class GoogleAuthController extends AbstractController
         $session = $request->getSession();
         $expectedState = (string) $session->get('google_oauth_state', '');
         $session->remove('google_oauth_state');
+        $frontendRedirect = (string) $session->get('google_frontend_redirect', '');
+        $session->remove('google_frontend_redirect');
+        $frontendRedirect = $frontendRedirect !== ''
+            ? $frontendRedirect
+            : $this->defaultFrontendGoogleCallback();
 
         $receivedState = (string) $request->query->get('state', '');
         if ($expectedState === '' || !hash_equals($expectedState, $receivedState)) {
@@ -92,7 +128,7 @@ class GoogleAuthController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $redirectUri = $this->generateUrl('app_google_check', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $redirectUri = $this->resolveGoogleRedirectUri();
         $accessToken = $this->exchangeCodeForAccessToken($code, $redirectUri);
 
         if ($accessToken === null) {
@@ -126,32 +162,82 @@ class GoogleAuthController extends AbstractController
         }
 
         if (!$user instanceof User) {
-            [$firstName, $lastName] = $this->resolveNames($profile, $email);
+            $alumni = $this->alumniRepository->findOneBy(['emailAddress' => $email]);
 
-            $user = new User();
-            $user->setEmail($email);
-            $user->setFirstName($firstName);
-            $user->setLastName($lastName);
-            $user->setRoles([User::ROLE_ALUMNI]);
-            $user->setAccountStatus('active');
-            $user->setSchoolId(null);
-            $user->setGoogleSubject($googleSubject !== '' ? $googleSubject : null);
-            $user->setEmailVerifiedAt(new \DateTimeImmutable());
-            $user->setRequiresOnboarding(true);
-            $user->setDpaConsent(true);
-            $user->setDpaConsentDate(new \DateTime());
-            $user->setPassword(
-                $this->passwordHasher->hashPassword($user, bin2hex(random_bytes(32)))
-            );
-
-            $this->entityManager->persist($user);
-        } else {
-            if ($googleSubject !== '' && $user->getGoogleSubject() !== $googleSubject) {
-                $user->setGoogleSubject($googleSubject);
+            if (!$alumni instanceof Alumni) {
+                return $this->rejectGoogleSignIn(
+                    $frontendRedirect,
+                    'No alumni account found. Please register using an official QR registration link from the Alumni Office.'
+                );
             }
 
-            if ($user->getAccountStatus() !== 'active') {
+            if ($alumni->getUser() instanceof User) {
+                $user = $alumni->getUser();
+            } else {
+                $firstName = $alumni->getFirstName();
+                $lastName = $alumni->getLastName();
+
+                if (trim($firstName) === '' || trim($lastName) === '') {
+                    [$firstName, $lastName] = $this->resolveNames($profile, $email);
+                }
+
+                $user = new User();
+                $user->setEmail($email);
+                $user->setFirstName($firstName);
+                $user->setLastName($lastName);
+                $user->setRoles([User::ROLE_ALUMNI]);
                 $user->setAccountStatus('active');
+                $user->setSchoolId($alumni->getStudentNumber());
+                $user->setGoogleSubject($googleSubject !== '' ? $googleSubject : null);
+                $user->setEmailVerifiedAt(new \DateTimeImmutable());
+                $user->setRequiresOnboarding(true);
+                $user->setDpaConsent(true);
+                $user->setDpaConsentDate(new \DateTime());
+                $user->setPassword(
+                    $this->passwordHasher->hashPassword($user, bin2hex(random_bytes(32)))
+                );
+
+                $alumni->setUser($user);
+                $user->setAlumni($alumni);
+
+                $this->entityManager->persist($user);
+                $this->entityManager->persist($alumni);
+            }
+        }
+
+        if ($user->getAccountStatus() !== 'active') {
+            return $this->rejectGoogleSignIn(
+                $frontendRedirect,
+                'Your alumni account is not active yet. Please wait for approval or contact the Alumni Office.'
+            );
+        }
+
+        if ($user->getAlumni() === null && !$this->isStaffAccount($user)) {
+            $alumni = $this->alumniRepository->findOneBy(['emailAddress' => $email])
+                ?? ($user->getSchoolId() ? $this->alumniRepository->findOneBy(['studentNumber' => $user->getSchoolId()]) : null);
+
+            if (!$alumni instanceof Alumni) {
+                return $this->rejectGoogleSignIn(
+                    $frontendRedirect,
+                    'No alumni account found. Please register using an official QR registration link from the Alumni Office.'
+                );
+            }
+
+            if ($alumni->getUser() instanceof User && $alumni->getUser()->getId() !== $user->getId()) {
+                return $this->rejectGoogleSignIn(
+                    $frontendRedirect,
+                    'This alumni record is already linked to another account. Please contact the Alumni Office.'
+                );
+            }
+
+            $alumni->setUser($user);
+            $user->setAlumni($alumni);
+            $this->entityManager->persist($alumni);
+        }
+
+        if ($user instanceof User) {
+            if ($googleSubject !== '' && $user->getGoogleSubject() !== $googleSubject) {
+                $user->setGoogleSubject($googleSubject);
             }
 
             if ($user->getEmailVerifiedAt() === null) {
@@ -173,6 +259,12 @@ class GoogleAuthController extends AbstractController
 
         $this->entityManager->flush();
 
+        return $this->redirectToFrontend($frontendRedirect, [
+            'token' => $this->jwtManager->create($user),
+            'onboarding' => $needsOnboarding ? '1' : '0',
+        ]);
+
+        /*
         try {
             $response = $this->security->login($user, 'form_login', 'main');
 
@@ -193,11 +285,117 @@ class GoogleAuthController extends AbstractController
         }
 
         return $this->redirectToRoute('app_home');
+        */
+    }
+
+    /**
+     * @param array<string, string> $params
+     */
+    private function redirectToFrontend(string $frontendRedirect, array $params): RedirectResponse
+    {
+        $separator = str_contains($frontendRedirect, '?') ? '&' : '?';
+
+        return $this->redirect($frontendRedirect.$separator.http_build_query($params, '', '&', \PHP_QUERY_RFC3986));
+    }
+
+    private function rejectGoogleSignIn(string $frontendRedirect, string $message): Response
+    {
+        if ($frontendRedirect !== '') {
+            return $this->redirectToFrontend($frontendRedirect, [
+                'error' => $message,
+            ]);
+        }
+
+        $this->addFlash('error', $message);
+
+        return $this->redirectToRoute('app_login');
+    }
+
+    private function guardFrontendGoogleUser(User $user, string $frontendRedirect): ?Response
+    {
+        if ($this->isStaffAccount($user) || $user->getAlumni() instanceof Alumni) {
+            return null;
+        }
+
+        $email = strtolower(trim((string) $user->getEmail()));
+        $alumni = $email !== ''
+            ? $this->alumniRepository->findOneBy(['emailAddress' => $email])
+            : null;
+
+        if (!$alumni instanceof Alumni && $user->getSchoolId()) {
+            $alumni = $this->alumniRepository->findOneBy(['studentNumber' => $user->getSchoolId()]);
+        }
+
+        if (!$alumni instanceof Alumni) {
+            return $this->rejectGoogleSignIn(
+                $frontendRedirect,
+                'No alumni account found. Please register using an official QR registration link from the Alumni Office.'
+            );
+        }
+
+        if ($alumni->getUser() instanceof User && $alumni->getUser()->getId() !== $user->getId()) {
+            return $this->rejectGoogleSignIn(
+                $frontendRedirect,
+                'This alumni record is already linked to another account. Please contact the Alumni Office.'
+            );
+        }
+
+        $alumni->setUser($user);
+        $user->setAlumni($alumni);
+        $this->entityManager->persist($alumni);
+
+        return null;
+    }
+
+    private function isStaffAccount(User $user): bool
+    {
+        $roles = $user->getRoles();
+
+        return in_array('ROLE_ADMIN', $roles, true) || in_array('ROLE_STAFF', $roles, true);
+    }
+
+    private function resolveFrontendRedirect(Request $request): ?string
+    {
+        $frontendRedirect = trim((string) $request->query->get('frontend_redirect', ''));
+
+        if ($frontendRedirect === '') {
+            return null;
+        }
+
+        $parts = parse_url($frontendRedirect);
+
+        if (!is_array($parts) || !in_array($parts['scheme'] ?? '', ['http', 'https'], true)) {
+            return null;
+        }
+
+        return $frontendRedirect;
+    }
+
+    private function defaultFrontendGoogleCallback(): string
+    {
+        $frontendUrl = trim((string) ($_ENV['FRONTEND_URL'] ?? $_SERVER['FRONTEND_URL'] ?? ''));
+
+        if ($frontendUrl === '') {
+            $frontendUrl = 'http://localhost:3000';
+        }
+
+        return rtrim($frontendUrl, '/') . '/auth/google/callback';
     }
 
     private function isGoogleConfigured(): bool
     {
         return trim($this->googleClientId) !== '' && trim($this->googleClientSecret) !== '';
+    }
+
+    private function resolveGoogleRedirectUri(): string
+    {
+        $configuredRedirectUri = trim($this->googleRedirectUri);
+
+        if ($configuredRedirectUri !== '') {
+            return $configuredRedirectUri;
+        }
+
+        return $this->generateUrl('app_google_check', [], UrlGeneratorInterface::ABSOLUTE_URL);
     }
 
     private function exchangeCodeForAccessToken(string $code, string $redirectUri): ?string

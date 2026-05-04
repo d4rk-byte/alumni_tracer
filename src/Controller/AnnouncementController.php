@@ -39,6 +39,7 @@ class AnnouncementController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $this->normalizeJoinUrl($announcement);
             $announcement->setPostedBy($this->getUser());
             $em->persist($announcement);
             $em->flush();
@@ -74,6 +75,7 @@ class AnnouncementController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $this->normalizeJoinUrl($announcement);
             $em->flush();
             $this->addFlash('success', 'Announcement updated.');
 
@@ -98,5 +100,22 @@ class AnnouncementController extends AbstractController
         }
 
         return $this->redirectToRoute('announcement_index');
+    }
+
+    private function normalizeJoinUrl(Announcement $announcement): void
+    {
+        $joinUrl = trim((string) $announcement->getJoinUrl());
+
+        if ($joinUrl === '') {
+            $announcement->setJoinUrl(null);
+
+            return;
+        }
+
+        if (!preg_match('/^[a-z][a-z0-9+.-]*:/i', $joinUrl)) {
+            $joinUrl = 'https://' . $joinUrl;
+        }
+
+        $announcement->setJoinUrl($joinUrl);
     }
 }

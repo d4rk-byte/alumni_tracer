@@ -1,0 +1,26 @@
+{% set eventStartAt = announcement.eventStartAt|default(null) %}
+{% set eventDate = eventStartAt ? eventStartAt|date('M d, Y') : 'Date TBA' %}
+{% set eventTime = eventStartAt ? eventStartAt|date('h:i A') : 'Time TBA' %}
+{% set eventLocation = announcement.location|default(null) %}
+{% set eventLocation = eventLocation ?: 'Location TBA' %}
+
+<div class="{{ event_meta_class|default('grid grid-cols-1 gap-1.5 text-xs text-slate-500 mb-3') }}">
+    <p class="flex items-start gap-1.5 mb-0">
+        <svg width="14" height="14" class="w-3.5 h-3.5 flex-none mt-0.5 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M6 2a1 1 0 011 1v1h6V3a1 1 0 112 0v1h1a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2h1V3a1 1 0 011-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+        </svg>
+        <span><strong class="font-semibold text-slate-600">Date:</strong> {{ eventDate }}</span>
+    </p>
+    <p class="flex items-start gap-1.5 mb-0">
+        <svg width="14" height="14" class="w-3.5 h-3.5 flex-none mt-0.5 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-12a.75.75 0 00-1.5 0v4c0 .199.079.39.22.53l2.25 2.25a.75.75 0 101.06-1.06l-2.03-2.03V6z" clip-rule="evenodd" />
+        </svg>
+        <span><strong class="font-semibold text-slate-600">Time:</strong> {{ eventTime }}</span>
+    </p>
+    <p class="flex items-start gap-1.5 mb-0">
+        <svg width="14" height="14" class="w-3.5 h-3.5 flex-none mt-0.5 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M9.69 18.933l.003.002.002.001a.75.75 0 00.61 0l.002-.001.003-.002.009-.005.03-.018a9.538 9.538 0 00.482-.315 19.768 19.768 0 001.646-1.274C14.129 15.94 16 13.886 16 11A6 6 0 104 11c0 2.886 1.871 4.94 3.523 6.321a19.768 19.768 0 001.646 1.274 9.538 9.538 0 00.482.315l.03.018.009.005zM10 13.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clip-rule="evenodd" />
+        </svg>
+        <span><strong class="font-semibold text-slate-600">Location:</strong> {{ eventLocation }}</span>
+    </p>
+</div>

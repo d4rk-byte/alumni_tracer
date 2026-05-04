@@ -16,14 +16,38 @@ CREATE TABLE IF NOT EXISTS `user` (
     email             VARCHAR(180)  NOT NULL,
     first_name        VARCHAR(255)  NOT NULL,
     last_name         VARCHAR(255)  NOT NULL,
+    username          VARCHAR(80)   NULL,
+    phone_number      VARCHAR(50)   NULL,
+    bio               LONGTEXT      NULL,
+    school_id         VARCHAR(50)   NULL,
     role              SMALLINT      NOT NULL  DEFAULT 3 COMMENT '1=Admin | 2=Staff | 3=Student',
     password          VARCHAR(255)  NOT NULL,
     account_status    VARCHAR(50)   NOT NULL  DEFAULT 'pending' COMMENT 'pending | active | inactive',
     date_registered   DATETIME      NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     last_login        DATETIME      NULL,
+    last_activity     DATETIME      NULL,
+    profile_image     VARCHAR(255)  NULL,
 
-    CONSTRAINT UNIQ_IDENTIFIER_EMAIL UNIQUE (email)
+    CONSTRAINT UNIQ_IDENTIFIER_EMAIL UNIQUE (email),
+    CONSTRAINT UNIQ_IDENTIFIER_USERNAME UNIQUE (username),
+    CONSTRAINT UNIQ_USER_SCHOOL_ID UNIQUE (school_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 1B. SYSTEM SETTINGS
+-- ------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS system_setting (
+    id        INT          AUTO_INCREMENT PRIMARY KEY,
+    key_name  VARCHAR(120) NOT NULL,
+    value     LONGTEXT     NULL,
+
+    CONSTRAINT UNIQ_SYSTEM_SETTING_KEY_NAME UNIQUE (key_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO system_setting (key_name, value)
+VALUES ('public_signup_enabled', '1')
+ON DUPLICATE KEY UPDATE value = value;
 
 
 -- ------------------------------------------------------------

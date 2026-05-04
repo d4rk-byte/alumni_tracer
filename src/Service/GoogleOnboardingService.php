@@ -7,6 +7,7 @@ use App\Entity\Department;
 use App\Entity\User;
 use App\Repository\AlumniRepository;
 use App\Repository\DepartmentRepository;
+use App\Repository\QrRegistrationBatchRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -17,11 +18,16 @@ class GoogleOnboardingService
         private UserRepository $userRepository,
         private AlumniRepository $alumniRepository,
         private DepartmentRepository $departmentRepository,
+        private QrRegistrationBatchRepository $batchRepository,
     ) {
     }
 
     public function needsOnboarding(User $user): bool
     {
+        if ($this->isStaffAccount($user)) {
+            return false;
+        }
+
         if ($user->isRequiresOnboarding()) {
             return true;
         }
@@ -35,6 +41,28 @@ class GoogleOnboardingService
             || trim((string) $user->getFirstName()) === ''
             || trim((string) $user->getLastName()) === ''
             || $user->getAlumni() === null;
+    }
+
+    public function hasAlumniMatchForOnboarding(User $user): bool
+    {
+        if ($this->isStaffAccount($user) || $user->getAlumni() instanceof Alumni) {
+            return true;
+        }
+
+        $email = strtolower(trim((string) $user->getEmail()));
+        if ($email !== '' && $this->alumniRepository->findOneBy(['emailAddress' => $email]) instanceof Alumni) {
+            return true;
+        }
+
+        $schoolId = trim((string) $user->getSchoolId());
+
+        return $schoolId !== ''
+            && $this->alumniRepository->findOneBy(['studentNumber' => $schoolId]) instanceof Alumni;
+    }
+
+    public function onboardingBlockedMessage(): string
+    {
+        return 'No alumni account found. Please register using an official QR registration link from the Alumni Office.';
     }
 
     /**
@@ -79,6 +107,78 @@ class GoogleOnboardingService
             'yearGraduated' => $alumni?->getYearGraduated(),
             'college' => $collegeName,
             'department' => $departmentName,
+        ];
+    }
+
+    /**
+     * @return array{
+     *     initialData: array<string, mixed>,
+     *     batchYears: list<int>,
+     *     colleges: list<string>,
+     *     departments: list<array{name: string, college: string, code: string}>
+     * }
+     */
+    public function buildFrontendContext(User $user): array
+    {
+        $initialData = $this->buildInitialData($user);
+        $departments = [];
+        $colleges = [];
+        $batchYears = array_map(
+            static fn ($batch): int => $batch->getBatchYear(),
+            $this->batchRepository->findAllOrdered(),
+        );
+
+        foreach ($this->departmentRepository->findAllWithCollegeOrdered() as $department) {
+            $collegeName = (string) ($department->getCollege()?->getName() ?? '');
+
+            if ($collegeName !== '') {
+                $colleges[$collegeName] = $collegeName;
+            }
+
+            $departments[] = [
+                'name' => $department->getName(),
+                'college' => $collegeName,
+                'code' => $department->getCode(),
+            ];
+        }
+
+        $currentBatchYear = is_numeric($initialData['yearGraduated'] ?? null)
+            ? (int) $initialData['yearGraduated']
+            : null;
+
+        if ($currentBatchYear !== null && !in_array($currentBatchYear, $batchYears, true)) {
+            $batchYears[] = $currentBatchYear;
+            rsort($batchYears);
+        }
+
+        $currentDepartment = trim((string) ($initialData['department'] ?? ''));
+        $currentCollege = trim((string) ($initialData['college'] ?? ''));
+        $hasCurrentDepartment = $currentDepartment === '';
+
+        foreach ($departments as $department) {
+            if ($department['name'] === $currentDepartment) {
+                $hasCurrentDepartment = true;
+                break;
+            }
+        }
+
+        if (!$hasCurrentDepartment) {
+            $departments[] = [
+                'name' => $currentDepartment,
+                'college' => $currentCollege,
+                'code' => $currentDepartment,
+            ];
+
+            if ($currentCollege !== '') {
+                $colleges[$currentCollege] = $currentCollege;
+            }
+        }
+
+        return [
+            'initialData' => $initialData,
+            'batchYears' => $batchYears,
+            'colleges' => array_values($colleges),
+            'departments' => $departments,
         ];
     }
 
@@ -132,6 +232,8 @@ class GoogleOnboardingService
 
         if ($yearGraduated === null || trim((string) $yearGraduated) === '') {
             $fieldErrors['yearGraduated'] = 'Please enter your batch year.';
+        } elseif ($this->batchRepository->findOneByBatchYear((int) $yearGraduated) === null) {
+            $fieldErrors['yearGraduated'] = 'Please select a configured batch year.';
         }
 
         $resolvedDepartment = $departmentName !== '' ? $this->departmentRepository->findOneBy(['name' => $departmentName]) : null;
@@ -169,7 +271,13 @@ class GoogleOnboardingService
             ]);
         }
 
-        $alumni = $user->getAlumni() ?? $alumniByEmail ?? $alumniByStudentId ?? new Alumni();
+        $alumni = $user->getAlumni() ?? $alumniByEmail ?? $alumniByStudentId;
+
+        if (!$alumni instanceof Alumni) {
+            throw new RegistrationValidationException([
+                'form' => 'No alumni account found. Please register using an official QR registration link from the Alumni Office.',
+            ]);
+        }
 
         if ($alumni->getUser() !== null && $alumni->getUser()?->getId() !== $user->getId()) {
             throw new RegistrationValidationException([
@@ -209,5 +317,12 @@ class GoogleOnboardingService
         $this->entityManager->flush();
 
         return $user;
+    }
+
+    private function isStaffAccount(User $user): bool
+    {
+        $roles = $user->getRoles();
+
+        return in_array('ROLE_ADMIN', $roles, true) || in_array('ROLE_STAFF', $roles, true);
     }
 }

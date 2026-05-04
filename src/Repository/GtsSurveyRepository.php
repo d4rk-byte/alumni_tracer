@@ -119,4 +119,35 @@ class GtsSurveyRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    public function findBestInvitationForResponse(GtsSurvey $survey): ?SurveyInvitation
+    {
+        $invitation = $survey->getSurveyInvitation();
+        if ($invitation instanceof SurveyInvitation) {
+            return $invitation;
+        }
+
+        $user = $survey->getUser();
+        if (!$user instanceof User) {
+            return null;
+        }
+
+        $qb = $this->getEntityManager()
+            ->createQueryBuilder()
+            ->select('i')
+            ->from(SurveyInvitation::class, 'i')
+            ->innerJoin('i.campaign', 'c')
+            ->andWhere('i.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('i.createdAt', 'DESC')
+            ->setMaxResults(1);
+
+        $template = $survey->getSurveyTemplate();
+        if ($template instanceof GtsSurveyTemplate) {
+            $qb->andWhere('c.surveyTemplate = :template')
+                ->setParameter('template', $template);
+        }
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
 }

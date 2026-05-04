@@ -27,13 +27,10 @@ class GoogleOnboardingType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $data = $builder->getData();
-        $currentBatchYear = is_array($data) && isset($data['yearGraduated'])
-            ? (int) $data['yearGraduated']
-            : null;
         $currentCollege = is_array($data) ? trim((string) ($data['college'] ?? '')) : '';
         $currentDepartment = is_array($data) ? trim((string) ($data['department'] ?? '')) : '';
 
-        $batchChoices = $this->buildBatchChoices($currentBatchYear);
+        $batchChoices = $this->buildBatchChoices();
         $collegeChoices = $this->buildCollegeChoices($currentCollege);
         [$departmentChoices, $departmentMetaByName] = $this->buildDepartmentChoices($currentDepartment);
 
@@ -127,17 +124,13 @@ class GoogleOnboardingType extends AbstractType
     /**
      * @return array<string, int>
      */
-    private function buildBatchChoices(?int $currentBatchYear): array
+    private function buildBatchChoices(): array
     {
         $choices = [];
 
-        foreach ($this->qrRegistrationBatchRepository->findAllOrdered() as $batch) {
+        foreach ($this->qrRegistrationBatchRepository->findOpenOrdered() as $batch) {
             $batchYear = $batch->getBatchYear();
             $choices[(string) $batchYear] = $batchYear;
-        }
-
-        if ($currentBatchYear !== null && $currentBatchYear > 0 && !in_array($currentBatchYear, $choices, true)) {
-            $choices[(string) $currentBatchYear . ' (current)'] = $currentBatchYear;
         }
 
         return $choices;

@@ -36,7 +36,28 @@
             <span class="text-gray-500 text-sm ml-2">{{ announcement.datePosted|date('F d, Y \\a\\t h:i A') }}</span>
         </div>
         <h3 class="font-bold mb-3">{{ announcement.title }}</h3>
+        {% if announcement.eventStartAt or announcement.location %}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                <div class="rounded-lg bg-blue-50 border border-blue-100 px-3 py-3">
+                    <p class="text-xs uppercase tracking-wide text-blue-700 font-bold mb-1">Date</p>
+                    <p class="text-sm font-semibold text-gray-800 mb-0">{{ announcement.eventStartAt ? announcement.eventStartAt|date('M d, Y') : 'Date TBA' }}</p>
+                </div>
+                <div class="rounded-lg bg-blue-50 border border-blue-100 px-3 py-3">
+                    <p class="text-xs uppercase tracking-wide text-blue-700 font-bold mb-1">Time</p>
+                    <p class="text-sm font-semibold text-gray-800 mb-0">{{ announcement.eventStartAt ? announcement.eventStartAt|date('h:i A') : 'Time TBA' }}</p>
+                </div>
+                <div class="rounded-lg bg-blue-50 border border-blue-100 px-3 py-3">
+                    <p class="text-xs uppercase tracking-wide text-blue-700 font-bold mb-1">Location</p>
+                    <p class="text-sm font-semibold text-gray-800 mb-0">{{ announcement.location ?: 'Location TBA' }}</p>
+                </div>
+            </div>
+        {% endif %}
         <div class="mb-3" style="white-space: pre-line;">{{ announcement.description }}</div>
+        {% if announcement.joinUrl %}
+            <div class="mb-3 no-print">
+                <a href="{{ announcement.joinUrl }}" target="_blank" rel="noopener noreferrer" class="btn-norsu btn-sm"><i class="bi bi-link-45deg mr-1"></i>Open Link</a>
+            </div>
+        {% endif %}
         {% if announcement.postedBy %}
             <hr class="my-3 border-gray-200">
             <span class="text-gray-500 text-sm">Posted by <strong>{{ announcement.postedBy.fullName }}</strong></span>

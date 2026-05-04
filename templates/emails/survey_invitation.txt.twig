@@ -1,0 +1,12 @@
+Good day, {{ invitation.user.firstName }}.
+
+{{ campaign.emailBody|striptags }}
+
+Answer your NORSU tracer survey here:
+{{ invitationUrl }}
+
+{% if invitation.expiresAt %}
+This invitation expires on {{ invitation.expiresAt|date('M d, Y h:i A') }}.
+{% endif %}
+
+This is a NORSU Alumni Tracker survey invitation for your alumni account.

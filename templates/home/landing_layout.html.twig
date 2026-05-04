@@ -139,19 +139,31 @@
         }
 
         .landing-pill-link:hover {
-            background: rgba(255, 255, 255, 0.7);
-            color: #0f172a;
+            background: rgba(219, 234, 254, 0.72);
+            color: #1d4ed8;
             transform: translateY(-1px);
         }
 
         .landing-pill-link-active {
-            background: rgba(255, 255, 255, 0.92);
-            color: #0f172a;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+            background: rgba(219, 234, 254, 0.78);
+            color: #1d4ed8;
+            box-shadow: none;
         }
 
         .landing-pill-link-alumni {
             color: #1e3a8a;
+        }
+
+        .landing-pill-link-alumni:hover {
+            background: rgba(255, 255, 255, 0.9);
+            color: #1d4ed8;
+            box-shadow: 0 10px 22px rgba(59, 130, 246, 0.12);
+        }
+
+        .landing-pill-link-alumni.landing-pill-link-active {
+            background: #ffffff;
+            color: #1d4ed8;
+            box-shadow: 0 12px 26px rgba(37, 99, 235, 0.14);
         }
 
         .landing-primary-link {
@@ -171,9 +183,25 @@
         }
 
         .landing-primary-link-guest {
-            background: #ffffff;
-            color: #1f2937;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+            background: rgba(219, 234, 254, 0.78);
+            color: #1d4ed8;
+            box-shadow: none;
+        }
+
+        .landing-primary-link-guest:hover {
+            background: rgba(191, 219, 254, 0.9);
+            color: #1d4ed8;
+        }
+
+        .landing-primary-link-guest-accent {
+            background: rgba(37, 99, 235, 0.12);
+            color: #1d4ed8;
+            box-shadow: none;
+        }
+
+        .landing-primary-link-guest-accent:hover {
+            background: rgba(37, 99, 235, 0.18);
+            color: #1d4ed8;
         }
 
         .landing-primary-link-accent {
@@ -300,12 +328,13 @@
             }
 
             .landing-header-nav {
-                justify-self: center;
-                width: 100%;
-                max-width: 980px;
+                justify-self: end;
+                width: auto;
+                max-width: none;
             }
 
             .landing-header-nav-alumni {
+                justify-self: center;
                 width: auto;
                 max-width: none;
             }
@@ -411,7 +440,7 @@
                 </button>
             </div>
             <nav x-cloak :class="open ? 'max-h-[34rem] opacity-100 translate-y-0 pb-5' : 'max-h-0 opacity-0 -translate-y-2 pb-0 md:max-h-none md:opacity-100 md:translate-y-0 md:pb-0'" class="landing-menu-panel landing-header-nav {{ isAlumniLanding ? 'landing-header-nav-alumni' : '' }} w-full overflow-hidden md:overflow-visible md:pb-0 md:w-auto md:max-h-none md:opacity-100 md:translate-y-0">
-                <div @click="if (window.innerWidth < 768) open = false" @click.outside="if (window.innerWidth < 768) open = false" class="landing-nav-shell {{ isAlumniLanding ? 'landing-nav-shell-alumni rounded-[2.1rem] p-3 sm:p-3.5 md:mt-4' : 'flex flex-col gap-2 rounded-[2rem] bg-white/72 border border-white/70 p-3 shadow-[0_14px_32px_rgba(15,23,42,0.08)] md:flex-row md:items-center md:gap-1 md:bg-white/55 md:px-2 md:py-2 md:mt-5' }}">
+                <div @click="if (window.innerWidth < 768) open = false" @click.outside="if (window.innerWidth < 768) open = false" class="landing-nav-shell {{ isAlumniLanding ? 'landing-nav-shell-alumni rounded-[2.1rem] p-3 sm:p-3.5 md:mt-4' : 'flex flex-col gap-2 p-3 md:flex-row md:items-center md:justify-end md:gap-1 md:p-0 md:mt-5' }}">
                 {% if isAlumniLanding %}
                     <div class="landing-alumni-nav-links">
                         <a class="landing-pill-link landing-pill-link-alumni {{ currentRoute == 'app_home' ? 'landing-pill-link-active' : '' }}" href="{{ path('app_home') }}">Alumni Home</a>
@@ -428,23 +457,15 @@
                     <a class="landing-pill-link {{ currentRoute starts with 'job_board_' ? 'landing-pill-link-active' : '' }}" href="{{ path('job_board_index') }}">Job Opportunities</a>
                     <a class="landing-pill-link {{ currentRoute == 'app_faq' ? 'landing-pill-link-active' : '' }}" href="{{ path('app_faq') }}">FAQ</a>
                     <a class="landing-primary-link landing-primary-link-guest md:ml-2" href="{{ path('app_login') }}">Login</a>
-                    <a class="landing-primary-link landing-primary-link-accent" href="{{ path('app_register') }}">Sign Up</a>
+                    <a class="landing-primary-link landing-primary-link-guest-accent" href="{{ path('app_register') }}">Sign Up</a>
                 {% endif %}
                 </div>
             </nav>
-            <div class="landing-header-side {{ isAlumniLanding ? 'landing-header-side-alumni' : '' }}">
-                {% if isAlumniLanding %}
-                    <a href="{{ path('app_logout') }}" class="landing-side-action landing-side-action-alumni" aria-label="Log out alumni account">Logout</a>
-                {% else %}
-                    <a href="{{ path('app_faq') }}" class="landing-side-action landing-side-action-guest" aria-label="Help and FAQ">
-                        <div>
-                            <span class="landing-topbar-meta-label">Need Help</span>
-                            <span class="landing-topbar-meta-value">Read FAQ</span>
-                            <span class="landing-topbar-meta-note">Answers for alumni and guests</span>
-                        </div>
-                    </a>
-                {% endif %}
+            {% if isAlumniLanding %}
+            <div class="landing-header-side landing-header-side-alumni">
+                <a href="{{ path('app_logout') }}" class="landing-side-action landing-side-action-alumni" aria-label="Log out alumni account">Logout</a>
             </div>
+            {% endif %}
         </div>
     </div>
 

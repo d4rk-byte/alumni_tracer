@@ -65,9 +65,12 @@ final class HomeController extends AbstractController
     }
 
     #[Route('/features/announcements', name: 'app_feature_announcements', methods: ['GET'])]
-    public function featureAnnouncements(): Response
+    public function featureAnnouncements(AnnouncementRepository $announcementRepo): Response
     {
-        return $this->render('home/feature_announcements.html.twig');
+        return $this->render('home/feature_announcements.html.twig', [
+            'announcements' => $announcementRepo->findActiveAnnouncements(9),
+            'announcementTotal' => $announcementRepo->count(['isActive' => true]),
+        ]);
     }
 
     #[Route('/features/tracer-survey', name: 'app_feature_tracer_survey', methods: ['GET'])]
@@ -99,7 +102,8 @@ final class HomeController extends AbstractController
             $this->buildAlumniLandingContext($user, $alumniRepo, $announcementRepo, $jobRepo, $gtsRepo, $surveyInvitationRepo),
             match ($feature) {
                 'announcements' => [
-                    'announcementFeed' => $announcementRepo->findActiveAnnouncements(6),
+                    'announcementFeed' => $announcementRepo->findActiveAnnouncements(9),
+                    'announcementTotal' => $announcementRepo->count(['isActive' => true]),
                 ],
                 'jobs' => [
                     'jobFeed' => array_slice($jobRepo->findActiveJobs(), 0, 6),
@@ -274,7 +278,7 @@ final class HomeController extends AbstractController
     }
 
     /**
-     * @param array{announcementFeed?: array<int, object>, hasGtsSurvey: bool, profileSnapshot: array{accountStatus: string}} $context
+     * @param array{announcementFeed?: array<int, object>, announcementTotal?: int, hasGtsSurvey: bool, profileSnapshot: array{accountStatus: string}} $context
      *
      * @return array{
      *   featureKey: string,
@@ -292,6 +296,7 @@ final class HomeController extends AbstractController
     private function buildAlumniAnnouncementsFeaturePageConfig(array $context): array
     {
         $announcementFeed = $context['announcementFeed'] ?? [];
+        $announcementTotal = $context['announcementTotal'] ?? count($announcementFeed);
         $featuredAnnouncement = $announcementFeed[0] ?? null;
         $latestCategory = $featuredAnnouncement?->getCategory() ?: 'Office updates';
 
@@ -301,7 +306,7 @@ final class HomeController extends AbstractController
             'pageTitle' => 'Announcements and Updates',
             'pageDescription' => 'Review active alumni notices, office advisories, and event updates in a full landing page view without handing off to the module screens.',
             'pagePills' => [
-                count($announcementFeed) . ' active announcements',
+                $announcementTotal . ' active announcements',
                 $latestCategory,
                 $context['hasGtsSurvey'] ? 'Survey completed' : 'Survey pending',
             ],

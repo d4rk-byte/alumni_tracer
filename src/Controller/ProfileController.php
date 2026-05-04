@@ -3,15 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Repository\UserRepository;
 use App\Service\AuditLogger;
 use App\Entity\AuditLog;
+use App\Service\AccountSettingsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -33,7 +32,7 @@ class ProfileController extends AbstractController
     }
 
     #[Route('/profile/edit', name: 'app_profile_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $hasher, UserRepository $userRepo): Response
+    public function edit(Request $request, AccountSettingsService $accountSettingsService): Response
     {
         $user = $this->getUser();
         assert($user instanceof User);
@@ -46,94 +45,40 @@ class ProfileController extends AbstractController
                 return $this->redirectToRoute('app_profile_edit');
             }
 
-            $firstName = trim($request->request->get('firstName', ''));
-            $lastName  = trim($request->request->get('lastName', ''));
-            $email     = trim($request->request->get('email', ''));
+            $settingsResult = $accountSettingsService->updateSettings($user, [
+                'fullName' => trim($request->request->get('firstName', '') . ' ' . $request->request->get('lastName', '')),
+                'email' => $request->request->get('email', ''),
+            ], $request->getSchemeAndHttpHost());
 
-            if ($firstName === '' || $lastName === '' || $email === '') {
-                $this->addFlash('danger', 'First name, last name, and email are required.');
+            if (isset($settingsResult['errors'])) {
+                $this->addFlash('danger', reset($settingsResult['errors']) ?: 'Unable to update profile.');
                 return $this->redirectToRoute('app_profile_edit');
             }
 
-            // Check email uniqueness
-            if ($email !== $user->getEmail()) {
-                $existing = $userRepo->findOneBy(['email' => $email]);
-                if ($existing) {
-                    $this->addFlash('danger', 'This email address is already in use.');
-                    return $this->redirectToRoute('app_profile_edit');
-                }
-            }
-
-            $user->setFirstName($firstName);
-            $user->setLastName($lastName);
-            $user->setEmail($email);
-
-            // Handle profile image upload (optional)
             $profileImage = $request->files->get('profileImage');
-            if ($profileImage instanceof UploadedFile && $profileImage->isValid()) {
-                $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
-                if (!in_array($profileImage->getMimeType(), $allowedMimeTypes, true)) {
-                    $this->addFlash('danger', 'Invalid image format. Please upload JPG, PNG, or WEBP.');
+            if ($profileImage instanceof UploadedFile) {
+                $photoResult = $accountSettingsService->updatePhoto($user, $profileImage, $request->getSchemeAndHttpHost());
+
+                if (isset($photoResult['errors'])) {
+                    $this->addFlash('danger', reset($photoResult['errors']) ?: 'Unable to update profile photo.');
                     return $this->redirectToRoute('app_profile_edit');
                 }
-
-                if ($profileImage->getSize() !== null && $profileImage->getSize() > 2 * 1024 * 1024) {
-                    $this->addFlash('danger', 'Image is too large. Maximum file size is 2MB.');
-                    return $this->redirectToRoute('app_profile_edit');
-                }
-
-                $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/profile';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0775, true);
-                }
-
-                $extension = $profileImage->guessExtension() ?: 'jpg';
-                $newFilename = sprintf('user_%d_%s.%s', $user->getId(), bin2hex(random_bytes(8)), $extension);
-                $profileImage->move($uploadDir, $newFilename);
-
-                $oldImage = $user->getProfileImage();
-                if ($oldImage) {
-                    $oldPath = $uploadDir . '/' . $oldImage;
-                    if (is_file($oldPath)) {
-                        @unlink($oldPath);
-                    }
-                }
-
-                $user->setProfileImage($newFilename);
             }
 
-            // Handle password change (optional)
             $newPassword = $request->request->get('newPassword', '');
-            $confirmPassword = $request->request->get('confirmPassword', '');
-            $currentPassword = $request->request->get('currentPassword', '');
-
             if ($newPassword !== '') {
-                // Require current password
-                if ($currentPassword === '' || !$hasher->isPasswordValid($user, $currentPassword)) {
-                    $this->addFlash('danger', 'Current password is incorrect.');
+                $passwordResult = $accountSettingsService->changePassword($user, [
+                    'currentPassword' => $request->request->get('currentPassword', ''),
+                    'newPassword' => $newPassword,
+                    'confirmPassword' => $request->request->get('confirmPassword', ''),
+                ], $request->getSchemeAndHttpHost());
+
+                if (isset($passwordResult['errors'])) {
+                    $this->addFlash('danger', reset($passwordResult['errors']) ?: 'Unable to change password.');
                     return $this->redirectToRoute('app_profile_edit');
                 }
-                if (strlen($newPassword) < 8) {
-                    $this->addFlash('danger', 'Password must be at least 8 characters.');
-                    return $this->redirectToRoute('app_profile_edit');
-                }
-                if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).+$/', $newPassword)) {
-                    $this->addFlash('danger', 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.');
-                    return $this->redirectToRoute('app_profile_edit');
-                }
-                if ($newPassword !== $confirmPassword) {
-                    $this->addFlash('danger', 'Passwords do not match.');
-                    return $this->redirectToRoute('app_profile_edit');
-                }
-                // Prevent reuse of current password
-                if ($hasher->isPasswordValid($user, $newPassword)) {
-                    $this->addFlash('danger', 'New password must be different from your current password.');
-                    return $this->redirectToRoute('app_profile_edit');
-                }
-                $user->setPassword($hasher->hashPassword($user, $newPassword));
             }
 
-            $em->flush();
             $this->addFlash('success', 'Profile updated successfully.');
             return $this->redirectToRoute($useAlumniLandingProfileUi ? 'app_alumni_feature_profile' : 'app_profile');
         }

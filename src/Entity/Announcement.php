@@ -23,6 +23,15 @@ class Announcement
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $category = null;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $eventStartAt = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $location = null;
+
+    #[ORM\Column(length: 2048, nullable: true)]
+    private ?string $joinUrl = null;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private \DateTimeInterface $datePosted;
 
@@ -50,6 +59,15 @@ class Announcement
 
     public function getCategory(): ?string { return $this->category; }
     public function setCategory(?string $v): static { $this->category = $v; return $this; }
+
+    public function getEventStartAt(): ?\DateTimeInterface { return $this->eventStartAt; }
+    public function setEventStartAt(?\DateTimeInterface $v): static { $this->eventStartAt = $v; return $this; }
+
+    public function getLocation(): ?string { return $this->location; }
+    public function setLocation(?string $v): static { $this->location = $v; return $this; }
+
+    public function getJoinUrl(): ?string { return $this->joinUrl; }
+    public function setJoinUrl(?string $v): static { $this->joinUrl = $v; return $this; }
 
     public function getDatePosted(): \DateTimeInterface { return $this->datePosted; }
     public function setDatePosted(\DateTimeInterface $v): static { $this->datePosted = $v; return $this; }

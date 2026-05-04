@@ -4,9 +4,11 @@ namespace App\Controller;
 
 use App\Entity\College;
 use App\Entity\Department;
+use App\Entity\Notification;
 use App\Repository\CollegeRepository;
 use App\Repository\DepartmentRepository;
 use App\Service\AuditLogger;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class AcademicManagementController extends AbstractController
 {
-    public function __construct(private AuditLogger $audit) {}
+    public function __construct(private AuditLogger $audit, private NotificationService $notifications) {}
 
     // ── COLLEGES ──
     #[Route('/colleges', name: 'admin_colleges', methods: ['GET'])]
@@ -61,6 +63,15 @@ class AcademicManagementController extends AbstractController
                 $em->persist($college);
                 $em->flush();
                 $this->audit->log('COLLEGE_CREATED', 'College created: ' . $college->getName());
+                $this->notifications->createAdminNotification(
+                    'academic.college_created',
+                    'College created',
+                    'Created college: ' . $college->getName(),
+                    Notification::SEVERITY_INFO,
+                    '/system-setup',
+                    'College',
+                    $college->getId(),
+                );
                 $this->addFlash('success', 'College created successfully!');
                 return $this->redirectToRoute('admin_colleges');
             } catch (\Exception $e) {
@@ -104,9 +115,19 @@ class AcademicManagementController extends AbstractController
         if ($this->isCsrfTokenValid('delete' . $college->getId(), $request->request->get('_token'))) {
             try {
                 $collegeName = $college->getName();
+                $collegeId = $college->getId();
                 $em->remove($college);
                 $em->flush();
                 $this->audit->log('COLLEGE_DELETED', 'College deleted: ' . $collegeName);
+                $this->notifications->createAdminNotification(
+                    'academic.college_deleted',
+                    'College deleted',
+                    'Deleted college: ' . $collegeName,
+                    Notification::SEVERITY_WARNING,
+                    '/system-setup',
+                    'College',
+                    $collegeId,
+                );
                 $this->addFlash('success', 'College deleted successfully!');
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Error deleting college: ' . $e->getMessage());
@@ -179,6 +200,15 @@ class AcademicManagementController extends AbstractController
                 $em->persist($department);
                 $em->flush();
                 $this->audit->log('DEPARTMENT_CREATED', 'Department created: ' . $department->getName());
+                $this->notifications->createAdminNotification(
+                    'academic.department_created',
+                    'Department created',
+                    'Created department: ' . $department->getName(),
+                    Notification::SEVERITY_INFO,
+                    '/system-setup',
+                    'Department',
+                    $department->getId(),
+                );
                 $this->addFlash('success', 'Department created successfully!');
                 return $this->redirectToRoute('admin_departments');
             } catch (\Exception $e) {
@@ -237,9 +267,19 @@ class AcademicManagementController extends AbstractController
         if ($this->isCsrfTokenValid('delete' . $department->getId(), $request->request->get('_token'))) {
             try {
                 $departmentName = $department->getName();
+                $departmentId = $department->getId();
                 $em->remove($department);
                 $em->flush();
                 $this->audit->log('DEPARTMENT_DELETED', 'Department deleted: ' . $departmentName);
+                $this->notifications->createAdminNotification(
+                    'academic.department_deleted',
+                    'Department deleted',
+                    'Deleted department: ' . $departmentName,
+                    Notification::SEVERITY_WARNING,
+                    '/system-setup',
+                    'Department',
+                    $departmentId,
+                );
                 $this->addFlash('success', 'Department deleted successfully!');
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Error deleting department: ' . $e->getMessage());

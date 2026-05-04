@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\Announcement;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -35,6 +36,30 @@ class AnnouncementType extends AbstractType
                     'Seminar' => 'Seminar',
                 ],
                 'attr' => ['class' => 'form-select'],
+            ])
+            ->add('eventStartAt', DateTimeType::class, [
+                'label' => 'Event Date and Time',
+                'required' => false,
+                'widget' => 'single_text',
+                'html5' => true,
+                'attr' => ['class' => 'form-input'],
+            ])
+            ->add('location', TextType::class, [
+                'label' => 'Location',
+                'required' => false,
+                'attr' => [
+                    'class' => 'form-input',
+                    'placeholder' => 'Campus, venue, or online',
+                ],
+            ])
+            ->add('joinUrl', TextType::class, [
+                'label' => 'Link',
+                'required' => false,
+                'attr' => [
+                    'class' => 'form-input',
+                    'placeholder' => 'https://example.com/event-or-form',
+                ],
+                'help' => 'Optional. Add any event, form, meeting, or reference link.',
             ])
             ->add('isActive', ChoiceType::class, [
                 'label' => 'Status',

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\GtsSurvey;
+use App\Entity\Notification;
 use App\Entity\SurveyInvitation;
 use App\Form\GtsSurveyType;
 use App\Repository\GtsSurveyQuestionRepository;
@@ -11,6 +12,7 @@ use App\Repository\GtsSurveyRepository;
 use App\Repository\SurveyInvitationRepository;
 use App\Service\AuditLogger;
 use App\Service\GtsSurveyQuestionBank;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,7 +24,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/gts')]
 class GtsController extends AbstractController
 {
-    public function __construct(private AuditLogger $audit) {}
+    public function __construct(private AuditLogger $audit, private NotificationService $notifications) {}
 
     /**
      * Fill out the CHED Graduate Tracer Survey.
@@ -91,6 +93,15 @@ class GtsController extends AbstractController
             $this->handleSubmission($request, $survey, $currentUser, $em, $runtimeQuestions, $questionBank);
 
             $this->audit->log('GTS Survey submitted', 'GtsSurvey', $survey->getId());
+            $this->notifications->createAdminNotification(
+                'gts.response_submitted',
+                'New GTS survey response',
+                sprintf('%s submitted a tracer survey.', $currentUser->getFullName()),
+                Notification::SEVERITY_SUCCESS,
+                '/gts/responses',
+                'GtsSurvey',
+                $survey->getId(),
+            );
 
             $this->addFlash('success', 'Success: Your Graduate Tracer Survey was saved and your profile tracer status is now TRACED.');
             return $this->redirectToRoute($useAlumniLandingUi ? 'app_alumni_feature_tracer_survey' : 'app_profile');
@@ -129,6 +140,13 @@ class GtsController extends AbstractController
         $invitation = $invitationRepository->findByToken($token);
         if (!$invitation instanceof SurveyInvitation) {
             throw $this->createNotFoundException('Invitation not found.');
+        }
+
+        if ($request->isMethod('GET')) {
+            $frontendUrl = $this->resolveFrontendBaseUrl();
+            if ($frontendUrl !== null) {
+                return $this->redirect(rtrim($frontendUrl, '/') . '/survey/invitations/' . rawurlencode($token));
+            }
         }
 
         $useAlumniLandingUi = $this->shouldUseAlumniLandingUi();
@@ -211,6 +229,15 @@ class GtsController extends AbstractController
             $this->handleSubmission($request, $survey, $currentUser, $em, $runtimeQuestions, $questionBank, $invitation);
 
             $this->audit->log('GTS Survey invitation submitted', 'GtsSurvey', $survey->getId());
+            $this->notifications->createAdminNotification(
+                'gts.response_submitted',
+                'New GTS survey response',
+                sprintf('%s submitted %s.', $currentUser->getFullName(), $invitation->getCampaign()->getName()),
+                Notification::SEVERITY_SUCCESS,
+                '/gts/responses',
+                'GtsSurvey',
+                $survey->getId(),
+            );
             $this->addFlash('success', 'Success: Your Graduate Tracer Survey was submitted.');
 
             return $this->redirectToRoute($useAlumniLandingUi ? 'app_alumni_feature_tracer_survey' : 'app_profile');
@@ -354,6 +381,13 @@ class GtsController extends AbstractController
         return $this->isGranted(User::ROLE_ALUMNI)
             && !$this->isGranted('ROLE_STAFF')
             && !$this->isGranted('ROLE_ADMIN');
+    }
+
+    private function resolveFrontendBaseUrl(): ?string
+    {
+        $value = trim((string) ($_ENV['FRONTEND_URL'] ?? $_SERVER['FRONTEND_URL'] ?? ''));
+
+        return $value !== '' ? $value : null;
     }
 
 }

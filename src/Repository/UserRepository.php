@@ -46,6 +46,22 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getSingleScalarResult();
     }
 
+    /**
+     * @return User[]
+     */
+    public function findActiveAdmins(): array
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->andWhere('u.accountStatus = :activeStatus')
+            ->setParameter('activeStatus', 'active')
+            ->orderBy('u.lastName', 'ASC')
+            ->addOrderBy('u.firstName', 'ASC');
+
+        $qb->andWhere($this->createRoleMatchExpression($qb, 'u', 'ROLE_ADMIN', 'adminRole'));
+
+        return $qb->getQuery()->getResult();
+    }
+
     public function createRoleMatchExpression(QueryBuilder $qb, string $alias, string|int $role, string $parameterPrefix): string
     {
         $clauses = [];

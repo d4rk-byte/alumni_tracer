@@ -1,35 +1,142 @@
 {% extends 'home/landing_layout.html.twig' %}
 
-{% block title %}Announcements and Updates — NORSU Alumni Tracker{% endblock %}
+{% set announcementList = announcements|default([]) %}
+{% set totalAnnouncements = announcementTotal|default(announcementList|length) %}
+
+{% block title %}Announcements and Updates - NORSU Alumni Tracker{% endblock %}
 
 {% block page_content %}
 <div class="bg-blue-50 pb-10">
-    <div class="max-w-screen-xl px-8 mx-auto pt-14">
-        <div data-aos="fade-up" class="max-w-3xl mx-auto text-center mb-10">
-            <h1 class="font-bold text-darken my-3 text-3xl">Announcements and <span class="text-blue-600">Updates</span></h1>
+    <div class="max-w-screen-xl px-5 sm:px-8 mx-auto pt-12 sm:pt-14">
+        <div data-aos="fade-up" class="max-w-3xl mx-auto text-center mb-8 sm:mb-10">
+            <h1 class="font-bold text-darken my-3 text-3xl sm:text-4xl">Announcements and <span class="text-blue-600">Updates</span></h1>
             <p class="leading-relaxed text-gray-500">Stay informed with official university notices, alumni office updates, and engagement opportunities in one place.</p>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-6">
-            <div data-aos="fade-up" class="bg-white shadow-xl p-6 rounded-xl text-center">
-                <h2 class="font-semibold text-darken text-xl mb-3">Official Notices</h2>
-                <p class="text-gray-500">Receive timely information from NORSU offices, alumni coordinators, and support teams.</p>
+        <section id="announcement-board" data-aos="fade-up" class="rounded-lg bg-white border border-blue-100 px-5 sm:px-7 py-6 shadow-[0_14px_30px_rgba(15,23,42,0.06)]">
+            <div class="grid lg:grid-cols-[minmax(0,1fr)_minmax(21rem,28rem)] gap-5 lg:gap-8 lg:items-center">
+                <div class="max-w-2xl">
+                    <p class="text-[0.72rem] font-bold tracking-[0.22em] text-blue-700 uppercase mb-2">Announcement Board</p>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-darken mb-2">Events &amp; Campaigns</h2>
+                    <p class="text-sm sm:text-base leading-relaxed text-gray-500 mb-0">Discover exciting events and fundraising campaigns in the NORSU alumni community.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="rounded-lg bg-blue-50 border border-blue-100 px-4 py-4 text-center min-h-[6rem] flex flex-col justify-center">
+                        <p class="text-2xl sm:text-3xl font-black text-blue-900 mb-1">{{ totalAnnouncements }}</p>
+                        <p class="text-[0.68rem] sm:text-xs font-bold uppercase tracking-[0.12em] text-blue-700 mb-0">Total Items</p>
+                    </div>
+                    <div class="rounded-lg bg-slate-50 border border-slate-200 px-4 py-4 text-center min-h-[6rem] flex flex-col justify-center">
+                        <p class="text-2xl sm:text-3xl font-black text-darken mb-1">{{ announcementList|length }}</p>
+                        <p class="text-[0.68rem] sm:text-xs font-bold uppercase tracking-[0.12em] text-slate-500 mb-0">This Page</p>
+                    </div>
+                    <div class="rounded-lg bg-slate-50 border border-slate-200 px-4 py-4 text-center min-h-[6rem] flex flex-col justify-center">
+                        <p class="text-2xl sm:text-3xl font-black text-darken mb-1">1</p>
+                        <p class="text-[0.68rem] sm:text-xs font-bold uppercase tracking-[0.12em] text-slate-500 mb-0">Current Page</p>
+                    </div>
+                </div>
             </div>
-            <div data-aos="fade-up" data-aos-delay="120" class="bg-white shadow-xl p-6 rounded-xl text-center">
-                <h2 class="font-semibold text-darken text-xl mb-3">Events and Programs</h2>
-                <p class="text-gray-500">Catch alumni seminars, campus events, and networking activities relevant to your batch.</p>
-            </div>
-            <div data-aos="fade-up" data-aos-delay="240" class="bg-white shadow-xl p-6 rounded-xl text-center">
-                <h2 class="font-semibold text-darken text-xl mb-3">Career Alerts</h2>
-                <p class="text-gray-500">Get linked to urgent opportunities and alumni-focused initiatives as they are posted.</p>
-            </div>
-        </div>
+        </section>
 
-        <div data-aos="fade-up" class="mt-10 bg-white shadow-xl p-8 rounded-xl flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-            <p class="text-gray-500">Create an account to receive personalized updates and access protected alumni features.</p>
-            <div class="flex flex-col sm:flex-row gap-3">
-                <a href="{{ path('app_register') }}" class="px-6 py-3 text-sm text-center bg-blue-600 text-white rounded-full no-underline">Create Account</a>
-                <a href="{{ path('app_login') }}" class="px-6 py-3 text-sm text-center bg-white text-gray-800 border border-gray-300 rounded-full no-underline">Login</a>
+        {# ── Events & Campaigns card grid: 3 tall left + 2 stacked right ── #}
+        <section data-aos="fade-up" data-aos-delay="80" class="mt-5 sm:mt-6">
+            {% if announcementList|length > 0 %}
+                {% set cardColors = ['#2563eb', '#f59e0b', '#10b981', '#6366f1', '#ef4444'] %}
+                <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4 sm:gap-5 items-start">
+                    {# ─ Left column: up to 3 compact vertical cards ─ #}
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 items-start">
+                        {% for announcement in announcementList|slice(0, 3) %}
+                            <article data-announcement-card data-aos="fade-up" data-aos-delay="{{ loop.index0 * 70 }}" class="flex flex-col rounded-xl bg-white shadow-[0_8px_20px_rgba(15,23,42,0.06)] overflow-hidden border border-slate-200" style="border-top: 3px solid {{ cardColors[loop.index0 % cardColors|length] }};">
+                                {# image placeholder #}
+                                <div class="w-full h-28 sm:h-32 bg-gradient-to-br from-slate-100 to-blue-50 flex items-center justify-center overflow-hidden flex-none">
+                                    {% if announcement.imageFilename is defined and announcement.imageFilename %}
+                                        <img src="{{ asset('uploads/announcements/' ~ announcement.imageFilename) }}" alt="{{ announcement.title }}" class="w-full h-full object-cover" loading="lazy">
+                                    {% else %}
+                                        <svg width="32" height="32" class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+                                        </svg>
+                                    {% endif %}
+                                </div>
+                                {# card body #}
+                                <div class="px-4 sm:px-5 pt-3 pb-3 flex flex-col">
+                                    <span class="inline-flex self-start items-center rounded-full text-[0.65rem] font-bold uppercase tracking-[0.12em] px-2.5 py-1 mb-2" style="background: {{ cardColors[loop.index0 % cardColors|length] }}14; color: {{ cardColors[loop.index0 % cardColors|length] }};">{{ announcement.category ?: 'Event' }}</span>
+                                    <h3 class="text-sm sm:text-base font-bold leading-snug text-darken mb-1.5">{{ announcement.title }}</h3>
+                                    <p class="text-xs leading-relaxed text-slate-500 mb-2">{{ announcement.description|length > 80 ? announcement.description|slice(0, 80) ~ '…' : announcement.description }}</p>
+                                    {% include 'home/_announcement_event_meta.html.twig' with {announcement: announcement} only %}
+                                    {% include 'home/_announcement_detail_modal.html.twig' with {announcement: announcement, accent: cardColors[loop.index0 % cardColors|length], modal_id: 'public-announcement-modal-' ~ announcement.id} only %}
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+
+                    {# ─ Right column: 2 stacked cards ─ #}
+                    {% if announcementList|length > 3 %}
+                    <div class="flex flex-col gap-5 sm:gap-6">
+                        {% for announcement in announcementList|slice(3, 2) %}
+                            {% set cardIdx = loop.index0 + 3 %}
+                            <article data-announcement-card data-aos="fade-up" data-aos-delay="{{ cardIdx * 70 }}" class="flex flex-col sm:flex-row rounded-xl bg-white shadow-[0_8px_20px_rgba(15,23,42,0.06)] overflow-hidden border border-slate-200" style="border-top: 3px solid {{ cardColors[cardIdx % cardColors|length] }};">
+                                {# image placeholder (side) #}
+                                <div class="w-full sm:w-36 md:w-40 h-28 sm:h-auto flex-none bg-gradient-to-br from-slate-100 to-blue-50 flex items-center justify-center overflow-hidden">
+                                    {% if announcement.imageFilename is defined and announcement.imageFilename %}
+                                        <img src="{{ asset('uploads/announcements/' ~ announcement.imageFilename) }}" alt="{{ announcement.title }}" class="w-full h-full object-cover" loading="lazy">
+                                    {% else %}
+                                        <svg width="28" height="28" class="w-7 h-7 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+                                        </svg>
+                                    {% endif %}
+                                </div>
+                                {# card body #}
+                                <div class="px-4 sm:px-5 py-3 flex flex-col">
+                                    <span class="inline-flex self-start items-center rounded-full text-[0.65rem] font-bold uppercase tracking-[0.12em] px-2.5 py-1 mb-2" style="background: {{ cardColors[cardIdx % cardColors|length] }}14; color: {{ cardColors[cardIdx % cardColors|length] }};">{{ announcement.category ?: 'Campaign' }}</span>
+                                    <h3 class="text-sm sm:text-base font-bold leading-snug text-darken mb-1.5">{{ announcement.title }}</h3>
+                                    <p class="text-xs leading-relaxed text-slate-500 mb-2">{{ announcement.description|length > 90 ? announcement.description|slice(0, 90) ~ '…' : announcement.description }}</p>
+                                    {% include 'home/_announcement_event_meta.html.twig' with {announcement: announcement, event_meta_class: 'grid grid-cols-1 gap-1.5 text-xs text-slate-500 mb-2'} only %}
+                                    {% include 'home/_announcement_detail_modal.html.twig' with {announcement: announcement, accent: cardColors[cardIdx % cardColors|length], modal_id: 'public-announcement-modal-' ~ announcement.id} only %}
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                {# ── Remaining cards (6+) in a standard 3-column grid ── #}
+                {% if announcementList|length > 5 %}
+                <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 items-start mt-5 sm:mt-6">
+                    {% for announcement in announcementList|slice(5) %}
+                        {% set cardIdx = loop.index0 + 5 %}
+                        <article data-announcement-card data-aos="fade-up" data-aos-delay="{{ loop.index0 * 70 }}" class="flex flex-col rounded-xl bg-white shadow-[0_8px_20px_rgba(15,23,42,0.06)] overflow-hidden border border-slate-200" style="border-top: 3px solid {{ cardColors[cardIdx % cardColors|length] }};">
+                            <div class="w-full h-28 sm:h-32 bg-gradient-to-br from-slate-100 to-blue-50 flex items-center justify-center overflow-hidden flex-none">
+                                {% if announcement.imageFilename is defined and announcement.imageFilename %}
+                                    <img src="{{ asset('uploads/announcements/' ~ announcement.imageFilename) }}" alt="{{ announcement.title }}" class="w-full h-full object-cover" loading="lazy">
+                                {% else %}
+                                    <svg width="32" height="32" class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+                                    </svg>
+                                {% endif %}
+                            </div>
+                            <div class="px-4 sm:px-5 pt-3 pb-3 flex flex-col">
+                                <span class="inline-flex self-start items-center rounded-full text-[0.65rem] font-bold uppercase tracking-[0.12em] px-2.5 py-1 mb-2" style="background: {{ cardColors[cardIdx % cardColors|length] }}14; color: {{ cardColors[cardIdx % cardColors|length] }};">{{ announcement.category ?: 'Event' }}</span>
+                                <h3 class="text-sm sm:text-base font-bold leading-snug text-darken mb-1.5">{{ announcement.title }}</h3>
+                                <p class="text-xs leading-relaxed text-slate-500 mb-2">{{ announcement.description|length > 80 ? announcement.description|slice(0, 80) ~ '…' : announcement.description }}</p>
+                                {% include 'home/_announcement_event_meta.html.twig' with {announcement: announcement} only %}
+                                {% include 'home/_announcement_detail_modal.html.twig' with {announcement: announcement, accent: cardColors[cardIdx % cardColors|length], modal_id: 'public-announcement-modal-' ~ announcement.id} only %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% else %}
+                <article class="rounded-xl bg-white border border-dashed border-blue-200 px-6 py-10 text-center text-gray-500 shadow-sm">
+                    <p class="text-lg font-semibold text-darken mb-2">No active announcements yet</p>
+                    <p class="mb-0">New alumni office notices will appear here as soon as they are published.</p>
+                </article>
+            {% endif %}
+        </section>
+
+        <div data-aos="fade-up" class="mt-10 bg-white border border-blue-100 shadow-sm p-6 sm:p-8 rounded-lg flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+            <p class="text-gray-500 mb-0">Create an account to receive personalized updates and access protected alumni features.</p>
+            <div class="flex flex-col sm:flex-row gap-3 lg:flex-none">
+                <a href="{{ path('app_register') }}" class="inline-flex h-11 w-full sm:w-auto sm:min-w-[9rem] items-center justify-center px-6 text-sm text-center bg-blue-600 text-white rounded-full no-underline">Create Account</a>
+                <a href="{{ path('app_login') }}" class="inline-flex h-11 w-full sm:w-auto sm:min-w-[7rem] items-center justify-center px-6 text-sm text-center bg-white text-gray-800 border border-gray-300 rounded-full no-underline">Login</a>
             </div>
         </div>
     </div>

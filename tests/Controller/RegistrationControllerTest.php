@@ -3,7 +3,9 @@
 namespace App\Tests\Controller;
 
 use App\Entity\Alumni;
+use App\Entity\QrRegistrationBatch;
 use App\Entity\RegistrationDraft;
+use App\Service\SystemSettingsService;
 use App\Entity\User;
 use App\Service\RegistrationDraftService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -234,6 +236,89 @@ class RegistrationControllerTest extends WebTestCase
         self::assertNull($entityManager->getRepository(User::class)->findOneBy(['email' => 'wrong@example.com']));
     }
 
+    public function testQrApiRegistrationCreatesDraftWhenPublicSignupIsDisabled(): void
+    {
+        $entityManager = $this->bootEntityManager();
+        $entityManager->persist((new QrRegistrationBatch())->setBatchYear(2027));
+        $entityManager->flush();
+        static::getContainer()->get(SystemSettingsService::class)->setPublicSignupEnabled(false);
+
+        self::ensureKernelShutdown();
+
+        $client = static::createClient();
+        $client->request(
+            'POST',
+            '/api/register/qr/2027',
+            server: ['CONTENT_TYPE' => 'application/json'],
+            content: json_encode([
+                'studentId' => '2027-00999',
+                'firstName' => 'Qara',
+                'lastName' => 'Register',
+                'email' => 'qr-register@example.com',
+                'password' => 'Password1!',
+                'confirmPassword' => 'Password1!',
+                'dataPrivacyConsent' => true,
+            ], JSON_THROW_ON_ERROR)
+        );
+
+        self::assertResponseStatusCodeSame(201);
+
+        $payload = json_decode((string) $client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertArrayHasKey('draftId', $payload);
+
+        $entityManager = $this->bootEntityManager();
+        $draft = $entityManager->getRepository(RegistrationDraft::class)->findOneBy(['email' => 'qr-register@example.com']);
+
+        self::assertNotNull($draft);
+        self::assertSame(2027, $draft->getYearGraduated());
+        self::assertNull($entityManager->getRepository(User::class)->findOneBy(['email' => 'qr-register@example.com']));
+    }
+
+    public function testQrApiVerifiedDraftCreatesActiveUser(): void
+    {
+        $entityManager = $this->bootEntityManager();
+        $entityManager->persist((new QrRegistrationBatch())->setBatchYear(2027));
+        $entityManager->flush();
+        static::getContainer()->get(SystemSettingsService::class)->setPublicSignupEnabled(false);
+
+        $draftService = static::getContainer()->get(RegistrationDraftService::class);
+        $result = $draftService->createManualDraft([
+            'email' => 'qr-active@example.com',
+            'studentId' => '2027-00123',
+            'firstName' => 'Active',
+            'lastName' => 'Qr',
+            'plainPassword' => 'Password1!',
+            'yearGraduated' => 2027,
+            'flowType' => RegistrationDraft::FLOW_QR,
+            'dpaConsent' => true,
+        ]);
+        $draftId = $result['draft']->getId();
+
+        self::ensureKernelShutdown();
+
+        $client = static::createClient();
+        $client->request(
+            'POST',
+            '/api/register/verify-email',
+            server: ['CONTENT_TYPE' => 'application/json'],
+            content: json_encode([
+                'draftId' => $draftId,
+                'otpCode' => $result['otpCode'],
+            ], JSON_THROW_ON_ERROR)
+        );
+
+        self::assertResponseIsSuccessful();
+        $payload = json_decode((string) $client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('active', $payload['accountStatus'] ?? null);
+
+        $entityManager = $this->bootEntityManager();
+        $user = $entityManager->getRepository(User::class)->findOneBy(['email' => 'qr-active@example.com']);
+
+        self::assertNotNull($user);
+        self::assertSame('active', $user->getAccountStatus());
+        self::assertSame(2027, $user->getAlumni()?->getYearGraduated());
+    }
+
     /**
      * @param array<string, string> $overrides
      *
@@ -277,6 +362,11 @@ class RegistrationControllerTest extends WebTestCase
     private function createDraft(array $registration): array
     {
         $entityManager = $this->bootEntityManager();
+        if ($entityManager->getRepository(QrRegistrationBatch::class)->findOneByBatchYear($registration['yearGraduated']) === null) {
+            $entityManager->persist((new QrRegistrationBatch())->setBatchYear($registration['yearGraduated']));
+            $entityManager->flush();
+        }
+
         $draftService = static::getContainer()->get(RegistrationDraftService::class);
 
         $result = $draftService->createManualDraft($registration);

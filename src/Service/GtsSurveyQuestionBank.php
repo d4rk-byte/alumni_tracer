@@ -239,6 +239,50 @@ class GtsSurveyQuestionBank
         ];
     }
 
+    /**
+     * @return array{
+     *     presentlyEmployed: string,
+     *     employmentStatus: string,
+     *     occupation: string,
+     *     companyName: string,
+     *     companyAddress: string
+     * }
+     */
+    public function extractEmploymentSummary(GtsSurvey $survey): array
+    {
+        $responsesByNumberKey = [];
+
+        foreach ($this->getStoredResponseItems($survey->getDynamicAnswers()) as $response) {
+            $numberKey = isset($response['numberKey']) ? strtolower((string) $response['numberKey']) : null;
+            if ($numberKey === null || $numberKey === '') {
+                continue;
+            }
+
+            $responsesByNumberKey[$numberKey] = $response['answer'] ?? null;
+        }
+
+        $listSummary = $this->extractListSummary($survey);
+        $presentlyEmployed = $this->stringifyAnswer($responsesByNumberKey['16'] ?? null);
+        $employmentStatus = $this->stringifyAnswer($responsesByNumberKey['18'] ?? null);
+
+        if ($employmentStatus === '' && $presentlyEmployed !== '') {
+            $employmentStatus = match (strtolower($presentlyEmployed)) {
+                'yes' => 'Employed',
+                'no' => 'Unemployed',
+                'never employed' => 'Never Employed',
+                default => $presentlyEmployed,
+            };
+        }
+
+        return [
+            'presentlyEmployed' => $presentlyEmployed,
+            'employmentStatus' => $employmentStatus,
+            'occupation' => $listSummary['occupation'],
+            'companyName' => $listSummary['companyName'],
+            'companyAddress' => $listSummary['companyAddress'],
+        ];
+    }
+
     public function importDefaults(EntityManagerInterface $entityManager, GtsSurveyTemplate $template): int
     {
         $count = 0;

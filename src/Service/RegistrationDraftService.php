@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\RegistrationDraft;
 use App\Entity\User;
+use App\Repository\QrRegistrationBatchRepository;
 use App\Repository\RegistrationDraftRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -15,6 +16,7 @@ class RegistrationDraftService
     public function __construct(
         private EntityManagerInterface $entityManager,
         private RegistrationDraftRepository $draftRepository,
+        private QrRegistrationBatchRepository $batchRepository,
         private AlumniRegistrationService $registrationService,
         private RegistrationOtpService $otpService,
         private UserPasswordHasherInterface $passwordHasher,
@@ -29,6 +31,7 @@ class RegistrationDraftService
      *     lastName: string,
      *     plainPassword: string,
      *     yearGraduated: ?int,
+     *     flowType?: string,
      *     dpaConsent?: bool
      * } $registration
      *
@@ -39,11 +42,12 @@ class RegistrationDraftService
         $email = strtolower(trim($registration['email']));
         $studentId = trim($registration['studentId']);
 
+        $this->assertBatchRegistrationIsOpen($registration['yearGraduated']);
         $this->registrationService->assertCanRegister($registration);
 
         $draft = $this->resolveEditableDraft($email, $studentId) ?? new RegistrationDraft();
         $draft
-            ->setFlowType(RegistrationDraft::FLOW_MANUAL)
+            ->setFlowType((string) ($registration['flowType'] ?? RegistrationDraft::FLOW_MANUAL))
             ->setEmail($email)
             ->setStudentId($studentId)
             ->setFirstName($registration['firstName'])
@@ -96,6 +100,10 @@ class RegistrationDraftService
 
     public function finalizeManualDraft(RegistrationDraft $draft): User
     {
+        $this->assertBatchRegistrationIsOpen($draft->getYearGraduated());
+
+        $accountStatus = $draft->getFlowType() === RegistrationDraft::FLOW_QR ? 'active' : 'pending';
+
         $user = $this->registrationService->register([
             'email' => $draft->getEmail(),
             'studentId' => $draft->getStudentId(),
@@ -108,7 +116,7 @@ class RegistrationDraftService
             'course' => $draft->getDepartment(),
             'dpaConsent' => $draft->isDpaConsent(),
             'emailVerifiedAt' => new \DateTimeImmutable(),
-        ], 'pending');
+        ], $accountStatus);
 
         $this->entityManager->remove($draft);
         $this->entityManager->flush();
@@ -121,6 +129,15 @@ class RegistrationDraftService
         $user = (new User())->setEmail($email);
 
         return $this->passwordHasher->hashPassword($user, $plainPassword);
+    }
+
+    private function assertBatchRegistrationIsOpen(?int $batchYear): void
+    {
+        if ($batchYear === null || $this->batchRepository->findOneOpenByBatchYear($batchYear) === null) {
+            throw new RegistrationValidationException([
+                'yearGraduated' => 'This batch registration is currently closed. Please select an open batch year.',
+            ]);
+        }
     }
 
     private function resolveEditableDraft(string $email, string $studentId): ?RegistrationDraft

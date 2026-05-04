@@ -64,6 +64,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 50, unique: true, nullable: true)]
     private ?string $schoolId = null;
 
+    #[ORM\Column(length: 80, unique: true, nullable: true)]
+    private ?string $username = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $phoneNumber = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $bio = null;
+
     /** @var list<int|string> */
     #[ORM\Column]
     private array $roles = [];
@@ -147,6 +156,37 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getSchoolId(): ?string { return $this->schoolId; }
     public function setSchoolId(?string $schoolId): static { $this->schoolId = $schoolId; return $this; }
+
+    public function getUsername(): ?string { return $this->username; }
+    public function setUsername(?string $username): static
+    {
+        $normalizedUsername = trim((string) $username);
+        $this->username = $normalizedUsername !== '' ? $normalizedUsername : null;
+
+        return $this;
+    }
+
+    public function getPhoneNumber(): ?string { return $this->phoneNumber; }
+    public function setPhoneNumber(?string $phoneNumber): static
+    {
+        $normalizedPhoneNumber = trim((string) $phoneNumber);
+        $this->phoneNumber = $normalizedPhoneNumber !== '' ? $normalizedPhoneNumber : null;
+
+        if ($this->alumni !== null) {
+            $this->alumni->setContactNumber($this->phoneNumber);
+        }
+
+        return $this;
+    }
+
+    public function getBio(): ?string { return $this->bio; }
+    public function setBio(?string $bio): static
+    {
+        $normalizedBio = trim((string) $bio);
+        $this->bio = $normalizedBio !== '' ? $normalizedBio : null;
+
+        return $this;
+    }
 
     public function getUserIdentifier(): string { return (string) $this->email; }
 

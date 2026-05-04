@@ -47,6 +47,18 @@ class SurveyInvitationRepository extends ServiceEntityRepository
     }
 
     /** @return SurveyInvitation[] */
+    public function findRecentForUser(User $user, int $limit = 25): array
+    {
+        return $this->createQueryBuilder('i')
+            ->andWhere('i.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('i.createdAt', 'DESC')
+            ->setMaxResults(max(1, $limit))
+            ->getQuery()
+            ->getResult();
+    }
+
+    /** @return SurveyInvitation[] */
     public function findByCampaign(SurveyCampaign $campaign, ?string $status = null): array
     {
         $qb = $this->createQueryBuilder('i')

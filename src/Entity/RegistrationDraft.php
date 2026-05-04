@@ -13,6 +13,7 @@ class RegistrationDraft
 {
     public const FLOW_MANUAL = 'manual';
     public const FLOW_GOOGLE = 'google';
+    public const FLOW_QR = 'qr';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

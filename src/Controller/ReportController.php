@@ -4,8 +4,10 @@ namespace App\Controller;
 
 use App\Entity\Alumni;
 use App\Entity\AuditLog;
+use App\Entity\Notification;
 use App\Repository\AlumniRepository;
 use App\Service\AuditLogger;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_STAFF')]
 class ReportController extends AbstractController
 {
-    public function __construct(private AuditLogger $audit) {}
+    public function __construct(private AuditLogger $audit, private NotificationService $notifications) {}
 
     #[Route('/', name: 'report_index', methods: ['GET'])]
     public function index(AlumniRepository $repo): Response
@@ -163,6 +165,15 @@ class ReportController extends AbstractController
             'AlumniReport',
             null,
             'Exported alumni data report (CSV) — ' . count($alumni) . ' records' . $filterStr
+        );
+        $this->notifications->createAdminNotification(
+            'reports.export_generated',
+            'Report exported',
+            'Exported alumni data report with ' . count($alumni) . ' records' . $filterStr . '.',
+            Notification::SEVERITY_INFO,
+            '/analytics',
+            'AlumniReport',
+            null,
         );
 
         $filename = 'Alumni_Report_' . date('Y-m-d') . '.csv';
@@ -482,6 +493,15 @@ class ReportController extends AbstractController
             'AlumniImport',
             null,
             "Imported alumni CSV — {$created} created, {$updated} updated, {$skipped} skipped"
+        );
+        $this->notifications->createAdminNotification(
+            'reports.import_completed',
+            'Alumni import completed',
+            "Imported alumni CSV: {$created} created, {$updated} updated, {$skipped} skipped.",
+            Notification::SEVERITY_SUCCESS,
+            '/alumni',
+            'AlumniImport',
+            null,
         );
 
         return [

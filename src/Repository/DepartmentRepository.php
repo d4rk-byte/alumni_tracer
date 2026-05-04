@@ -46,6 +46,19 @@ class DepartmentRepository extends ServiceEntityRepository
     /**
      * @return list<Department>
      */
+    public function findAllWithCollegeOrdered(): array
+    {
+        return $this->createQueryBuilder('d')
+            ->innerJoin('d.college', 'c')
+            ->orderBy('c.name', 'ASC')
+            ->addOrderBy('d.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return list<Department>
+     */
     public function findByCollege(College $college): array
     {
         return $this->createQueryBuilder('d')

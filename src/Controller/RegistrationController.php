@@ -4,8 +4,10 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\RegistrationFormType;
+use App\Repository\QrRegistrationBatchRepository;
 use App\Service\NotificationService;
 use App\Service\RegistrationDraftService;
+use App\Service\SystemSettingsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,14 +21,23 @@ class RegistrationController extends AbstractController
         Request $request,
         RegistrationDraftService $draftService,
         NotificationService $notifier,
+        QrRegistrationBatchRepository $batchRepository,
+        SystemSettingsService $systemSettings,
     ): Response {
         // If already logged in, redirect to home
         if ($this->getUser()) {
             return $this->redirectToRoute('app_home');
         }
 
+        if (!$systemSettings->isPublicSignupEnabled()) {
+            return $this->render('registration/register_disabled.html.twig');
+        }
+
         $user = new User();
-        $form = $this->createForm(RegistrationFormType::class, $user);
+        $batchYearChoices = $this->buildOpenBatchYearChoices($batchRepository);
+        $form = $this->createForm(RegistrationFormType::class, $user, [
+            'batch_year_choices' => $batchYearChoices,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -66,8 +77,24 @@ class RegistrationController extends AbstractController
 
         return $this->render('registration/register.html.twig', [
             'registrationForm' => $form,
+            'hasOpenRegistrationBatches' => $batchYearChoices !== [],
         ], new Response(status: $form->isSubmitted() && !$form->isValid()
             ? Response::HTTP_UNPROCESSABLE_ENTITY
             : Response::HTTP_OK));
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function buildOpenBatchYearChoices(QrRegistrationBatchRepository $batchRepository): array
+    {
+        $choices = [];
+
+        foreach ($batchRepository->findOpenOrdered() as $batch) {
+            $batchYear = $batch->getBatchYear();
+            $choices['Batch ' . $batchYear] = $batchYear;
+        }
+
+        return $choices;
     }
 }
